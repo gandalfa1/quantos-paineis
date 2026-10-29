@@ -1,3 +1,28 @@
+# Quantos Painéis — dimensionamento de sistemas fotovoltaicos residenciais
+# Copyright (C) 2026 Brenda Morel Bueno Ferreira
+#
+# Este programa é software livre: você pode redistribuí-lo e/ou modificá-lo
+# nos termos da GNU Affero General Public License, versão 3 ou (a seu critério)
+# qualquer versão posterior, publicada pela Free Software Foundation. Ele é
+# distribuído SEM NENHUMA GARANTIA. O texto oficial, em inglês, vale sobre este
+# resumo e está logo abaixo; a licença completa está no arquivo LICENSE do
+# repositório.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
 simulacao.py - junta as pecas (calculo.py, geocoding.py e nasa_power.py)
 numa unica funcao "simular", que recebe os dados que o usuario digita no
@@ -9,8 +34,10 @@ registram correcoes e numeros medidos durante o desenvolvimento (com a
 data); os numeros oficiais sao os do artigo.
 """
 
-from geocoding import buscar_coordenadas
-from nasa_power import buscar_hsp_mensal
+import geocoding
+import nasa_power
+from geocoding import buscar_coordenadas, ErroNominatim
+from nasa_power import buscar_hsp_mensal, ErroNasaPower
 from calculo import (
     hsp_medio_anual,
     hsp_medio_anual_simples,
@@ -21,10 +48,12 @@ from calculo import (
     potencia_instalada,
     geracao_estimada,
     tarifa_total,
+    consumo_faturado_da_conta,
     valor_economizado_por_kwh,
     percentual_fio_b_vigente,
     ano_referencia_fio_b,
     fio_b_do_estado,
+    fio_b_do_municipio,
     DATA_REFERENCIA_FIO_B,
     FONTE_FIO_B,
     energia_compensavel_anual,
@@ -40,6 +69,11 @@ from calculo import (
     payback_meses,
     payback_dentro_da_vida_util,
     VIDA_UTIL_MODULOS_ANOS,
+    # Itens 28 e 11 (06/10/2026): o retorno passou a ser mes a mes, com a
+    # escalada do Fio B e a degradacao dos modulos. payback_meses() continua
+    # importado: a conta simples segue indo para a tela como referencia.
+    retorno_mes_a_mes,
+    DEGRADACAO_ANUAL_MODULOS,
     # NOTA T15: "potencia_inversor" e "potencia_inversor_comercial" deixaram
     # de ser chamadas DIRETAMENTE aqui. Elas continuam sendo a unica
     # definicao do encaixe na grade comercial (T4) - agora sao chamadas por
@@ -153,18 +187,86 @@ def _numero(valor, casas=2):
     return f"{valor:.{casas}f}".replace(".", ",")
 
 
+# ---------------------------------------------------------------------
+# Quando um servico de fora nao responde (passo 6, 01/10/2026)
+# ---------------------------------------------------------------------
+# A plataforma depende de dois servicos gratuitos: o Nominatim (OSM), que
+# da a coordenada da cidade, e a NASA POWER, que da a irradiacao. Os dois
+# tem cache (passos 1 e 2) e tentativas com espera (passo 4), mas podem
+# falhar de vez: ai o geocoding.py levanta ErroNominatim e o nasa_power.py
+# levanta ErroNasaPower.
+#
+# ATE AQUI essas excecoes subiam sem tratamento e quem estava no site via a
+# pagina de erro do Flask ("Internal Server Error") - tela branca, sem
+# explicacao, e com cara de defeito da plataforma. Agora elas viram o mesmo
+# {"erro": ...} que o resto do arquivo ja devolve, com dois campos a mais
+# para a tela: erro_servico_indisponivel (troca o titulo, porque nao e uma
+# conclusao sobre o sistema, e sim uma indisponibilidade temporaria) e
+# erro_detalhe_tecnico (linha discreta de auditoria - decisao da aluna,
+# 01/10/2026).
+#
+# NAO HA PLANO B AQUI DE PROPOSITO. Sem coordenada e sem irradiacao da
+# regiao, simular exigiria um valor de sol generico - e um resultado com
+# cara de preciso e sem base na regiao da pessoa e pior que nenhum.
+MENSAGEM_SEM_COORDENADA = (
+    "A sua cidade foi reconhecida, mas não conseguimos obter agora as "
+    "coordenadas geográficas dela, que vêm do OpenStreetMap. Isso não tem a "
+    "ver com os dados que você informou.\n"
+    "Espere alguns minutos e tente de novo — cidades já consultadas antes "
+    "ficam guardadas aqui e respondem na hora."
+)
+MENSAGEM_SEM_IRRADIACAO = (
+    "A sua cidade foi reconhecida, mas não conseguimos obter agora os dados "
+    "de irradiação solar dela, que vêm do projeto POWER, da NASA. Em vez de "
+    "usar um valor de sol genérico, que daria um resultado sem base na sua "
+    "região, a plataforma preferiu não simular.\n"
+    "Espere alguns minutos e tente de novo."
+)
+
+
+def _detalhe_tecnico(servico, tentativas, alternativa=None):
+    """
+    Monta a linha discreta de auditoria da tela de erro.
+
+    Recebe o nome do servico e a lista de tentativas que o proprio modulo
+    registrou (geocoding.ULTIMAS_TENTATIVAS, nasa_power.ULTIMO_DIAGNOSTICO).
+    Essas listas guardam SO o que aconteceu na conversa com o servico
+    ("HTTP 503", "sem resposta (Timeout)") - nenhum dado de quem simulou.
+
+    A "alternativa" existe para UM caso real, achado ao provar isto em
+    01/10/2026: depois de um aviso 429 ou 403, o geocoding.py fica 10
+    minutos sem consultar e recusa na hora, sem registrar tentativa nenhuma
+    - a lista vem vazia. Era justo o caso em que a pessoa mais precisa da
+    informacao, porque a espera nao e de "alguns minutos". Nele usamos o
+    texto da propria excecao, que diz quanto falta da pausa.
+
+    Sem nada dos dois, devolve None e a tela nao mostra a linha.
+    """
+    passos = [str(t) for t in (tentativas or []) if str(t).strip()]
+    if passos:
+        return f"{servico}: " + "; ".join(passos)
+    if alternativa and str(alternativa).strip():
+        return f"{servico}: " + str(alternativa).strip()
+    return None
+
+
 def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
             opcao_painel=None,
             td=0.80, fdi=0.80, fio_b=None,
             percentual_fio_b=None,
             piso_disponibilidade_kwh=None,
             tipo_ligacao=None,
-            consumo_por_mes_kwh=None, consumo_da_fatura_kwh=None):
+            consumo_por_mes_kwh=None, consumo_da_fatura_kwh=None,
+            cobrancas_nao_energia_reais=None, distribuidora_cnpj=None):
     """
     Funcao principal do protótipo: recebe os dados do usuario (o que vai
     vir do formulario do site) e devolve um dicionario com todos os
     resultados - numero de paineis, potencias, geracao mes a mes, economia
     e payback.
+
+    cobrancas_nao_energia_reais (opcional, passo 6, 01/10/2026): quanto do
+    valor da conta informada NAO e energia. Ver o bloco da Equacao 6 mais
+    abaixo. Em branco (None ou 0), o calculo e exatamente o de antes.
     """
 
     # 0) perfil de consumo do ano
@@ -193,12 +295,32 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         consumo_por_mes_kwh = {mes: consumo_medio_kwh for mes in NOMES_MESES}
 
     # 1) localizacao do usuario -> coordenadas (Passo 2)
-    coordenadas = buscar_coordenadas(cidade)
+    #
+    # O try/except e do passo 6 (01/10/2026): sem ele, ErroNominatim subia
+    # ate o Flask e a pessoa recebia a pagina de erro dele. Ver as
+    # mensagens no comeco deste arquivo.
+    try:
+        coordenadas = buscar_coordenadas(cidade)
+    except ErroNominatim as falha:
+        return {"erro": MENSAGEM_SEM_COORDENADA,
+                "erro_servico_indisponivel": True,
+                "erro_detalhe_tecnico": _detalhe_tecnico(
+                    "OpenStreetMap (Nominatim)", geocoding.ULTIMAS_TENTATIVAS,
+                    alternativa=falha)}
     if coordenadas is None:
-        return {"erro": f"Nao foi possivel encontrar a cidade '{cidade}'."}
+        # 01/10/2026 (passo 6): acentuacao corrigida (decisao da aluna). O
+        # texto e o mesmo; so as palavras ficaram escritas certo.
+        return {"erro": f"Não foi possível encontrar a cidade '{cidade}'."}
 
     # 2) coordenadas -> HSP mensal real (Passo 3)
-    hsp_mensal = buscar_hsp_mensal(coordenadas["latitude"], coordenadas["longitude"])
+    try:
+        hsp_mensal = buscar_hsp_mensal(coordenadas["latitude"], coordenadas["longitude"])
+    except ErroNasaPower:
+        return {"erro": MENSAGEM_SEM_IRRADIACAO,
+                "erro_servico_indisponivel": True,
+                "erro_detalhe_tecnico": _detalhe_tecnico(
+                    "NASA POWER",
+                    (nasa_power.ULTIMO_DIAGNOSTICO or {}).get("tentativas"))}
     # CORRECAO T17 (14/09/2026), Achado C: a media anual passou a ser
     # ponderada pelos dias de cada mes, o mesmo peso que a Equacao 5 ja
     # aplicava na geracao. A media simples continua sendo calculada, mas
@@ -271,7 +393,74 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
     if consumo_da_fatura_kwh and consumo_da_fatura_kwh > 0:
         consumo_de_referencia = consumo_da_fatura_kwh
 
-    tarifa = tarifa_total(valor_fatura_reais, consumo_de_referencia)
+    # CAMPO OPCIONAL DAS COBRANCAS QUE NAO SAO ENERGIA (passo 6, 01/10/2026;
+    # decisao 3 do passo 5, ampliada pela aluna em 01/10 depois do achado da
+    # taxa de lixo).
+    #
+    # O PROBLEMA: o formulario pede o "Valor total da conta (R$)" e a
+    # Equacao 6 divide esse valor pelo consumo em kWh da mesma conta. Mas a
+    # fatura de luz cobra, alem da energia, parcelas que NAO sao energia e
+    # que os paineis NAO reduzem:
+    #  - a contribuicao de iluminacao publica (CIP/COSIP), definida por lei
+    #    MUNICIPAL e cobrada na fatura (art. 476 da REN ANEEL 1.000/2021).
+    #    Ela aparece como item proprio, com a indicacao "municipal" ou
+    #    "distrital" ao final da descricao (PRODIST, Modulo 11 - Anexo XI da
+    #    REN ANEEL 956/2021, itens 30 e 30.1; o modelo de fatura residencial
+    #    do item 68 do mesmo modulo mostra a linha "CONTRIBUICAO DE
+    #    ILUMINACAO PUBLICA" somando no TOTAL A PAGAR);
+    #  - a taxa ou tarifa de limpeza urbana e manejo de residuos solidos (a
+    #    "taxa do lixo"), onde o municipio cobra junto com a luz - art. 343,
+    #    § 2o, I da REN 1.000, na redacao da REN ANEEL 1.047/2022. O mesmo
+    #    paragrafo e a prova de que as duas sao parcelas DISTINTAS do valor
+    #    total: multa e juros por atraso nao incidem sobre elas;
+    #  - multa, juros, atualizacao monetaria e parcelamentos (art. 343).
+    #
+    # Sem descontar, a tarifa sai maior do que a tarifa real de energia, e
+    # uma tarifa maior infla a economia e encurta o payback - erro na
+    # direcao OTIMISTA. Medido em 30/09/2026 com a Cosip real da faixa de
+    # Manaus (R$ 47,91): payback de 38,0 para 33,5 meses, com os mesmos
+    # paineis.
+    #
+    # NAO entram aqui (sao energia, e os paineis reduzem): a bandeira
+    # tarifaria e os impostos (ICMS, PIS/Pasep, Cofins), que incidem sobre a
+    # energia. Por isso a tela diz o que entra e o que nao entra.
+    #
+    # EM BRANCO O CALCULO E O DE ANTES, bit a bit: e o que mantem os 5 casos
+    # de validacao do PVsyst reproduziveis.
+    cobrancas = float(cobrancas_nao_energia_reais or 0.0)
+    if cobrancas < 0:
+        return {"erro": "O valor das cobranças que não são energia não pode "
+                        "ser negativo."}
+    if cobrancas >= valor_fatura_reais:
+        return {"erro": (
+            f"As cobranças que não são energia (R$ {_reais(cobrancas)}) somam o "
+            f"valor total da conta (R$ {_reais(valor_fatura_reais)}), ou mais. "
+            f"Sem a parte de energia não há tarifa para calcular. Confira os "
+            f"dois valores na sua conta: o campo de cobranças deve receber "
+            f"apenas as linhas que não são de energia, como a contribuição de "
+            f"iluminação pública.")}
+
+    valor_de_energia = valor_fatura_reais - cobrancas
+
+    # CONTA DE UM MES ABAIXO DO MINIMO (revisao geral, parte 1, 07/10/2026;
+    # decisao da aluna). Sem paineis, a distribuidora fatura o MAIOR entre o
+    # consumo do mes e o custo de disponibilidade (art. 290, caput, e art. 291
+    # da REN ANEEL 1.000/2021) - a mesma regra que faturas_mensais_com_creditos()
+    # ja usa para a conta sem paineis. Num mes em que a casa consumiu menos
+    # que o minimo (ferias, casa vazia), a conta cobra o minimo, e dividir o
+    # valor pelo consumo daquele mes infla a tarifa (calculo.py,
+    # consumo_faturado_da_conta): medido em Guaira,
+    # bifasica, media de 300 kWh e conta de 20 kWh cobrada pelo minimo de
+    # 50 kWh -> tarifa 2,5 vezes a real, 4 paineis em vez de 5 e retorno de
+    # 1,4 ano em vez de 4,6. Por isso o divisor e o maior entre o consumo da
+    # conta e o minimo da ligacao. Sem tipo de ligacao informado vale o minimo
+    # da bifasica presumida (50 kWh): numa casa monofasica isso so pode deixar
+    # a tarifa um pouco MENOR (lado conservador), e a tela avisa.
+    # Acima do minimo (todos os 5 casos de validacao) nada muda, bit a bit.
+    consumo_faturado_kwh = consumo_faturado_da_conta(consumo_de_referencia,
+                                                     piso_disponibilidade_kwh)
+    tarifa_pelo_minimo = consumo_faturado_kwh > consumo_de_referencia
+    tarifa = tarifa_total(valor_de_energia, consumo_faturado_kwh)
 
     # CORRECAO T3a (13/09/2026): o percentual do Fio B deixou de ser um
     # 0,60 fixo na assinatura desta funcao. Quando ninguem informa um
@@ -293,11 +482,22 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
     # (T3a) e do piso (T7). Quem informa na mao continua mandando, e e
     # assim que os 5 casos de validacao antigos seguem reproduziveis.
     if fio_b is None:
-        referencia_fio_b = fio_b_do_estado(coordenadas.get("uf"))
+        # PASSO 7 (02/10/2026): o Fio B passou a vir da distribuidora do
+        # MUNICIPIO (codigo IBGE que a geocodificacao devolve), e nao mais da
+        # capital do estado. A ordem de escolha - pessoa, unica, maior,
+        # estado - e a regra de plano B estao no calculo.py. Quando os
+        # arquivos de dados nao estao la, fio_b_do_municipio devolve
+        # exatamente o que fio_b_do_estado devolvia, e nada muda.
+        referencia_fio_b = fio_b_do_municipio(
+            coordenadas.get("codigo_ibge"), coordenadas.get("uf"),
+            cnpj_escolhido=distribuidora_cnpj)
         fio_b = referencia_fio_b["fio_b"]
     else:
         referencia_fio_b = {"fio_b": fio_b, "uf": None, "distribuidora": None,
                             "resolucao": None, "estado_identificado": False,
+                            "vigencia_inicio_br": None, "vigencia_fim_br": None,
+                            "vigencia_expirada": False, "origem": None,
+                            "cnpj": None, "opcoes": [], "tabela_de_arquivo": False,
                             "informado_na_chamada": True}
 
     economia_kwh = valor_economizado_por_kwh(tarifa, fio_b, percentual_fio_b)
@@ -352,8 +552,8 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
             # paragrafos.
             "erro": (
                 f"Com um consumo de {consumo_medio_kwh:.0f} kWh por mês, um sistema "
-                f"solar conectado à rede não se paga, e o motivo não está na sua "
-                f"conta: a distribuidora cobra um mínimo de {piso_texto} kWh todo "
+                f"solar conectado à rede não se paga, e não é por erro nos dados que "
+                f"você informou: a distribuidora cobra um mínimo de {piso_texto} kWh todo "
                 f"mês ({ligacao_texto}), mesmo de quem tem painéis. É o custo de "
                 f"disponibilidade, previsto no art. 291 da Resolução ANEEL "
                 f"nº 1.000/2021, e ele paga a rede que continua à sua disposição. "
@@ -494,10 +694,13 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
             # Bloco corrido pelo mesmo motivo das guardas do T18: a caixa
             # de aviso do resultado.html nao preserva quebra de linha.
             "erro": (
-                f"Com um consumo de {consumo_medio_kwh:.0f} kWh por mês, o sistema "
+                # (revisao geral, parte 3, 07/10/2026) consumo com ponto de milhar e, antes
+                # da explicacao tecnica, a hipotese mais comum: numero digitado errado.
+                f"Você informou um consumo de {f'{consumo_medio_kwh:,.0f}'.replace(',', '.')} kWh por mês. "
+                f"Se o número foi digitado errado, volte e corrija. Se está certo: o sistema "
                 f"precisaria de cerca de {_numero(pior['potencia_instalada_kwp'])} kWp, "
-                f"e para esse porte não existe inversor monofásico com certificação "
-                f"INMETRO. Acima de mais ou menos 10 kW os fabricantes passam para a "
+                f"e para esse porte não há inversor monofásico no catálogo da "
+                f"plataforma. Acima de mais ou menos 10 kW os fabricantes passam para a "
                 f"linha trifásica, em 380 V, que exige ligação trifásica na casa. "
                 f"{'Como a sua ligação já é trifásica, o caminho existe e passa por um inversor trifásico' if tipo_ligacao_usado == 'trifasica' else 'O primeiro passo é verificar com a distribuidora se a sua ligação suporta essa potência (art. 31 da Resolução ANEEL nº 1.000/2021)'}, "
                 f"e um sistema desse tamanho precisa de projeto assinado por "
@@ -633,7 +836,22 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
     # O parametro percentual_bos foi removido da assinatura no T5.
     custos = custo_sistema_greener(pot_instalada)
     custo_total = custos["custo_total"]
-    payback = payback_meses(custo_total, economia_media_mensal)
+    payback_simples = payback_meses(custo_total, economia_media_mensal)
+
+    # 6a) ITENS 28 E 11 (06/10/2026): o retorno que vale passou a ser o MES A
+    # MES (calculo.retorno_mes_a_mes): a cobranca do Fio B sobe todo 1o de
+    # janeiro ate 2029 (Lei 14.300/2022, art. 27) e os modulos perdem 0,5% ao
+    # ano. A conta simples acima (custo / economia de um mes) supunha a
+    # economia de hoje repetida para sempre e saia otimista - ate ~30% na
+    # faixa residencial. Ela continua no resultado como "payback_simples_meses"
+    # (e o numero do TCC). Quando o percentual foi informado na chamada, ele
+    # vale para todos os meses. A economia_media_mensal continua sendo a de
+    # HOJE (a do primeiro mes do fluxo, com o percentual do ano corrente).
+    retorno = retorno_mes_a_mes(
+        custo_total, geracao_anual, consumo_por_mes_kwh,
+        piso_disponibilidade_kwh, tarifa, fio_b,
+        percentual_fixo=None if ano_fio_b is not None else percentual_fio_b)
+    payback = retorno["payback_meses"]
 
     # 6b) GUARDA DE VIABILIDADE, PARTE 2 (correcao T18, Achado E)
     #
@@ -649,24 +867,49 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
     # criterio e a garantia de desempenho dos modulos (25 anos, Pinho e
     # Galdino, 2014), secao 3.3 do artigo.
     if not payback_dentro_da_vida_util(payback):
-        anos = payback / 12
-        payback_texto = (f"{anos:.0f} anos" if anos < 1000
-                         else "mais de mil anos")
-        return {
-            # Bloco corrido pelo mesmo motivo da guarda anterior. Os numeros
-            # vao DENTRO da mensagem de proposito: a plataforma nao mostra a
-            # tabela nesse caso, mas tambem nao esconde nada de quem quiser
-            # conferir a conta.
-            "erro": (
+        # ITENS 28 E 11 (06/10/2026): o fluxo mes a mes so e somado dentro dos
+        # 25 anos da garantia de desempenho (alem disso a degradacao e a regra
+        # do Fio B deixam de ter fonte). Por isso a mensagem deixou de dizer
+        # "levaria N anos" e passou a dizer quanto a economia soma em 25 anos,
+        # contra o custo - o mesmo criterio, com um numero que a conta tem.
+        acumulado_25 = retorno["acumulado_no_prazo"] or 0.0
+        # "que diminui" so quando diminui mesmo: onde o minimo da conta prende
+        # a economia (art. 655-I), a escalada do Fio B nao a muda.
+        economia_cai = (retorno["anos"][-1]["economia_por_mes"]
+                        < economia_media_mensal - 0.005)
+        sistema = (f"A simulação indicaria {n_paineis} "
+                   f"{'painel' if n_paineis == 1 else 'painéis'} "
+                   f"({_numero(pot_instalada)} kWp) por cerca de R$ {_reais(custo_total)}")
+        if tarifa <= fio_b:
+            # REVISAO GERAL, PARTE 1 (07/10/2026), achado 2: tarifa que nao
+            # passa do proprio Fio B so acontece com conta digitada errada (ou
+            # cobrancas quase iguais ao total). Ai a economia de cada kWh
+            # compensado chega a zero ou fica NEGATIVA conforme o percentual
+            # sobe, e a mensagem antiga escrevia "economia de cerca de R$ -15,51"
+            # e punha a culpa no minimo da distribuidora (o piso do ano sai
+            # maior que zero nesse caso por construcao de compensavel_do_mes,
+            # achado A5 do revisor). Agora: sem numero de economia, e o motivo
+            # verdadeiro - a tarifa calculada.
+            mensagem = (
                 f"Com um consumo de {consumo_medio_kwh:.0f} kWh por mês, um sistema "
-                f"solar conectado à rede não chega a se pagar. A simulação indicaria "
-                f"{n_paineis} {'painel' if n_paineis == 1 else 'painéis'} "
-                f"({_numero(pot_instalada)} kWp) por cerca de "
-                f"R$ {_reais(custo_total)}, com economia de cerca de "
-                f"R$ {_reais(economia_media_mensal)} por mês, o que levaria "
-                f"{payback_texto} para voltar, mais do que os "
-                f"{VIDA_UTIL_MODULOS_ANOS} anos da garantia de desempenho dos próprios "
-                f"painéis. "
+                f"solar conectado à rede não chega a se pagar. {sistema}. Pela conta "
+                f"que você informou, a tarifa é de R$ {_numero(tarifa)}/kWh, e a "
+                f"parte do Fio B que continua sendo cobrada sobre a energia "
+                f"compensada chega a R$ {_numero(fio_b)}/kWh (Lei nº 14.300/2022): "
+                f"cada kWh compensado economizaria pouco ou nada. Uma tarifa tão "
+                f"baixa é rara — confira se o valor e o consumo informados são da "
+                f"mesma conta de luz e se o campo das cobranças que não são energia "
+                f"não recebeu o valor da conta inteira.")
+        else:
+            mensagem = (
+                f"Com um consumo de {consumo_medio_kwh:.0f} kWh por mês, um sistema "
+                f"solar conectado à rede não chega a se pagar. {sistema}, com "
+                f"economia de cerca de R$ {_reais(economia_media_mensal)} por mês hoje"
+                + (", que diminui nos próximos anos" if economia_cai else "")
+                + f". Somada em {VIDA_UTIL_MODULOS_ANOS} anos, que é a "
+                f"garantia de desempenho dos próprios painéis, a economia chegaria "
+                f"a cerca de R$ {_reais(acumulado_25)}, menos do que o sistema "
+                f"custa. "
                 + (
                     # CORRECAO (auditoria de 23/09/2026): o motivo so e o
                     # custo de disponibilidade quando ele de fato limitou a
@@ -684,8 +927,13 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
                     f"parte dela continua sendo cobrada sobre a energia compensada "
                     f"(o Fio B, Lei nº 14.300/2022). Confira se o valor e o consumo "
                     f"informados são da mesma conta de luz."
-                )
-            ),
+                ))
+        return {
+            # Bloco corrido pelo mesmo motivo da guarda anterior. Os numeros
+            # vao DENTRO da mensagem de proposito: a plataforma nao mostra a
+            # tabela nesse caso, mas tambem nao esconde nada de quem quiser
+            # conferir a conta.
+            "erro": mensagem,
             "inviavel": True,
             "motivo_inviabilidade": "payback_acima_da_vida_util",
             "consumo_medio_mensal_kwh": consumo_medio_kwh,
@@ -694,6 +942,8 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
             "custo_total_sistema": custo_total,
             "economia_mensal_media": economia_media_mensal,
             "payback_meses": payback,
+            "payback_simples_meses": payback_simples,
+            "economia_25_anos": acumulado_25,
             "piso_disponibilidade_kwh": piso_disponibilidade_kwh,
             "tipo_ligacao": tipo_ligacao_usado,
             "tipo_ligacao_informado": tipo_ligacao_informado,
@@ -798,6 +1048,24 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         "fio_b_informado_na_chamada": referencia_fio_b.get("informado_na_chamada", False),
         "fio_b_data_referencia": DATA_REFERENCIA_FIO_B,
         "fio_b_fonte": FONTE_FIO_B,
+        # --- novos campos de 01/10/2026 (passo 6): vigencia da tarifa ---
+        # A tela passa a dizer ATE QUANDO o Fio B usado vale, em vez de
+        # so a data em que a tabela foi montada. fio_b_vigencia_expirada
+        # True significa que a tela PRECISA avisar que o valor pode estar
+        # desatualizado (cada distribuidora reajusta uma vez por ano, em
+        # data propria) e que a economia mostrada tende a ficar otimista.
+        "fio_b_vigencia_inicio": referencia_fio_b.get("vigencia_inicio_br"),
+        "fio_b_vigencia_fim": referencia_fio_b.get("vigencia_fim_br"),
+        "fio_b_vigencia_expirada": referencia_fio_b.get("vigencia_expirada", False),
+        # --- novos campos do passo 7 (02/10/2026): qual distribuidora entrou
+        # na conta e POR QUE. fio_b_origem diz de onde veio a escolha:
+        # "informada" (a pessoa disse), "unica" (so uma atende o municipio),
+        # "maior" (mais de uma e a pessoa nao sabe: usamos a de maior Fio B,
+        # que da a MENOR economia) ou "estado" (plano B, criterio da capital).
+        "fio_b_origem": referencia_fio_b.get("origem"),
+        "fio_b_cnpj": referencia_fio_b.get("cnpj"),
+        "fio_b_opcoes_do_municipio": referencia_fio_b.get("opcoes") or [],
+        "fio_b_tabela_de_arquivo": referencia_fio_b.get("tabela_de_arquivo", False),
         "ano_referencia_fio_b": ano_fio_b,
         # --- novos campos da correcao T7 (custo de disponibilidade) ---
         # tipo_ligacao vem None quando o piso foi informado na mao.
@@ -823,8 +1091,19 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         "consumo_alvo_dimensionamento_kwh": consumo_alvo_mensal_kwh,
         # --- novos campos da correcao T2b (grafico da fatura mes a mes) ---
         "fatura_informada": valor_fatura_reais,
+        # --- novos campos do passo 6 (01/10/2026): cobrancas que nao sao
+        # energia. cobrancas_nao_energia vem 0.0 quando a pessoa deixou o
+        # campo em branco, e aí valor_de_energia e igual a fatura informada
+        # e a tela nao mostra nada a mais.
+        "cobrancas_nao_energia_reais": cobrancas,
+        "valor_de_energia_reais": valor_de_energia,
         "modo_consumo": modo_consumo,
         "consumo_da_fatura_kwh": consumo_de_referencia,
+        # Revisao geral, parte 1 (07/10/2026): True quando o consumo da conta
+        # ficou abaixo do minimo da ligacao e a tarifa saiu do minimo (ver o
+        # bloco da Equacao 6). A tela PRECISA avisar.
+        "tarifa_pelo_minimo": tarifa_pelo_minimo,
+        "consumo_faturado_kwh": consumo_faturado_kwh,
         "consumo_medio_mensal_kwh": consumo_medio_kwh,
         "consumo_por_mes_kwh": consumo_por_mes_kwh,
         "fatura_por_mes_reais": fatura_por_mes,
@@ -852,6 +1131,26 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         "custo_fora_da_faixa_medida": custos["fora_da_faixa_medida"],
         "referencia_precos": REFERENCIA_PRECOS,
         "payback_meses": payback,
+        # --- novos campos dos itens 28 e 11 (06/10/2026): retorno mes a mes ---
+        # payback_meses (acima) passou a ser o do fluxo mes a mes. A conta
+        # simples (custo / economia de hoje) vem em payback_simples_meses -
+        # e o numero do TCC (Equacao 11 do artigo). retorno_por_ano tem uma
+        # linha por ano civil, da instalacao ate o ano em que o sistema se
+        # paga: ano, meses, percentual_fio_b, economia, economia_por_mes e
+        # acumulado. E dali que a tela tira a tabela do retorno: nenhuma
+        # conta financeira no template (regra do T2b).
+        "payback_simples_meses": payback_simples,
+        "retorno_por_ano": retorno["anos"],
+        "retorno_inicio_ano": retorno["inicio_ano"],
+        "retorno_inicio_mes": retorno["inicio_mes"],
+        "degradacao_anual_modulos": DEGRADACAO_ANUAL_MODULOS,
+        "percentual_fio_b_informado": ano_fio_b is None,
+        # True quando a economia por mes do ultimo ano da tabela fica abaixo da
+        # de hoje (meio centavo de tolerancia). E False onde o minimo da conta
+        # prende a economia (art. 655-I): ali a escalada do Fio B nao a muda, e
+        # a tela nao pode dizer que ela cai.
+        "economia_diminui": (retorno["anos"][-1]["economia_por_mes"]
+                             < economia_media_mensal - 0.005),
     }
 
 

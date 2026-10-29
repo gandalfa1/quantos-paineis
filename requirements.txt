@@ -1,6 +1,8 @@
-# Versoes das bibliotecas do ambiente em que a plataforma foi desenvolvida
-# (Python 3.14, Windows), obtidas com "pip freeze".
+# Bibliotecas que o site precisa, com as versoes testadas.
 # Instalar com: pip install -r requirements.txt
+# (O programa de atualizacao dos dados da ANEEL, atualizar_dados_aneel.py, precisa
+# tambem do pyarrow; o site nao precisa dele. A tarefa automatica do GitHub instala o
+# pyarrow sozinha.)
 blinker==1.9.0
 certifi==2026.7.22
 charset-normalizer==3.5.1
@@ -14,3 +16,7 @@ MarkupSafe==3.0.3
 requests==2.34.2
 urllib3==2.7.0
 Werkzeug==3.1.8
+# Para a hospedagem (Render): o servidor gunicorn e o acesso ao banco Postgres (Neon).
+# O banco e opcional: sem a variavel DATABASE_URL o site funciona igual, sem contador.
+gunicorn==26.2.0
+psycopg[binary]==3.3.6

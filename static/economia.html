@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A economia e o tempo de retorno — Quantos Painéis</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/paginas.css">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="pular-conteudo no-print" href="#conteudo">Pular para o conteúdo</a>
+<header class="topo-site no-print">
+    <div class="topo-conteudo">
+        <a class="topo-marca" href="/"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><radialGradient id="solTopoGrad" cx="35%" cy="35%" r="70%"><stop offset="0%" stop-color="#FFC24B"/><stop offset="55%" stop-color="#F2600C"/><stop offset="100%" stop-color="#C94E0A"/></radialGradient></defs><g stroke="#F2600C" stroke-width="3" stroke-linecap="round" opacity="0.8"><line x1="32" y1="2" x2="32" y2="10"/><line x1="32" y1="54" x2="32" y2="62"/><line x1="2" y1="32" x2="10" y2="32"/><line x1="54" y1="32" x2="62" y2="32"/><line x1="10.7" y1="10.7" x2="16.2" y2="16.2"/><line x1="47.8" y1="47.8" x2="53.3" y2="53.3"/><line x1="10.7" y1="53.3" x2="16.2" y2="47.8"/><line x1="47.8" y1="16.2" x2="53.3" y2="10.7"/></g><circle cx="32" cy="32" r="16" fill="url(#solTopoGrad)"/></svg><span>Quantos Painéis</span></a>
+        <div class="topo-acoes">
+            <details class="topo-menu-celular">
+                <summary>Páginas</summary>
+                <ul>
+                    <li><a href="/entenda">Como funciona</a></li>
+                    <li><a href="/economia" aria-current="page">Economia e retorno</a></li>
+                    <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+                    <li><a href="/precisao">Quão preciso é</a></li>
+                    <li><a href="/metodologia">Metodologia</a></li>
+                    <li><a href="/limitacoes">Limitações</a></li>
+                    <li><a href="/sobre">Sobre</a></li>
+                    <li><a href="/contato">Contato</a></li>
+                </ul>
+            </details>
+            <a class="btn-simular-topo" href="/"><span class="so-pc">Fazer uma simulação</span><span class="so-cel">Simular</span></a>
+        </div>
+    </div>
+    <nav class="topo-menu" aria-label="Páginas de explicação">
+        <ul>
+            <li><a href="/entenda">Como funciona</a></li>
+            <li><a href="/economia" aria-current="page">Economia e retorno</a></li>
+            <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+            <li><a href="/precisao">Quão preciso é</a></li>
+            <li><a href="/metodologia">Metodologia</a></li>
+            <li><a href="/limitacoes">Limitações</a></li>
+            <li><a href="/sobre">Sobre</a></li>
+            <li><a href="/contato">Contato</a></li>
+        </ul>
+    </nav>
+</header>
+<main id="conteudo">
+<div class="faixa-pagina">
+<div class="faixa-pagina-conteudo">
+<h1 class="pagina-titulo">A economia e o tempo de retorno</h1>
+<div class="resumo-pagina">
+<p><strong>Em resumo:</strong> a energia dos painéis abate a sua conta, mas <strong>a conta não zera</strong>. A distribuidora continua cobrando um valor mínimo por mês e uma parte da tarifa chamada <strong>Fio B</strong>, e essa parte sobe a cada ano até 2029. A plataforma calcula a economia de cada mês com essas regras e soma, mês a mês, até alcançar o preço do sistema: esse é o <strong>tempo de retorno</strong>.</p>
+<p>Esse tempo é uma estimativa. Algumas coisas que ficam fora da conta o deixam mais curto, e outras o deixam mais longo. Esta página explica tudo isso.</p>
+</div>
+</div>
+</div>
+<div class="page-wrap pagina-corpo">
+<p class="abrir-todas no-print"><button type="button" class="btn-abrir-todas" aria-pressed="false">Abrir todas as seções</button></p>
+
+<section class="card secao" aria-labelledby="1-de-onde-vem-a-economia">
+<details class="secao-sanfona">
+    <summary><h2 id="1-de-onde-vem-a-economia"><span class="divider-dot"></span>1. De onde vem a economia</h2></summary>
+<div class="secao-conteudo">
+<p>Durante o dia, os painéis geram energia. O que a sua casa não usa naquela hora vai para a rede da distribuidora e vira <strong>crédito</strong>, em kWh. Esse crédito abate o consumo da sua conta, no mesmo mês ou nos seguintes, e vale por <strong>60 meses</strong> (Lei nº 14.300/2022, art. 13).</p>
+<p>O crédito abate a conta, mas <strong>não vira dinheiro</strong>. A distribuidora não paga pela energia que sobra. Por isso a plataforma dimensiona o sistema para o que a sua conta consegue abater, e não para gerar o máximo possível.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="2-por-que-a-conta-nao-zera">
+<details class="secao-sanfona">
+    <summary><h2 id="2-por-que-a-conta-nao-zera"><span class="divider-dot"></span>2. Por que a conta não zera</h2></summary>
+<div class="secao-conteudo">
+<p>Três coisas continuam na conta mesmo com os painéis:</p>
+<ol>
+<li><strong>O valor mínimo (custo de disponibilidade).</strong> Toda conta tem um mínimo, que paga a rede que continua à sua disposição. Ele equivale a <strong>30 kWh</strong> na ligação monofásica, <strong>50 kWh</strong> na bifásica e <strong>100 kWh</strong> na trifásica (Resolução ANEEL nº 1.000/2021, art. 291).</li>
+<li><strong>O Fio B</strong> sobre a energia que volta da rede como crédito (explicado na seção 3).</li>
+<li><strong>Outras cobranças que não são energia</strong>, como a iluminação pública, a taxa de lixo, multas ou parcelamentos (seção 4).</li>
+</ol>
+<p>Pela regra da ANEEL, a distribuidora cobra o <strong>maior</strong> valor entre o mínimo e o que você deve depois de usar os créditos (Resolução ANEEL nº 1.000/2021, arts. 290 e 655-I).</p>
+<p><strong>Dois exemplos dos casos de validação</strong> (com uma tarifa de teste de R$ 0,75/kWh e ligação bifásica, sem iluminação pública):</p>
+<div class="tabela-wrap"><table class="tabela-geracao">
+<thead>
+<tr>
+<th scope="col">Caso</th>
+<th scope="col">Conta sem painéis</th>
+<th scope="col">Conta estimada com painéis</th>
+<th scope="col">O que sobrou na conta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Guaíra (PR), 300 kWh/mês</th>
+<td>R$ 225,00</td>
+<td>R$ 38,62</td>
+<td>O Fio B sobre os 300 kWh compensados, que passa do mínimo de R$ 37,50</td>
+</tr>
+<tr>
+<th scope="row">Campinas (SP), 180 kWh/mês</th>
+<td>R$ 135,00</td>
+<td>R$ 37,50</td>
+<td>O valor mínimo da ligação bifásica (50 kWh × R$ 0,75)</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="3-o-fio-b-explicado">
+<details class="secao-sanfona">
+    <summary><h2 id="3-o-fio-b-explicado"><span class="divider-dot"></span>3. O Fio B, explicado</h2></summary>
+<div class="secao-conteudo">
+<p><strong>O que é.</strong> A tarifa de energia tem várias partes. O Fio B é a parte que paga a <strong>própria rede da distribuidora</strong>. Nas palavras da Lei, são as componentes "relativas à remuneração dos ativos do serviço de distribuição, à quota de reintegração regulatória (depreciação) dos ativos de distribuição e ao custo de operação e manutenção do serviço de distribuição" (Lei nº 14.300/2022, art. 27).</p>
+<p><strong>Como é cobrado de quem tem painéis.</strong> Desde 2023, a Lei manda cobrar uma parte do Fio B sobre toda a energia compensada, ou seja, sobre a energia que volta da rede como crédito. Essa parte sobe a cada ano:</p>
+<div class="tabela-wrap"><table class="tabela-geracao">
+<thead>
+<tr>
+<th scope="col">Ano</th>
+<th scope="col">Parte do Fio B cobrada</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">2023</th>
+<td>15%</td>
+</tr>
+<tr>
+<th scope="row">2024</th>
+<td>30%</td>
+</tr>
+<tr>
+<th scope="row">2025</th>
+<td>45%</td>
+</tr>
+<tr>
+<th scope="row"><strong>2026</strong></th>
+<td><strong>60%</strong></td>
+</tr>
+<tr>
+<th scope="row">2027</th>
+<td>75%</td>
+</tr>
+<tr>
+<th scope="row">2028</th>
+<td>90%</td>
+</tr>
+<tr>
+<th scope="row">2029 em diante</th>
+<td>regra nova, ainda a ser definida pela ANEEL</td>
+</tr>
+</tbody>
+</table></div>
+<p>A partir de 2029, a Lei manda cobrar todas as partes da tarifa que não são o custo da energia (e não só o Fio B), com um desconto pelos benefícios que a geração traz à rede. Esse desconto ainda vai ser definido (Lei nº 14.300/2022, arts. 17 e 27): a ANEEL abriu a discussão em dezembro de 2025 (Tomada de Subsídios nº 23/2025), e ainda não há data definida para a regra final.</p>
+<p><strong>Quem paga assim:</strong> os sistemas novos. Quem já tinha sistema quando a Lei foi publicada (em janeiro de 2022), ou pediu a ligação até 12 meses depois, segue a regra antiga até o fim de 2045 (art. 26).</p>
+<p><strong>Qual valor de Fio B a plataforma usa:</strong></p>
+<ul>
+<li>O valor da <strong>distribuidora que atende o seu município</strong>, tirado das tabelas oficiais da ANEEL (Dados Abertos, "Componentes Tarifárias"), <strong>sem impostos</strong>. A tela do resultado mostra qual distribuidora entrou na conta, qual foi o valor e <strong>até quando ele vale</strong> — cada distribuidora reajusta a tarifa uma vez por ano, em data própria.</li>
+<li><strong>Como sabemos qual é a sua.</strong> A ANEEL publica quais conjuntos de unidades consumidoras existem em cada município e qual distribuidora atende cada conjunto. Cruzando as duas listas, 5.566 dos 5.571 municípios do país ficam identificados. Em <strong>91% deles existe uma só distribuidora</strong>, e a plataforma usa o valor dela direto, sem perguntar nada.</li>
+<li><strong>Quando o seu município tem mais de uma</strong> — são 481, quase todos em Santa Catarina, no Rio Grande do Sul e no Paraná, onde cooperativas dividem a área com a concessionária —, a plataforma pergunta qual é a sua na página inicial. O nome está na sua conta de luz. <strong>Se você não souber</strong>, ela usa a de maior Fio B entre as que atendem a sua cidade: é a que resulta na <strong>menor economia</strong>, para o resultado não prometer mais do que você pode ter.</li>
+<li><strong>Quando nem isso é possível</strong> (14 municípios, atendidos por cooperativas cuja tarifa vigente ainda não foi republicada pela ANEEL), a plataforma volta ao valor da distribuidora da capital do estado e <strong>diz isso na tela</strong>.</li>
+<li><strong>O que isso mudou.</strong> Até 01/10/2026 a plataforma usava o valor da distribuidora da capital para todo mundo. Medindo município a município, 823 passaram a usar um valor diferente — o da empresa que de fato os atende. Campinas, um dos casos de validação, é um deles: era atendida pela CPFL Paulista (R$ 0,2005/kWh) mas recebia o valor da distribuidora da capital de São Paulo (R$ 0,2121/kWh).</li>
+</ul>
+<p class="destaque"><strong>A subida e o tempo de retorno: preste atenção aqui.</strong> Como o percentual sobe todo ano, a economia de cada mês diminui até 2029. A plataforma leva isso em conta: ela soma a economia <strong>mês a mês</strong>, e cada mês usa o percentual do seu ano. Isso faz diferença. Nos cinco casos de validação, o retorno ficou <strong>até 25% mais longo</strong> do que pela conta simples, que divide o preço pela economia de hoje como se ela nunca mudasse. Foi mais longo onde o Fio B é mais caro, e igual onde a conta já fica no valor mínimo.</p>
+<div class="tabela-wrap"><table class="tabela-geracao">
+<thead>
+<tr>
+<th scope="col">Caso</th>
+<th scope="col">Conta simples</th>
+<th scope="col">Mês a mês (o que a plataforma mostra)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Bom Jesus da Lapa (BA)</th>
+<td>48,6 meses</td>
+<td>60,9 meses (+25%)</td>
+</tr>
+<tr>
+<th scope="row">Cuiabá (MT)</th>
+<td>46,8 meses</td>
+<td>56,5 meses (+21%)</td>
+</tr>
+<tr>
+<th scope="row">Guaíra (PR)</th>
+<td>49,1 meses</td>
+<td>54,8 meses (+12%)</td>
+</tr>
+<tr>
+<th scope="row">Manaus (AM)</th>
+<td>38,0 meses</td>
+<td>40,9 meses (+8%)</td>
+</tr>
+<tr>
+<th scope="row">Campinas (SP)</th>
+<td>67,6 meses</td>
+<td>67,6 meses (igual)</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>Simulação em outubro de 2026, com a tarifa de teste de R$ 0,75/kWh: 60% até dezembro de 2026, 75% em 2027, 90% em 2028 e 100% de 2029 em diante. Os 100% são uma premissa provisória, porque a regra de 2029 ainda não está definida, e ela tende a cobrar mais que isso. O mês a mês também inclui o desgaste dos painéis (seção 6).</em></p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="4-a-sua-tarifa-impostos-bandeira-e-ilumi">
+<details class="secao-sanfona">
+    <summary><h2 id="4-a-sua-tarifa-impostos-bandeira-e-ilumi"><span class="divider-dot"></span>4. A sua tarifa: impostos, bandeira e iluminação pública</h2></summary>
+<div class="secao-conteudo">
+<p>A plataforma calcula a sua tarifa dividindo <strong>o valor da conta pelo consumo da mesma conta</strong>. A vantagem é usar o preço que <strong>você</strong> paga, já com impostos (ICMS, PIS e Cofins) e bandeira tarifária, e não uma média do país. Mas isso tem quatro efeitos que você precisa conhecer:</p>
+<ul>
+<li><strong>Impostos:</strong> a tarifa tem impostos, mas o Fio B da tabela da ANEEL não tem. Descontar um valor sem imposto de um valor com imposto deixa a economia <strong>um pouco otimista</strong>. Esse efeito não foi medido, porque o ICMS muda de estado para estado.</li>
+<li><strong>Bandeira tarifária:</strong> a conta que você usou traz a bandeira daquele mês (verde, amarela ou vermelha), e a plataforma usa essa tarifa para todo o período. Se a conta for de um mês de bandeira vermelha, a economia sai maior; se for de bandeira verde, sai menor.</li>
+<li><strong>Iluminação pública e outras cobranças:</strong> o total da conta pode incluir cobranças que não são energia: a contribuição de iluminação pública (cobrada pela prefeitura), a taxa de lixo, multas, juros ou parcelamentos. Os painéis não reduzem essas cobranças. Por isso o formulário tem o campo opcional <strong>Cobranças da conta que não são energia</strong>, no bloco “Deixar o resultado mais preciso”: o valor informado sai da conta antes do cálculo da sua tarifa. Se o campo ficar em branco, essas cobranças entram como se fossem energia, a economia sai <strong>otimista</strong> e a tela de resultado avisa. Em Manaus, por exemplo, a contribuição residencial era de R$ 47,91 por mês na faixa de 501 a 1.000 kWh (valor proposto para 2022). Com ela na conta e o campo em branco, o retorno do caso de Manaus cairia de 40,9 para 35,6 meses; com o campo preenchido, volta aos 40,9 meses.</li>
+<li><strong>Conta de um mês de consumo muito baixo:</strong> se a conta que você usou é de um mês em que a casa consumiu menos que o mínimo da distribuidora (30, 50 ou 100 kWh, conforme o tipo de ligação), como num mês de férias, a conta cobrou o mínimo, e não o consumo. Nesse caso a plataforma divide o valor pelo mínimo, para a tarifa não sair inflada, e a tela de resultado avisa. O melhor é usar a conta de um mês de consumo normal.</li>
+</ul>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="5-a-energia-que-voce-usa-na-hora">
+<details class="secao-sanfona">
+    <summary><h2 id="5-a-energia-que-voce-usa-na-hora"><span class="divider-dot"></span>5. A energia que você usa na hora</h2></summary>
+<div class="secao-conteudo">
+<p>Parte da energia dos painéis é usada pela casa <strong>no mesmo momento</strong> em que é gerada, por exemplo a geladeira ligada ao meio-dia. Essa parte nem chega a ir para a rede e <strong>não paga Fio B</strong>. Num estudo com 86 consumidores, ela foi de 37% da geração, em média (Dilli e Brito, 2025).</p>
+<p>A plataforma não sabe a que horas você usa energia, então trata toda a geração como se passasse pela rede. Com isso, <strong>a economia calculada fica menor que a real</strong>: aqui a plataforma erra para o lado seguro.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="6-o-tempo-de-retorno">
+<details class="secao-sanfona">
+    <summary><h2 id="6-o-tempo-de-retorno"><span class="divider-dot"></span>6. O tempo de retorno</h2></summary>
+<div class="secao-conteudo">
+<p>A plataforma soma a economia <strong>mês a mês</strong>, a partir do mês da simulação, até ela alcançar o preço do sistema. A economia de cada mês muda com o ano por dois motivos: a parte do Fio B cobrada sobe até 2029 (seção 3), e os painéis perdem cerca de <strong>0,5% de rendimento por ano</strong> (Pinho e Galdino, 2014). A tela do resultado mostra a economia de cada ano numa tabela, para você conferir.</p>
+<ul>
+<li><strong>Exemplo (Guaíra, simulação em outubro de 2026):</strong> o sistema custa R$ 9.150,00. A economia é de R$ 186,38 por mês em 2026, R$ 176,73 em 2027, R$ 167,08 em 2028 e R$ 160,64 de 2029 em diante. Somando mês a mês, o sistema se paga em <strong>54,8 meses</strong>, cerca de 4 anos e meio. Pela conta simples, R$ 9.150,00 ÷ R$ 186,38 = 49,1 meses: mais curto, porque supõe que a economia de 2026 se repete para sempre.</li>
+<li><strong>O desgaste quase não muda o retorno</strong>, porque no começo o sistema costuma gerar um pouco mais do que a conta deixa abater. Ele pesa mais com os anos.</li>
+<li>Tempos acima de <strong>25 anos</strong> não são mostrados, porque é o prazo da garantia de desempenho dos painéis. Nesse caso, a tela explica e mostra quanto a economia somaria em 25 anos.</li>
+</ul>
+<p><strong>O que fica fora da conta, e para que lado isso puxa:</strong></p>
+<div class="tabela-wrap"><table class="tabela-geracao">
+<thead>
+<tr>
+<th scope="col">O que não entra</th>
+<th scope="col">Efeito no retorno real</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">A regra do Fio B de 2029 em diante, ainda não definida (a plataforma usa 100% do Fio B, e a cobrança real tende a ser maior)</th>
+<td>mais longo</td>
+</tr>
+<tr>
+<th scope="row">Impostos, e as cobranças que não são energia quando o campo fica em branco (seção 4)</th>
+<td>mais longo</td>
+</tr>
+<tr>
+<th scope="row">Manutenção e troca de peças</th>
+<td>mais longo</td>
+</tr>
+<tr>
+<th scope="row">Reajuste da tarifa acima da inflação (a tarifa fica constante na conta)</th>
+<td>mais curto</td>
+</tr>
+<tr>
+<th scope="row">Energia usada na hora (seção 5)</th>
+<td>mais curto</td>
+</tr>
+<tr>
+<th scope="row">Juros (o valor do dinheiro no tempo)</th>
+<td>a conta não considera, e por isso fica mais curta do que um cálculo com juros</td>
+</tr>
+</tbody>
+</table></div>
+<p>Como há efeitos para os dois lados, <strong>o tempo de retorno é uma estimativa</strong>, útil para comparar e para decidir se vale pedir orçamento, mas não uma garantia.</p>
+<p><strong>Como ele se compara com outras fontes:</strong> nos cinco casos testados, o retorno mês a mês ficou entre <strong>3,4 e 5,6 anos</strong> (pela conta simples, que é a do artigo do TCC, entre 3,2 e 5,6 anos). Um estudo publicado calculou 4,57 anos para uma casa com 4,2 kWp, e três calculadoras gratuitas deram de 3 anos e 3 meses a 4 anos e 1 mês para a mesma casa (Costa et al., 2025). São tempos da mesma ordem de grandeza dos nossos, mas a comparação vale só como ordem de grandeza, porque os cenários são diferentes.</p>
+<p><strong>Nos próximos passos:</strong> a energia usada na hora; e, quando a ANEEL definir a regra de 2029 em diante, a economia somada em 25 anos, com a troca do inversor.</p>
+</div>
+</details>
+</section>
+</div>
+</main>
+<div class="page-wrap rodape-wrap">
+<footer class="rodape-paginas">
+    <ul>
+        <li><a href="/entenda">Como funciona</a></li>
+        <li><a href="/economia">Economia e retorno</a></li>
+        <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+        <li><a href="/precisao">Quão preciso é</a></li>
+        <li><a href="/metodologia">Metodologia</a></li>
+        <li><a href="/limitacoes">Limitações</a></li>
+        <li><a href="/sobre">Sobre</a></li>
+        <li><a href="/contato">Contato</a></li>
+        <li><a href="/apoie">Apoie o projeto</a></li>
+    </ul>
+    <p>Simulação educativa: não substitui o projeto de um profissional habilitado. Código aberto (AGPL-3.0) no <a href="https://github.com/gandalfa1/dimensionamento-fotovoltaico" target="_blank" rel="noopener">GitHub</a>.</p>
+    <p class="rodape-creditos">Irradiação solar: projeto POWER do NASA Langley Research Center, financiado pela NASA Earth Science Division — <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>, licença CC BY 4.0. Localização: dados © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, licença ODbL. Municípios: códigos e nomes oficiais do IBGE. Fio B e distribuidoras: contém informações dos conjuntos <a href="https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias" target="_blank" rel="noopener">Componentes Tarifárias</a>, <a href="https://dadosabertos.aneel.gov.br/dataset/indqual-municipio" target="_blank" rel="noopener">IndQual Município</a> e <a href="https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec" target="_blank" rel="noopener">Indicadores Coletivos de Continuidade</a>, da ANEEL, disponibilizados sob a licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. Preços: Greener, março de 2026.</p>
+</footer>
+</div>
+<script>
+(function () {
+    var secoes = document.querySelectorAll("details.secao-sanfona");
+    function abrirAlvo() {
+        if (!location.hash) { return; }
+        var alvo = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        if (!alvo) { return; }
+        var d = alvo.closest("details.secao-sanfona");
+        if (d && !d.open) { d.open = true; }
+        alvo.scrollIntoView();
+    }
+    window.addEventListener("hashchange", abrirAlvo);
+    abrirAlvo();
+    var botao = document.querySelector(".btn-abrir-todas");
+    function todasAbertas() { return Array.prototype.every.call(secoes, function (d) { return d.open; }); }
+    function atualizarBotao() {
+        if (!botao) { return; }
+        var abertas = todasAbertas();
+        botao.textContent = abertas ? "Fechar todas as seções" : "Abrir todas as seções";
+        botao.setAttribute("aria-pressed", abertas ? "true" : "false");
+    }
+    if (botao) {
+        botao.addEventListener("click", function () {
+            var abrir = !todasAbertas();
+            secoes.forEach(function (d) { d.open = abrir; });
+            atualizarBotao();
+        });
+        secoes.forEach(function (d) { d.addEventListener("toggle", atualizarBotao); });
+    }
+    window.addEventListener("beforeprint", function () {
+        secoes.forEach(function (d) { if (!d.open) { d.open = true; d.dataset.abertaParaImprimir = "sim"; } });
+    });
+    window.addEventListener("afterprint", function () {
+        document.querySelectorAll("details[data-aberta-para-imprimir]").forEach(function (d) {
+            d.open = false; delete d.dataset.abertaParaImprimir;
+        });
+        atualizarBotao();
+    });
+})();
+</script>
+<script src="/static/tabelas.js" defer></script>
+</body>
+</html>

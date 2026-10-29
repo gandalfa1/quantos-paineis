@@ -1,0 +1,401 @@
+/* =========================================================
+   Páginas de explicação (Entenda, Economia, Equipamentos, Precisão,
+   Metodologia, Limitações, Sobre, Contato, Apoie).
+   Criado em 30/09/2026 (fase 1, passo 5). Usa as cores e fontes do
+   style.css — este arquivo só acrescenta o que essas páginas precisam.
+   Nenhuma página de cálculo (index.html, resultado.html) usa este arquivo.
+   ========================================================= */
+
+/* ---------- Topo ----------
+   DESIGN B, PARTE 1 (03/10/2026): o topo destas páginas (marca, botão de
+   simular e menu) passou a ser o TOPO COMUM das 11 telas, com o estilo no
+   style.css (seção "TOPO COMUM"). Os estilos antigos .topo, .topo-marca,
+   .btn-simular-topo e .menu-paginas saíram daqui. */
+
+/* ---------- Título da página e resumo ---------- */
+.pagina-titulo {
+  font-family: 'Sora', sans-serif;
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 0 0 14px;
+}
+
+.resumo-pagina {
+  background: var(--color-dica-bg);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 16px 20px;
+  margin: 0 0 24px;
+}
+
+.resumo-pagina p { margin: 0 0 10px; }
+.resumo-pagina p:last-child { margin-bottom: 0; }
+
+/* ---------- Texto dentro dos cards ---------- */
+.card p { margin: 0 0 12px; }
+.card p:last-child { margin-bottom: 0; }
+.card ul, .card ol { margin: 0 0 12px; padding-left: 22px; }
+.card li { margin-bottom: 6px; }
+.card a { color: var(--color-primary-dark); overflow-wrap: anywhere; }
+.card p, .card li { overflow-wrap: break-word; }
+
+.card h3 {
+  margin: 20px 0 8px;
+}
+
+/* Tabela: reaproveita o visual de table.tabela-geracao (style.css) e só
+   ajusta números e legendas. */
+.tabela-wrap { margin: 4px 0 14px; }
+table.tabela-geracao td.num,
+table.tabela-geracao th.num { text-align: right; white-space: nowrap; }
+/* Na tabela do style.css todo <th> é laranja; aqui o <th> da linha (nome da
+   cidade) fica como texto comum, em negrito. */
+table.tabela-geracao tbody th {
+  background: none;
+  color: var(--color-text);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+}
+table.tabela-geracao tr:nth-child(even) th { background: #FFF9F1; }
+table.tabela-geracao td.texto { min-width: 220px; }
+
+table.tabela-geracao caption {
+  caption-side: bottom;
+  text-align: left;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  padding-top: 8px;
+}
+
+/* Frase em destaque dentro de um card (o "atenção" da página) */
+.destaque {
+  background: #FFF1E6;
+  border: 1px solid #F6C9A8;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 14px 0;
+}
+
+.nota-pequena {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* ---------- Partes que abrem com um clique ---------- */
+details.abre {
+  border-top: 1px solid var(--color-border);
+  margin-top: 14px;
+}
+
+details.abre > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 12px 2px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+details.abre > summary::-webkit-details-marker { display: none; }
+
+details.abre > summary::after {
+  content: "+";
+  font-family: 'Sora', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+details.abre[open] > summary::after { content: "−"; }
+
+details.abre > summary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------- Gráfico de linhas (Precisão) ---------- */
+.grafico-linhas {
+  --serie-1: #2a78d6;
+  --serie-2: #eb6834;
+  --serie-3: #1baf7a;
+  --serie-4: #eda100;
+  --serie-5: #e87ba4;
+  position: relative;
+  margin: 8px 0 4px;
+}
+
+.grafico-linhas svg { display: block; width: 100%; height: auto; overflow: visible; }
+/* No celular o gráfico não encolhe até os números ficarem ilegíveis:
+   ele mantém uma largura mínima e rola de lado, como os gráficos da tela
+   de resultado (.grafico-scroll). */
+.grafico-rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.grafico-rolagem svg { min-width: 560px; }
+.grafico-linhas .grade { stroke: var(--color-border); stroke-width: 1; }
+.grafico-linhas .eixo-texto { fill: var(--color-text-muted); font-size: 11px; font-family: 'Inter', sans-serif; }
+.grafico-linhas .linha { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.grafico-linhas .ponto { stroke: var(--color-surface); stroke-width: 2; }
+.grafico-linhas .mira { stroke: var(--color-text-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+
+.card ul.grafico-legenda-linhas,
+.grafico-legenda-linhas {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.grafico-legenda-linhas li { display: flex; align-items: center; gap: 6px; }
+.grafico-legenda-linhas .amostra { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+
+.grafico-dica {
+  position: absolute;
+  pointer-events: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  min-width: 190px;
+  display: none;
+  z-index: 5;
+}
+
+.grafico-dica strong { display: block; margin-bottom: 2px; }
+.grafico-dica .linha-dica { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.grafico-dica .linha-dica span:first-child { display: flex; align-items: center; gap: 6px; }
+
+/* ---------- Rodapé das páginas ---------- */
+.rodape-paginas {
+  margin-top: 36px;
+  padding-top: 18px;
+  border-top: 2px solid var(--color-border);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.rodape-paginas ul {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.rodape-paginas a { color: inherit; }
+.rodape-paginas p { margin: 0 0 8px; }
+.rodape-paginas .rodape-creditos { font-size: 0.78rem; opacity: 0.9; }
+
+@media print {
+  .menu-paginas, .btn-simular-topo, .grafico-dica { display: none !important; }
+  details.abre > summary::after { display: none; }
+}
+
+/* ---------- Etiquetas de efeito (Limitações) ----------
+   O texto vai junto do símbolo e da cor, para funcionar também para quem
+   não distingue as cores. */
+.efeito {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.5;
+  padding: 1px 9px;
+  border-radius: 999px;
+  margin: 0 4px 0 2px;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.efeito.melhor { background: #E2F3E8; color: #1D5E36; }
+.efeito.pior   { background: #FCE6E0; color: #9A331C; }
+.efeito.dois   { background: #EEEAE3; color: #4F463D; }
+
+/* ---------- Desenhos (Entenda) ---------- */
+figure.desenho { margin: 10px 0 18px; }
+.desenho svg { display: block; width: 100%; height: auto; }
+.desenho .d-rotulo { font: 600 13px 'Inter', system-ui, sans-serif; fill: var(--color-text); }
+.desenho .d-nota { font: 400 11.5px 'Inter', system-ui, sans-serif; fill: var(--color-text-muted); }
+.desenho .d-nota-forte { font: 500 12.5px 'Inter', system-ui, sans-serif; fill: var(--color-text); }
+.desenho .d-medidor { font: 700 14px 'Sora', sans-serif; fill: var(--color-text); }
+
+.card ol.passos-calculo,
+ol.passos-calculo {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+  counter-reset: none;
+}
+ol.passos-calculo li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-dica-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 14px 6px 6px;
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+ol.passos-calculo li:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  right: -20px;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+.passo-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   DESIGN B, PARTE 4 (06/10/2026) — PÁGINAS EM SANFONA
+   Escolha da aluna: título e resumo à mostra, numa faixa no mesmo cinza
+   neutro da página inicial (#E8ECF1); cada seção abre com um clique no
+   título. Nenhum texto mudou (ver base.py, função sanfona()).
+   ========================================================= */
+.faixa-pagina {
+  background: #E8ECF1;
+  padding: 30px 0 34px;
+}
+
+.faixa-pagina-conteudo {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.faixa-pagina .pagina-titulo { margin: 0 0 14px; color: var(--color-text); }
+
+/* o resumo fica num cartão branco sobre o cinza, com o fio laranja */
+.faixa-pagina .resumo-pagina {
+  background: var(--color-surface);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  box-shadow: var(--shadow-card);
+  margin: 0;
+}
+
+.page-wrap.pagina-corpo { padding-top: 26px; padding-bottom: 0; }
+.page-wrap.rodape-wrap { padding-top: 0; }
+
+.abrir-todas { margin: 0 0 12px; text-align: right; }
+
+.btn-abrir-todas {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+.btn-abrir-todas:hover { background: var(--color-surface); }
+.btn-abrir-todas:focus-visible { outline: 2px solid var(--color-primary-dark); outline-offset: 2px; }
+
+/* cada seção: o cartão continua, mas só o título aparece fechado */
+.card.secao { padding: 0; margin-bottom: 12px; }
+
+details.secao-sanfona > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 24px;
+}
+
+details.secao-sanfona > summary::-webkit-details-marker { display: none; }
+
+details.secao-sanfona > summary h2 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+details.secao-sanfona > summary::after {
+  content: "+";
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-primary-dark);
+  border: 1.5px solid var(--color-primary);
+}
+
+details.secao-sanfona[open] > summary::after { content: "−"; }
+
+details.secao-sanfona > summary:hover h2 { color: var(--color-primary-dark); }
+
+details.secao-sanfona > summary:focus-visible {
+  outline: 2px solid var(--color-primary-dark);
+  outline-offset: -2px;
+  border-radius: 16px;
+}
+
+.secao-conteudo {
+  padding: 4px 24px 24px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 18px;
+}
+
+/* ajustes de cor das páginas ao design B */
+table.tabela-geracao tr:nth-child(even) th { background: #F7F8FA; }
+.efeito.dois { background: #E9ECF1; color: #3F4A5C; }
+/* os números dos passos do "Como funciona": o mesmo círculo azul-noite com
+   dourado dos passos da página inicial (o laranja com branco dava 3,25:1) */
+.passo-num { background: var(--color-noite); color: var(--color-gold); }
+
+@media (max-width: 600px) {
+  .faixa-pagina { padding: 22px 0 24px; }
+  .faixa-pagina-conteudo { padding: 0 16px; }
+  .faixa-pagina .pagina-titulo { font-size: 1.4rem; }
+  details.secao-sanfona > summary { padding: 16px 18px; }
+  .secao-conteudo { padding: 16px 18px 20px; }
+  .abrir-todas { text-align: left; }
+}
+
+@media print {
+  .faixa-pagina { background: #fff; padding: 0 0 12px; }
+  details.secao-sanfona > summary::after { display: none; }
+  .card.secao { break-inside: auto; }
+}
+
+/* links no resumo da faixa (fora dos cartões): o mesmo laranja-escuro dos
+   links do site (#B5470A sobre branco = 5,4:1) */
+.faixa-pagina a { color: var(--color-primary-dark); overflow-wrap: anywhere; }

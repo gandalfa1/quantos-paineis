@@ -1,0 +1,89 @@
+DADOS DA ANEEL USADOS PELA PLATAFORMA - ORIGEM E LICENCA
+(criado em 02/10/2026, fase 1, passo 8)
+
+RESUMO EM UMA LINHA: o CODIGO da plataforma e AGPL-3.0 (arquivo LICENSE); os
+ARQUIVOS DE DADOS listados abaixo foram tirados dos dados abertos da ANEEL e
+ficam sob a licenca da propria ANEEL, a Open Database License (ODbL) 1.0.
+
+=======================================================================
+1. DE ONDE VEM
+=======================================================================
+Licenciante: Agencia Nacional de Energia Eletrica (ANEEL), Portal de Dados
+Abertos, https://dadosabertos.aneel.gov.br
+
+Tres conjuntos de dados, os tres publicados sob a ODbL (campo de licenca
+"odc-odbl" no proprio portal, conferido em 02/10/2026):
+
+ (a) Componentes Tarifarias
+     https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias
+     -> o valor do Fio B. Filtro: componente TUSD_FioB, subgrupo B1,
+        modalidade Convencional, subclasse Residencial, base "Tarifa de
+        Aplicacao", detalhe SCEE. Valores sem impostos.
+ (b) IndQual Municipio
+     https://dadosabertos.aneel.gov.br/dataset/indqual-municipio
+     -> liga o codigo IBGE do municipio ao conjunto de unidades consumidoras.
+ (c) Indicadores Coletivos de Continuidade (DEC e FEC)
+     https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec
+     -> liga cada conjunto de unidades consumidoras a distribuidora, com CNPJ.
+
+Texto da licenca: https://opendatacommons.org/licenses/odbl/1-0/
+
+=======================================================================
+2. QUAIS ARQUIVOS DESTA PASTA SAO DADOS DA ANEEL (licenca ODbL 1.0)
+=======================================================================
+Pela ODbL, estes arquivos sao "bases de dados derivadas" (secao 1.0,
+"Derivative Database") e por isso continuam sob a ODbL (secao 4.4). Quem
+copiar, alterar ou publicar estes arquivos tem de manter esta licenca e o
+credito a ANEEL.
+
+  fio_b_por_distribuidora.csv
+      Fio B de cada distribuidora, com CNPJ, vigencia e resolucao
+      homologatoria. Fonte (a). Gerado pelo atualizar_dados_aneel.py.
+  static/distribuidoras_por_municipio.json
+      Para cada municipio (codigo IBGE), as distribuidoras que o atendem.
+      Fontes (b) e (c), com o nome da distribuidora tirado de (c). Gerado
+      pelo atualizar_dados_aneel.py.
+  fio_b_aneel_vigente_22-09-2026.csv
+      Retrato do Fio B vigente em 22/09/2026. Fonte (a). E de onde saiu a
+      tabela FIO_B_POR_UF, e e usado pela conferencia
+      teste/conferir_equacoes_3_3.py.
+  fio_b_aneel_conferencia_01-10-2026.csv
+      Retrato do Fio B vigente em 01/10/2026. Fonte (a). Evidencia da
+      conferencia do passo 6; o motor nao le este arquivo.
+  A tabela FIO_B_POR_UF dentro do calculo.py
+      Os 27 valores de Fio B (um por estado) e suas vigencias. Fonte (a).
+      So a TABELA e dado da ANEEL; o resto do calculo.py e codigo, sob a
+      AGPL-3.0.
+
+COMO OS ARQUIVOS FORAM FEITOS (secao 4.6 da ODbL, que pede o metodo ou a
+base derivada inteira): o programa atualizar_dados_aneel.py, nesta mesma
+pasta, baixa os arquivos originais da ANEEL e refaz os dois primeiros
+arquivos do zero. Os filtros, as chaves de ligacao e as travas de seguranca
+estao explicados no comeco dele.
+
+=======================================================================
+3. O QUE NAO E BASE DERIVADA
+=======================================================================
+  - O CODIGO (.py, .html, .css): AGPL-3.0. A ODbL nao se aplica a programas
+    (secao 2.3 a).
+  - OS RESULTADOS MOSTRADOS NA TELA (o Fio B usado, o nome da distribuidora,
+    a economia e o tempo de retorno): para a ODbL sao "trabalho produzido"
+    ("Produced Work"), que nao precisa ficar sob a ODbL (secao 4.5 b). Mas,
+    quando mostrados ao publico, pedem um aviso de onde veio a informacao e
+    qual e a licenca (secao 4.3). Esse aviso esta no rodape da pagina
+    inicial, da tela de resultado e das nove paginas de explicacao:
+      "Fio B e distribuidoras: contem informacoes dos conjuntos Componentes
+      Tarifarias, IndQual Municipio e Indicadores Coletivos de Continuidade,
+      da ANEEL, disponibilizados sob a licenca ODbL."
+    (com link para cada conjunto e para o texto da licenca)
+  - A PASTA cache_aneel/: copias dos arquivos ORIGINAIS da ANEEL, baixadas
+    pelo programa (cerca de 50 MB). Nao vao para o repositorio (.gitignore).
+    Quem quiser os originais baixa direto do portal da ANEEL.
+
+=======================================================================
+4. GARANTIA
+=======================================================================
+A ANEEL licencia os dados "como estao", sem garantia de exatidao ou de
+completude (ODbL, secao 7). A plataforma confere o que pode (as tres travas
+do atualizar_dados_aneel.py e a tela avisando quando a vigencia de um valor
+ja terminou), mas o valor oficial e sempre o publicado pela ANEEL.

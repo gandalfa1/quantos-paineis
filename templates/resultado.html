@@ -10,6 +10,28 @@
     numero que ja veio pronto do motor - nao arredonda nada alem das
     casas pedidas, que e o mesmo que o "%.2f" antigo fazia. -#}
 {%- macro br(valor, casas=2) -%}{{ "{:,.{}f}".format(valor, casas).replace(",", "#").replace(".", ",").replace("#", ".") }}{%- endmacro -%}
+{#- revisao geral (07/10/2026): kWh que a pessoa digitou - inteiro sem casas, fracionado com 1 casa -#}
+{%- macro kwh_digitado(v) -%}{{ br(v, 0 if v == (v | round) else 1) }}{%- endmacro -%}
+{#- ITENS 18 + 2 DO BACKLOG (06/10/2026) - PRECISAO FALSA. O investimento e
+    uma media nacional de pesquisa (Greener), sem dispersao publicada, e a
+    unica proposta real conferida veio 14% abaixo dela: R$ 7.881,60 tem mais
+    algarismos do que o numero sabe. No RESUMO o investimento aparece em
+    centenas de reais (7.881,60 -> 7.900; 13.513,50 -> 13.500), a economia
+    em reais inteiros e o retorno de meio em meio ano (de 10 anos para cima,
+    em anos inteiros - a mesma precisao relativa, ~5%). Por que centenas e
+    nao 2 algarismos significativos: com 2 algarismos, 13.513,50 virava
+    14.000 (+3,6%) e a divisao que o leitor faz com os numeros do resumo dava
+    3 anos e meio, contra os "3 anos" mostrados (Cuiaba, prova de 06/10). Em
+    centenas o investimento muda no maximo R$ 50, e em 4.256 simulacoes a
+    divisao do leitor cai no mesmo degrau mostrado em 98% delas e, no resto,
+    no degrau vizinho (numero na fronteira) - nunca mais longe.
+    Os valores EXATOS continuam no quadro "Investimento e retorno", rotulados
+    como a conta da plataforma, para conferir (escolha da aluna: opcao B).
+    So FORMATACAO, como o br(): nada daqui volta para o calculo.
+    Arredondamento meio-para-cima feito a mao (+ 0.5 e int), porque o
+    round() do Jinja usa o round() do Python, que arredonda 0,5 para o par. -#}
+{%- macro centenas(valor) -%}{{ br(((valor / 100 + 0.5) | int) * 100, 0) }}{%- endmacro -%}
+{%- macro meio_ano(meses) -%}{%- if meses >= 120 -%}{{ (meses / 12 + 0.5) | int }} anos{%- else -%}{%- set metades = (meses / 6 + 0.5) | int -%}{%- set anos = metades // 2 -%}{%- if metades == 0 -%}menos de meio ano{%- elif anos == 0 -%}meio ano{%- else -%}{{ anos }} {{ "ano" if anos == 1 else "anos" }}{{ " e meio" if metades % 2 == 1 else "" }}{%- endif -%}{%- endif -%}{%- endmacro -%}
 {#- Diferenca com sinal. O sinal e decidido DEPOIS do arredondamento que
     vai para a tela: sem isso, -0,4 kWh aparecia como "−0" (achado no
     teste14.pdf, julho de 100 kWh). Mesmo arredondamento das outras colunas. -#}
@@ -22,7 +44,8 @@
     se a constante mudar no motor, a tela nunca fica dizendo outra coisa. -#}
 {% set textos_do_motor = {
     "Greener, marco/2026 (precos de janeiro/2026)": "Greener, março/2026 (preços de janeiro/2026)",
-    "Growatt (modelos com certificacao INMETRO)": "Growatt (modelos com certificação INMETRO)",
+    "Growatt (modelos com certificacao INMETRO)": "Growatt (lista de modelos com registro no Inmetro de um distribuidor)",
+    "ANEEL, Dados Abertos, Componentes Tarifarias 2025 e 2026 (TUSD_FioB, B1 residencial convencional)": "ANEEL, Dados Abertos, Componentes Tarifárias 2025 e 2026 (TUSD Fio B, B1 residencial convencional)",
 } %}
 {#- Por que um modulo foi descartado. As chaves sao as que o calculo.py
     devolve em _motivo_da_reprovacao() e em dimensionar_arranjo(). -#}
@@ -40,20 +63,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Resultado da Simulação</title>
+    <title>Resultado da simulação — Quantos Painéis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {# (06/10/2026) icone da aba: o sol do topo, guardado no proprio site #}
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
     {#- Estilos que o style.css ainda nao tem. Ficam aqui para esta leva
         ser UMA substituicao so; podem migrar para o style.css depois. -#}
     <style>
+        /* DESIGN B, PARTE 3 (06/10/2026): as cores que estavam escritas direto
+           neste arquivo (#F2600C, #FFF6EF, #6B6257, #CFC4B4, #6b6b6b, #7a7a7a,
+           #8a8a8a, #C25400, #F7EDE2, #8a7a68) passaram a usar as variaveis do
+           style.css. Contraste: os rotulos dos meses (#7a7a7a, 4,29:1) e as
+           diferencas negativas (#8a8a8a, 3,45:1) ficavam abaixo de 4,5:1; agora
+           usam --color-text-muted (6,9:1). Nenhum texto nem numero mudou. */
+        /* (06/10/2026) o estilo da .nota-mais (texto recolhido atras de um
+           clique) foi para o style.css, porque a pagina inicial tambem usa. */
         /* pendencia 7: a caixa de aviso passa a respeitar paragrafos */
         .erro-box p { white-space: pre-line; }
+        /* passo 6 (01/10/2026): linha de auditoria da tela de erro, no
+           mesmo tamanho e cor das notas de grafico (.grafico-nota) */
+        .erro-detalhe { font-size: 0.8rem; color: var(--color-text-muted); margin: 10px 0 0; }
         /* caixa de destaque laranja, antes repetida com estilo embutido */
         .aviso-destaque {
             margin: 16px 0 0; padding: 12px 14px;
-            border-left: 3px solid #F2600C; background: #FFF6EF;
+            border-left: 3px solid var(--color-primary); background: var(--color-dica-bg);
             font-size: 0.92rem; line-height: 1.5;
         }
         .aviso-destaque p { margin: 0; }
+        /* fase 1, passo 3 (30/09/2026): Fio B usado (item 23), no mesmo tom
+           discreto da "Base regulatoria", e creditos das fontes no rodape,
+           iguais aos do index.html */
+        .nota-fio-b { margin: 6px 0 0; font-size: 0.8rem; color: var(--color-text-muted); line-height: 1.5; }
+        /* DESIGN B, PARTE 3 (06/10/2026), pedido da aluna: o cartao da economia
+           tinha texto demais. Nada saiu; ficou mais discreto:
+           - as notas de fonte ("Base regulatoria", "Precos de referencia") viram
+             um rodape do cartao, separado por um fio, em letra menor;
+           - o aviso dos dois campos opcionais (#aviso-opcionais) fica em fundo
+             cinza-claro e letra menor, com o fio laranja na lateral e o titulo
+             em negrito. Continua ABERTO, sem clique (ele diz quando o resultado
+             pode sair otimista). Os outros avisos laranja nao mudaram. */
+        .nota-fonte {
+            margin: 22px 0 0; padding-top: 12px;
+            border-top: 1px solid var(--color-border);
+            font-size: 0.8rem; color: var(--color-text-muted); line-height: 1.5;
+        }
+        #aviso-opcionais {
+            background: #F7F8FA; border-left-width: 2px;
+            font-size: 0.84rem; color: var(--color-text-muted); line-height: 1.5;
+        }
+        #aviso-opcionais strong { color: var(--color-text); }
+        #aviso-opcionais p + p { margin-top: 6px; }
+        .rodape-creditos a { color: inherit; }
+        .rodape-creditos { font-size: 0.75rem; margin-top: 4px; }  /* sem opacidade: contraste (revisao geral, parte 3) */
+        /* Fase 1, passo 5 (30/09/2026): links das paginas de explicacao no rodape. */
+        .rodape-links a { color: var(--color-primary-dark); white-space: nowrap; }
+        .rodape-links { line-height: 1.9; }
+        /* Fase 1, passo 5 (01/10/2026): links para as paginas de explicacao no topo e no fim do FAQ. */
+        /* Item 6 (07/10/2026): a linha "Ficou com mais duvidas?" saiu do fim do FAQ; o link
+           para a pagina de explicacao foi para dentro da resposta em que ele faz sentido. */
+        .faq-item p a, .link-entenda a { color: var(--color-primary-dark); font-weight: 600; }
+        .page-header p.link-entenda { margin-top: 6px; font-size: 0.92rem; }
         .aviso-destaque p + p { margin-top: 8px; }
         .detalhes-tecnicos { margin: 18px 0 0; }
         .detalhes-tecnicos .resultado-lista { margin-top: 4px; }
@@ -61,10 +130,35 @@
         /* nome de modelo e palavra longa sem espaco: no celular ele saia do card */
         @media (max-width: 600px) { .resultado-lista .valor { white-space: normal; overflow-wrap: anywhere; } }
         .detalhes-tecnicos ul.descartados { margin: 6px 0 0; padding-left: 20px; font-size: 0.9rem; line-height: 1.5; }
+        /* ITEM 6, PARTE 2 (07/10/2026), escolha da aluna: dois botoes de impressao. O "resumo"
+           (body.imprimir-resumo, ligado pelo botao) tira do papel os graficos, as tabelas mes a mes,
+           o FAQ e todo texto recolhido (<details>), e fica com os numeros: resumo, dimensionamento,
+           geracao do ano, economia e a tabela do retorno. Os AVISOS continuam com o titulo, porque
+           dizem quando o resultado pode estar otimista. O "completo" e a impressao de antes. */
+        .so-resumo { display: none; }
+        @media print {
+            body.imprimir-resumo .fora-do-resumo,
+            body.imprimir-resumo details { display: none !important; }
+            body.imprimir-resumo .so-resumo { display: block; }
+            /* mais compacto no papel, para o resumo caber em 2 folhas A4 */
+            body.imprimir-resumo .page-wrap { padding: 0; }
+            body.imprimir-resumo .page-header { margin-bottom: 10px; }
+            body.imprimir-resumo .resumo-hero { padding: 14px 20px; margin-bottom: 10px; }
+            body.imprimir-resumo .card { padding: 12px 18px; margin-bottom: 10px; break-inside: avoid; }
+            body.imprimir-resumo .card h2 { font-size: 1.05rem; margin: 0 0 6px; }
+            body.imprimir-resumo .resultado-lista li { padding: 3px 0; font-size: 0.85rem; }
+            body.imprimir-resumo .resultado-lista li.destaque { padding: 5px 10px; margin-top: 3px; }
+            body.imprimir-resumo .resultado-lista li.destaque .valor { font-size: 0.95rem; }
+            body.imprimir-resumo .tabela-retorno th, body.imprimir-resumo .tabela-retorno td { padding: 3px 8px; font-size: 0.8rem; }
+            body.imprimir-resumo .nota-exata, body.imprimir-resumo .aviso-destaque { margin-top: 6px; font-size: 0.8rem; }
+            body.imprimir-resumo .aviso-destaque { padding: 6px 10px; }
+            body.imprimir-resumo .rodape { margin-top: 10px; }
+        }
     </style>
 </head>
 <body>
-<div class="page-wrap">
+{% include "_topo.html" %}
+<main class="page-wrap" id="conteudo">
 
 {% if erro %}
 
@@ -75,9 +169,19 @@
         A variavel "inviavel" NAO e enviada hoje: se um dia o app.py passar
         inviavel=True, o titulo especifico aparece sozinho, sem nova troca
         deste arquivo. Enquanto nao passar, ela e indefinida e vale falso. -#}
+    {#- PASSO 6 (01/10/2026): o titulo tem agora um terceiro caso. Quando um
+        servico de fora nao responde (OpenStreetMap ou NASA POWER), o app.py
+        manda servico_indisponivel=True: nao e conclusao nenhuma sobre o
+        sistema da pessoa, e sim uma indisponibilidade temporaria, e dizer
+        "nao foi possivel recomendar um sistema" nesse caso engana. O
+        detalhe_tecnico e a linha discreta de auditoria (decisao da aluna);
+        vem None nos outros erros e nao aparece. -#}
     <div class="erro-box">
-        <h1>{% if inviavel %}Por que esta simulação não recomenda um sistema{% else %}Não foi possível recomendar um sistema{% endif %}</h1>
+        <h1>{% if servico_indisponivel %}Não foi possível fazer a simulação agora{% elif inviavel %}Por que esta simulação não recomenda um sistema{% else %}Confira os dados informados{% endif %}</h1>
         <p>{{ erro }}</p>
+        {%- if detalhe_tecnico %}
+        <p class="erro-detalhe">Detalhe técnico: {{ detalhe_tecnico }}</p>
+        {%- endif %}
     </div>
     <p><a href="/" class="btn-secundario">Voltar e tentar de novo</a></p>
 
@@ -115,10 +219,20 @@
             </svg>
         </div>
         <div>
-            <h1>Resultado da Simulação</h1>
-            <p>Localização encontrada: {{ resultado.cidade_encontrada }}</p>
+            <h1>Resultado da simulação</h1>
+            <p>Localização encontrada: {{ resultado.cidade_encontrada | replace(" - código IBGE", ", código IBGE") }}</p>
         </div>
     </div>
+    {#- REVISAO GERAL, PARTE 3 (07/10/2026): tarifa FORA DO COMUM. Mesmo limite da
+        regra 5 do formulario (index.html, com a fonte): acima de R$ 3/kWh, quase o
+        dobro da tarifa mais cara do pais com impostos, quase sempre e numero digitado
+        errado - e entao economia e retorno desta pagina nao valem. So avisa. -#}
+    {%- set TARIFA_FORA_DO_COMUM = 3.0 %}
+    {%- if resultado.tarifa_calculada > TARIFA_FORA_DO_COMUM %}
+    <div class="aviso-destaque" id="aviso-tarifa-alta" style="margin-bottom: 20px;">
+        <p><strong>Confira os números da sua conta: por ela, cada kWh sai por R$ {{ br(resultado.tarifa_calculada) }}, bem acima do preço da energia nas contas de luz residenciais do país.</strong> Provavelmente algum número foi digitado errado — um zero a mais, ou uma vírgula fora do lugar. Com essa tarifa, a economia e o tempo de retorno desta página não valem: confira o valor e o consumo da conta e simule de novo.{% if not resultado.cobrancas_nao_energia_reais %} Se a conta tiver multa, juros ou parcelamento, informe esse valor em “Cobranças da conta que não são energia”, na seção 3 do formulário.{% endif %}</p>
+    </div>
+    {%- endif %}
 
     <div class="resumo-hero">
         <p class="resumo-label">Resumo rápido</p>
@@ -127,22 +241,37 @@
         <div class="resumo-stats">
             <div class="resumo-stat">
                 <span class="resumo-stat-label">Investimento total</span>
-                <span class="resumo-stat-valor">R$ {{ br(resultado.custo_total_sistema) }}</span>
+                <span class="resumo-stat-valor"><span class="resumo-cerca">cerca de</span> R$ {{ centenas(resultado.custo_total_sistema) }}</span>
             </div>
             <div class="resumo-stat">
                 <span class="resumo-stat-label">Economia mensal</span>
-                <span class="resumo-stat-valor">R$ {{ br(resultado.economia_mensal_media) }}</span>
+                {#- ITENS 28 E 11 (06/10/2026): a economia deixou de ser uma media
+                    que se repete - ela muda com o ano (a lei sobe a parte do Fio B
+                    cobrada ate 2029). O valor e o de HOJE, entao o rotulo diz o
+                    ano, lido da primeira linha da tabela do retorno (motor). -#}
+                <span class="resumo-stat-valor"><span class="resumo-cerca">em {{ resultado.retorno_por_ano[0].ano }}</span> R$ {{ br(resultado.economia_mensal_media, 0) }}</span>
             </div>
             <div class="resumo-stat">
-                <span class="resumo-stat-label">Payback</span>
-                <span class="resumo-stat-valor">~{{ br(resultado.payback_meses / 12, 1) }} anos</span>
+                <span class="resumo-stat-label">Tempo de retorno</span>
+                {#- REVISAO GERAL, PARTE 3 (07/10/2026): "cerca de menos de meio ano" nao e
+                    portugues - sem o "cerca de" nesse caso (retorno abaixo de 3 meses, que so
+                    sai com conta digitada errada; o aviso da tarifa fora do comum diz isso). -#}
+                {%- set texto_retorno = meio_ano(resultado.payback_meses) %}
+                <span class="resumo-stat-valor">{% if texto_retorno != "menos de meio ano" %}<span class="resumo-cerca">cerca de</span> {% endif %}{{ texto_retorno }}</span>
+                {#- (revisao geral, parte 3, 07/10/2026) "vale a pena?": para comparar, o prazo da
+                    garantia de desempenho dos paineis (25 anos, Pinho e Galdino, 2014 - o mesmo
+                    criterio da guarda do retorno no calculo.py). -#}
+                <span class="resumo-garantia">a garantia dos painéis é de 25 anos</span>
             </div>
         </div>
         <p class="resumo-aviso">⚠️ Simulação educativa — não substitui um projeto elétrico assinado por um profissional habilitado.</p>
     </div>
 
-    <div class="no-print" style="text-align: right; margin: -8px 0 20px;">
-        <button type="button" class="btn-secundario" onclick="window.print()">🖨️ Imprimir / Salvar como PDF</button>
+    <p class="so-resumo grafico-nota" style="margin: 0 0 12px;">Este é o resumo da simulação. A versão completa, com o laudo da verificação elétrica, os gráficos mês a mês e as explicações, sai no botão “Imprimir completo” da página do resultado.</p>
+
+    <div class="no-print botoes-imprimir" style="text-align: right; margin: -8px 0 20px;">
+        <button type="button" class="btn-secundario" onclick="imprimirResultado(true)">🖨️ Imprimir resumo</button>
+        <button type="button" class="btn-secundario" onclick="imprimirResultado(false)">Imprimir completo</button>
     </div>
 
     <div class="card">
@@ -159,18 +288,46 @@
                     Potência instalada
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="O que é kWp?">i</button>
-                        <span class="tip-bubble">kWp (quilowatt-pico) é a potência máxima que o sistema entrega em condições padronizadas de teste (STC). É a forma padrão do mercado de medir o "tamanho" de um sistema fotovoltaico.</span>
+                        <span class="tip-bubble">kWp (quilowatt-pico) é a soma das potências dos painéis, medidas em condições padronizadas de laboratório (sol de 1.000 W/m² e painel a 25 °C). É a forma padrão do mercado de medir o "tamanho" de um sistema fotovoltaico.</span>
                     </span>
                 </span>
                 <span class="valor">{{ br(resultado.potencia_instalada_kwp) }} kWp</span>
             </li>
+            {#- MELHORIAS DO SITE (03/10/2026), ITEM 12a DO BACKLOG - AREA MINIMA DOS
+                PAINEIS. As medidas NAO estao no catalogo do calculo.py (que so tem
+                dados eletricos); ficam aqui, so na tela, para nao mexer no motor
+                (decisao de 03/10/2026). Fonte: folhas de dados dos fabricantes; a area
+                por painel bate com a que o PVsyst imprimiu nos relatorios dos casos
+                (10,3 m2 para 4 paineis Jinko). Painel que nao estiver nesta tabela:
+                a linha simplesmente nao aparece. O 1,4 vez da laje plana vem de
+                GAGNON et al., NREL/TP-6A20-65298 (2016), secao 4.4: razao entre area
+                de modulo e area de telhado de 0,7 em telhado plano (1/0,7 = 1,43) e de
+                0,98 em telhado inclinado. -#}
+            {%- set MEDIDAS_PAINEL_M = {
+                "Jinko Tiger Neo JKM600N-72HL4-V": (2.278, 1.134),
+                "Trina Vertex TSM-DE19 550 Wp": (2.384, 1.096),
+                "Trina Vertex TSM-DE21 670 Wp": (2.384, 1.303),
+            } %}
+            {%- set medida_painel = MEDIDAS_PAINEL_M.get(resultado.modulo_modelo) %}
+            {%- if medida_painel and resultado.numero_paineis %}
+            <li>
+                <span>
+                    Área mínima ocupada pelos painéis
+                    <span class="tip">
+                        <button type="button" class="tip-btn" aria-label="O que é a área mínima?">i</button>
+                        <span class="tip-bubble">Soma da área dos painéis ({{ resultado.numero_paineis }} {{ "painel" if resultado.numero_paineis == 1 else "painéis" }} de {{ br(medida_painel[0]) }} m × {{ br(medida_painel[1]) }} m, pela folha do fabricante). O telhado precisa de mais: espaço nas bordas e em volta de caixa d'água ou chaminé e, numa laje plana com os painéis em fileiras inclinadas, cerca de 1,4 vez essa área, para uma fileira não sombrear a outra (estudo do NREL, laboratório de energia renovável dos EUA). Quem define o espaço real é o instalador.</span>
+                    </span>
+                </span>
+                <span class="valor">{{ br(resultado.numero_paineis * medida_painel[0] * medida_painel[1], 1) }} m²</span>
+            </li>
+            {%- endif %}
             {% if resultado.arranjo_modulos_por_string %}
             <li>
                 <span>
                     Como os painéis são ligados
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="O que é uma fileira de painéis?">i</button>
-                        <span class="tip-bubble">Os painéis são ligados em série, um atrás do outro, formando uma fileira (em inglês, <em>string</em>). Em série, as tensões dos painéis se somam e a corrente é a de um painel só. Quando uma fileira ficaria longa demais, os painéis são divididos em mais de uma, cada uma numa entrada própria do inversor.</span>
+                        <span class="tip-bubble">Os painéis são ligados em série, um atrás do outro, formando uma fileira (em inglês, <em>string</em>): as tensões se somam e a corrente é a de um painel só. Quando a fileira ficaria longa demais, os painéis são divididos em mais de uma, cada uma numa entrada própria do inversor.</span>
                     </span>
                 </span>
                 <span class="valor">{% if resultado.arranjo_strings == 1 %}todos em série, numa só fileira{% else %}{{ resultado.arranjo_strings }} fileiras ({{ resultado.arranjo_modulos_por_string | join(" + ") }}){% endif %}</span>
@@ -197,7 +354,7 @@
                     HSP médio anual da região
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="O que é HSP?">i</button>
-                        <span class="tip-bubble">HSP (Horas de Sol Pleno) representa quantas horas por dia o sol "equivaleria" a uma irradiância constante de 1.000 W/m². Quanto maior esse número, mais energia os painéis geram por dia na sua região.</span>
+                        <span class="tip-bubble">HSP (Horas de Sol Pleno) é a energia que o sol entrega num dia, contada em horas de sol forte, de 1.000 W/m². Quanto maior esse número, mais energia os painéis geram por dia na sua região.</span>
                     </span>
                 </span>
                 <span class="valor">{{ br(resultado.hsp_medio_anual) }} h/dia</span>
@@ -208,7 +365,10 @@
             motor escolheu, e nao so a marca: quando a familia for outra, a
             frase continua verdadeira, porque o que segue a Growatt e a
             GRADE de potencias (GRADE_INVERSORES_KW), nao o modelo. -#}
-        <p class="hint-fonte">Painel e inversor são indicados como referência técnica, com dados das folhas de fabricante: modelos equivalentes de outras marcas também servem, desde que respeitem os mesmos limites de corrente e tensão. As potências de inversor seguem a grade de referência {{ textos_do_motor.get(resultado.fabricante_referencia_inversor, resultado.fabricante_referencia_inversor) }}; outras marcas vendem degraus de potência diferentes.</p>
+        <details class="nota-mais nota-fontes">
+            <summary>Sobre o painel e o inversor indicados</summary>
+            <p class="hint-fonte">São uma referência técnica, com dados das folhas de fabricante: modelos equivalentes de outras marcas também servem, desde que respeitem os mesmos limites de corrente e tensão. As potências de inversor seguem a grade de referência {{ textos_do_motor.get(resultado.fabricante_referencia_inversor, resultado.fabricante_referencia_inversor) }}; outras marcas vendem degraus de potência diferentes.</p>
+        </details>
 
         {#- Caminho que o site NAO percorre: so acontece quando um caso de
             teste forca um modulo que reprova (o Caso 5 do PVsyst cai aqui).
@@ -225,8 +385,13 @@
         {% if resultado.arranjo_subiu_pelo_minimo_eletrico %}
         <div class="aviso-destaque">
             <p><strong>Por que {{ paineis(resultado.numero_paineis) }}, se o seu consumo pedia {{ paineis(resultado.numero_paineis_por_energia) }}?</strong></p>
+            <details class="nota-mais">
+            <summary>Entenda</summary>
+            <div>
             <p>Pela energia, {{ paineis(resultado.numero_paineis_por_energia) }} {{ "bastaria" if resultado.numero_paineis_por_energia == 1 else "bastariam" }}. Mas, com tão poucos painéis ligados em série, a tensão do arranjo fica abaixo do mínimo em que o inversor consegue trabalhar — e nos dias quentes a tensão dos painéis cai ainda mais. O menor arranjo que funciona com este inversor tem {{ paineis(resultado.numero_paineis) }}.</p>
             <p>Ou seja: este não é um sistema com folga, é o <strong>menor sistema que funciona</strong>. A consequência aparece mais abaixo — ele gera bem mais energia do que a sua conta consegue abater, e essa sobra não vira economia. Por isso o retorno do investimento é mais lento do que em casas que consomem mais.</p>
+            </div>
+            </details>
         </div>
         {% endif %}
 
@@ -239,7 +404,7 @@
         <details class="exemplo-fatura detalhes-tecnicos">
             <summary>Detalhes técnicos: a verificação elétrica</summary>
             <div class="exemplo-fatura-conteudo">
-                <p>Antes de indicar o sistema, a plataforma confere se os painéis podem ser ligados no inversor indicado. São quatro verificações: duas de segurança (corrente de curto-circuito e tensão máxima no frio), uma de desempenho (corrente de operação) e uma de funcionamento (tensão mínima no calor).</p>
+                <p>Antes de indicar o sistema, a plataforma confere se os painéis podem ser ligados no inversor indicado. São quatro verificações: duas de segurança (corrente de curto-circuito e tensão máxima no frio) e duas de desempenho (corrente de operação e tensão mínima no calor).</p>
                 <ul class="resultado-lista">
                     <li>
                         <span>Painéis em cada fileira</span>
@@ -254,7 +419,7 @@
                         <span class="valor">{% if resultado.arranjo_excesso_corrente > 0 %}{{ br(resultado.arranjo_excesso_corrente * 100) }}% acima{% else %}{{ br(-resultado.arranjo_excesso_corrente * 100) }}% abaixo{% endif %} — {{ "aprovada" if laudo.verificacao_2_corrente_entrada else "reprovada" }}</span>
                     </li>
                     <li>
-                        <span>Tensão máxima do arranjo no frio ({{ br(resultado.temperatura_minima_projeto_c, 0) }} °C de ambiente), contra o máximo do inversor</span>
+                        <span>Tensão máxima do arranjo no frio ({{ br(resultado.temperatura_minima_projeto_c, 0) }} °C na célula), contra o máximo do inversor</span>
                         <span class="valor">{{ br(resultado.arranjo_tensao_maxima_a_frio_v, 1) }} V — {{ "aprovada" if laudo.verificacao_3_tensao_maxima else "reprovada" }}</span>
                     </li>
                     <li>
@@ -280,42 +445,45 @@
     </div>
 
     <div class="card">
-        <h2><span class="divider-dot"></span>Geração x consumo, mês a mês</h2>
+        <h2><span class="divider-dot"></span><span>Geração x consumo<span class="fora-do-resumo">, mês a mês</span></span></h2>
 
         {% set max_geracao = resultado.geracao_por_mes_kwh.values() | list | max %}
         {% set max_consumo = resultado.consumo_por_mes_kwh.values() | list | max %}
         {% set escala = [max_geracao, max_consumo] | max %}
 
-        <p style="margin: 0 0 14px; font-size: 13px; color: #6b6b6b;">
-            <span style="display:inline-block;width:11px;height:11px;background:#F2600C;border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
+        <p class="fora-do-resumo" style="margin: 0 0 14px; font-size: 13px; color: var(--color-text-muted);">
+            <span style="display:inline-block;width:11px;height:11px;background:var(--color-primary);border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
             energia gerada pelos painéis &nbsp;&nbsp;
-            <span style="display:inline-block;width:11px;height:11px;background:#CFC4B4;border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
+            <span style="display:inline-block;width:11px;height:11px;background:var(--color-muted-bar);border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
             energia consumida pela sua casa
         </p>
 
-        <div style="overflow-x: auto;">
+        <div class="fora-do-resumo grafico-rolagem" style="overflow-x: auto;">
             <div style="display:flex; align-items:flex-end; gap:4px; min-width:560px; height:210px;">
                 {% for mes, geracao in resultado.geracao_por_mes_kwh.items() %}
                 {% set consumo_mes = resultado.consumo_por_mes_kwh[mes] %}
                 <div style="flex:1; display:flex; flex-direction:column; align-items:center; height:100%;">
                     <div style="flex:1; display:flex; align-items:flex-end; justify-content:center; gap:2px; width:100%;">
                         <div title="Gerado em {{ mes }}: {{ br(geracao, 0) }} kWh"
-                             style="width:44%; height:{{ (geracao / escala * 100) | round(1) }}%; background:#F2600C; border-radius:3px 3px 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
+                             style="width:44%; height:{{ (geracao / escala * 100) | round(1) }}%; background:var(--color-primary); border-radius:3px 3px 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
                         <div title="Consumido em {{ mes }}: {{ br(consumo_mes, 0) }} kWh"
-                             style="width:44%; height:{{ (consumo_mes / escala * 100) | round(1) }}%; background:#CFC4B4; border-radius:3px 3px 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
+                             style="width:44%; height:{{ (consumo_mes / escala * 100) | round(1) }}%; background:var(--color-muted-bar); border-radius:3px 3px 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
                     </div>
-                    <span style="font-size:11px; color:#7a7a7a; margin-top:6px;">{{ mes }}</span>
+                    <span style="font-size:11px; color:var(--color-text-muted); margin-top:6px;">{{ mes }}</span>
                     {% set rotulo_dif = dif(geracao - consumo_mes) %}
-                    <span style="font-size:10px; font-weight:700; color:{% if rotulo_dif.startswith('+') %}#C25400{% else %}#8a8a8a{% endif %};">
+                    <span style="font-size:10px; font-weight:700; color:{% if rotulo_dif.startswith('+') %}var(--color-primary-dark){% else %}var(--color-text-muted){% endif %};">
                         {{ rotulo_dif }}
                     </span>
                 </div>
                 {% endfor %}
             </div>
         </div>
-        <p class="grafico-nota">Cada par de barras compara o que os painéis geram com o que a sua casa consome, em kWh. O número embaixo é a diferença: quando sobra, a energia vira crédito guardado; quando falta, o crédito guardado cobre a diferença{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %}, até o limite em que a conta chega ao valor mínimo cobrado pela distribuidora{% endif %}. A geração vem de dados reais de irradiação da sua região (NASA POWER).{% if resultado.modo_consumo == 'media' %} O consumo aparece como uma linha constante porque você informou a média mensal — se quiser ver a variação real da sua casa, volte e preencha o histórico de 12 meses da sua conta.{% else %} O consumo vem do histórico de 12 meses que você informou, então é o da sua casa.{% endif %}</p>
+        <details class="nota-mais">
+            <summary>Como ler este gráfico</summary>
+            <p class="grafico-nota">Cada par de barras compara o que os painéis geram com o que a sua casa consome, em kWh; o número embaixo é a diferença. O que sobra vira crédito guardado, que cobre os meses em que falta{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %} (até a conta chegar ao valor mínimo da distribuidora){% endif %}. A geração vem de dados de irradiação da sua região estimados por satélite (NASA POWER).{% if resultado.modo_consumo == 'media' %} As barras de consumo têm todas a mesma altura porque você informou a média do mês; para ver a variação da sua casa, volte e preencha o histórico de 12 meses.{% else %} O consumo vem do histórico de 12 meses que você informou, então é o da sua casa.{% endif %}</p>
+        </details>
 
-        <div class="tabela-wrap" style="margin-top: 20px;">
+        <div class="tabela-wrap fora-do-resumo" style="margin-top: 20px;">
             <table class="tabela-geracao">
                 <tr>
                     <th>Mês</th>
@@ -342,11 +510,35 @@
                 {% endfor %}
             </table>
         </div>
-        <p class="grafico-nota">A coluna <strong>Abatido da conta</strong> mostra quanto de fato sai da sua fatura em cada mês de um ano típico de funcionamento, já usando o crédito guardado dos meses de mais sol. (No primeiro ano o saldo de créditos ainda está se formando, então os primeiros meses fracos podem abater menos.){% if not resultado.arranjo_subiu_pelo_minimo_eletrico %} Quando a diferença aparece negativa, isso não quer dizer que o sistema ficou pequeno: o crédito guardado nos meses de mais sol cobre os meses de menos sol.{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %} No seu caso, porém, a conta não pode ficar abaixo do valor mínimo cobrado pela distribuidora (o custo de disponibilidade, equivalente a {{ resultado.piso_disponibilidade_kwh | round | int }} kWh na sua ligação), e isso impede de abater {{ br(resultado.piso_anual_kwh, 0) }} kWh do seu consumo no ano. Por isso o sistema foi dimensionado para a parte que pode ser abatida — painel a mais para o resto seria dinheiro sem retorno.{% endif %}{% endif %}</p>
+        <details class="nota-mais">
+            <summary>O que mostra a coluna “Abatido da conta”</summary>
+            <p class="grafico-nota">Quanto de fato sai da sua fatura em cada mês de um ano típico, já usando o crédito guardado dos meses de mais sol (no primeiro ano o saldo ainda está se formando, e os primeiros meses fracos podem abater menos).{% if not resultado.arranjo_subiu_pelo_minimo_eletrico %} Diferença negativa não quer dizer que o sistema ficou pequeno: o crédito dos meses de mais sol cobre os de menos sol.{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %} No seu caso, a conta não pode ficar abaixo do valor mínimo da distribuidora (o custo de disponibilidade, equivalente a {{ resultado.piso_disponibilidade_kwh | round | int }} kWh na ligação {% if resultado.tipo_ligacao_informado %}{{ nomes_ligacao.get(resultado.tipo_ligacao, resultado.tipo_ligacao) }}{% else %}bifásica, considerada quando o tipo não é informado{% endif %}), e isso impede de abater {{ br(resultado.piso_anual_kwh, 0) }} kWh do consumo no ano. Por isso o sistema foi dimensionado só para a parte que pode ser abatida: painel a mais seria dinheiro sem retorno.{% endif %}{% endif %}</p>
+        </details>
         <ul class="resultado-lista">
             <li><span>Seu consumo no ano</span><span class="valor">{{ br(resultado.consumo_anual_kwh, 0) }} kWh</span></li>
-            <li class="destaque"><span>Geração anual estimada</span><span class="valor">{{ br(resultado.geracao_anual_kwh, 0) }} kWh</span></li>
+            <li class="destaque"><span>Geração anual estimada</span><span class="valor">cerca de {{ centenas(resultado.geracao_anual_kwh) }} kWh</span></li>
         </ul>
+        {#- ITEM 2 DO BACKLOG (06/10/2026). Em vez de uma faixa em kWh calculada
+            aqui (a regra deste arquivo proibe conta nova, e as pontas da faixa
+            teriam a mesma precisao falsa que o item 18 tirou do investimento),
+            o numero vai arredondado em centenas e a variacao de casa para casa
+            e dita em palavras, com fonte de campo. Escolha discutida com a
+            aluna; fontes e decisao em claude/melhorias_site_item18_andamento_06-10.txt.
+            NUNCA ancorar isto nos PRs do PVsyst (circular). -#}
+        <p class="nota-exata">É a geração de um sistema típico. Na sua casa ela pode sair um pouco maior ou menor — depende da direção e da inclinação do telhado, de sombra e da limpeza dos painéis. Se sair menor, a economia também pode diminuir um pouco.</p>
+        <details class="nota-mais nota-fontes">
+        <summary>Quanto isso varia na prática</summary>
+        <p class="nota-fonte">
+            A plataforma desconta 20% de perdas (calor, sujeira, fiação, inversor), o que se chama
+            taxa de desempenho de 0,80. Em 73 sistemas de até 10 kW medidos em 2022 no Rio Grande do
+            Norte, a taxa ficou em média em 0,79, de 0,70 a 0,92 conforme o sistema (Fonseca, Vieira
+            e Guerra, 2025). Em 1.162 sistemas reais da Bahia, de Pernambuco e de São Paulo, a EPE
+            achou a geração média muito perto da estimada em Pernambuco e São Paulo, e de 5% a 8%
+            acima na Bahia, com grande variação entre sistemas (Nota Técnica EPE DEA-SEE 014/2023).
+            Ou seja: na média a conta acerta; casa a casa, a geração real pode ficar uns 12% abaixo
+            ou até 15% acima do número mostrado.
+        </p>
+        </details>
     </div>
 
     <div class="card">
@@ -354,7 +546,7 @@
             <span class="divider-dot"></span>Economia financeira
             <span class="tip">
                 <button type="button" class="tip-btn" aria-label="Isso é venda de energia?">i</button>
-                <span class="tip-bubble">Isso não é venda de energia: o valor vem da compensação de créditos (Lei nº 14.300/2022 e ANEEL RN 1.000/2021), não da venda do excedente à concessionária. A energia gerada e não usada na hora vira crédito em kWh, abatido nas próximas faturas.</span>
+                <span class="tip-bubble">Isso não é venda de energia: o valor vem da compensação de créditos (Lei nº 14.300/2022 e Resolução ANEEL nº 1.000/2021), não da venda do excedente à concessionária. A energia gerada e não usada na hora vira crédito em kWh, abatido nas próximas faturas.</span>
             </span>
         </h2>
         <ul class="resultado-lista">
@@ -363,11 +555,27 @@
                     Tarifa calculada
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="De onde vem esse valor?">i</button>
-                        <span class="tip-bubble">Calculada dividindo o valor da fatura que você informou pelo consumo do mesmo período. Reflete a tarifa real da sua distribuidora, já com impostos e bandeira tarifária incluídos — em vez de uma média genérica.</span>
+                        {#- PASSO 6 (01/10/2026): quando a pessoa informa as
+                            cobrancas que nao sao energia, o balao conta a
+                            conta inteira, com os dois valores. Em branco, o
+                            texto e exatamente o de antes. #}
+                        <span class="tip-bubble">Calculada dividindo {% if resultado.cobrancas_nao_energia_reais %}a parte de energia da sua conta (R$ {{ br(resultado.fatura_informada) }} menos R$ {{ br(resultado.cobrancas_nao_energia_reais) }} de cobranças que não são energia, o que dá R$ {{ br(resultado.valor_de_energia_reais) }}){% else %}o valor da fatura que você informou{% endif %} pelo consumo do mesmo período{% if resultado.tarifa_pelo_minimo %} — com uma exceção: o consumo dessa conta ({{ kwh_digitado(resultado.consumo_da_fatura_kwh) }} kWh) ficou abaixo do mínimo da distribuidora, e nesses meses a conta cobra o mínimo, então a divisão foi por {{ resultado.consumo_faturado_kwh | round | int }} kWh (veja o aviso logo abaixo){% endif %}. Reflete a tarifa real da sua distribuidora, já com impostos e bandeira tarifária incluídos — em vez de uma média genérica.</span>
                     </span>
                 </span>
                 <span class="valor">R$ {{ br(resultado.tarifa_calculada) }}/kWh</span>
             </li>
+            {%- if resultado.cobrancas_nao_energia_reais %}
+            <li>
+                <span>
+                    Cobranças descontadas, por não serem energia
+                    <span class="tip">
+                        <button type="button" class="tip-btn" aria-label="Por que esse valor foi descontado?">i</button>
+                        <span class="tip-bubble">Você informou que R$ {{ br(resultado.cobrancas_nao_energia_reais) }} da sua conta não são energia. Os painéis não reduzem essas cobranças — a de iluminação pública, por exemplo, é definida por lei do seu município, e a distribuidora apenas arrecada na fatura (art. 476 da Resolução ANEEL nº 1.000/2021). Por isso esse valor saiu da conta antes do cálculo da tarifa: sem o desconto, a economia apareceria maior do que será.</span>
+                    </span>
+                </span>
+                <span class="valor">− R$ {{ br(resultado.cobrancas_nao_energia_reais) }}</span>
+            </li>
+            {%- endif %}
             <li>
                 <span>
                     Energia que de fato abate sua conta
@@ -396,47 +604,116 @@
                     Excedente de geração (não vira economia)
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="O que acontece com essa energia?">i</button>
-                        <span class="tip-bubble">Energia que o sistema gera a mais do que a casa consome ao longo de um ano inteiro. Ela é injetada na rede e vira crédito, mas como não há consumo para abater, tende a expirar sem se transformar em dinheiro. Está aqui para você saber que ela existe{% if resultado.arranjo_subiu_pelo_minimo_eletrico %} — neste caso não há como evitá-la, porque um sistema menor não funcionaria eletricamente.{% else %} — e que um sistema um pouco menor poderia ter um retorno proporcionalmente melhor.{% endif %}</span>
+                        <span class="tip-bubble">Energia que o sistema gera a mais do que a casa consome ao longo de um ano inteiro. Ela é injetada na rede e vira crédito, mas como não há consumo para abater, tende a expirar sem se transformar em dinheiro. Está aqui para você saber que ela existe{% if resultado.arranjo_subiu_pelo_minimo_eletrico %} — neste caso não há como evitá-la, porque um sistema menor não funcionaria eletricamente.{% else %}. Ela vem do arredondamento para cima: com um painel a menos, o sistema já não cobriria todo o consumo que dá para abater. E serve de folga para quando o sistema gerar menos que o previsto (sombra, sujeira, desgaste). Um sistema um pouco menor pode se pagar um pouco antes, mas deixa parte da conta sem abater — é uma escolha para conversar com o instalador.{% endif %}</span>
                     </span>
                 </span>
                 <span class="valor">{{ br(resultado.excedente_anual_kwh, 0) }} kWh/ano (+{{ br(resultado.excedente_percentual, 1) }}%)</span>
             </li>
             {% endif %}
-            <li><span>Economia mensal estimada</span><span class="valor">R$ {{ br(resultado.economia_mensal_media) }}</span></li>
-            <li class="destaque"><span>Economia anual estimada</span><span class="valor">R$ {{ br(resultado.economia_anual) }}</span></li>
+            <li><span>Economia por mês em {{ resultado.retorno_por_ano[0].ano }}</span><span class="valor">R$ {{ br(resultado.economia_mensal_media) }}</span></li>
+            <li class="destaque"><span>Economia em 12 meses, nas regras de {{ resultado.retorno_por_ano[0].ano }}</span><span class="valor">R$ {{ br(resultado.economia_anual) }}</span></li>
         </ul>
+        {%- if resultado.economia_diminui %}
+        <p class="nota-exata">Nos próximos anos a economia por mês vai diminuir: até 2029 a lei aumenta a parte do Fio B cobrada sobre a energia compensada, e os painéis perdem um pouco de rendimento a cada ano. O quadro <strong>Investimento e retorno</strong>, mais abaixo, mostra a economia de cada ano.</p>
+        {%- endif %}
 
-        {% if resultado.tipo_ligacao and not resultado.tipo_ligacao_informado %}
-        <p class="aviso-destaque">
-            <strong>Você não informou o tipo de ligação da sua casa.</strong> Esta estimativa
-            considera ligação bifásica, adotada quando o tipo não é informado. O tipo de
-            ligação define o valor mínimo da conta, que pode limitar a economia de quem
-            consome pouco — informe-o para um resultado mais preciso. Ele está escrito na
-            sua fatura.
-        </p>
+        {#- FASE 1, PASSO 8 (02/10/2026) - OS DOIS CAMPOS OPCIONAIS NUM AVISO
+            SO. Ate aqui este bloco avisava apenas o tipo de ligacao. Com a
+            secao 3 do formulario nascendo FECHADA, deixar as cobrancas que nao
+            sao energia em branco passou a ser o caminho mais provavel - e isso
+            NAO e neutro: puxa o resultado para o lado otimista (em Manaus, com
+            R$ 47,91 de iluminacao publica, o retorno vai de 33,5 para 38,0
+            meses). Entao a tela passou a dizer o que ficou de fora.
+
+            Os dois num bloco unico, e nao em dois blocos empilhados, porque na
+            maioria das simulacoes os dois campos ficam vazios - dois avisos
+            seguidos pesariam na leitura (pedido da aluna: nao deixar a tela
+            confusa). O CSS ja previa varios paragrafos aqui dentro
+            (.aviso-destaque p + p), entao nao precisou de estilo novo.
+
+            cobrancas_nao_energia_reais chega como 0.0 quando o campo vem
+            vazio, e tambem quando a pessoa digita 0 - os dois casos recebem o
+            mesmo aviso. Distinguir um do outro exigiria mexer no simulacao.py,
+            que esta congelado por causa do dimensionamento, e o ganho seria
+            nenhum: quem digita 0 esta dizendo que nao tem essas cobrancas. -#}
+        {#- REVISAO GERAL, PARTE 1 (07/10/2026), decisao da aluna: a conta usada
+            e de um mes em que o consumo ficou ABAIXO do minimo da ligacao. Sem
+            paineis a distribuidora cobra o minimo nesses meses (arts. 290 e 291
+            da REN 1.000), entao o motor dividiu o valor pelo minimo, e nao pelo
+            consumo. A tela diz isso e sugere usar a conta de um mes normal.
+            Quando o tipo de ligacao nao foi informado, o minimo e o da bifasica
+            presumida, e o texto nao pode afirmar que a conta "foi cobrada pelo
+            minimo" - numa casa monofasica (30 kWh) talvez nao tenha sido. -#}
+        {%- if resultado.tarifa_pelo_minimo %}
+        {% set minimo_conta = resultado.consumo_faturado_kwh | round | int %}
+        <div class="aviso-destaque" id="aviso-conta-minimo">
+            <p><strong>A conta que você usou {% if resultado.tipo_ligacao_informado or resultado.consumo_da_fatura_kwh < 30 %}é{% else %}pode ser{% endif %} de um mês com consumo abaixo do mínimo da distribuidora.</strong> Para um resultado mais preciso, refaça a simulação com a conta de um mês de consumo normal.</p>
+            <details class="nota-mais">
+            <summary>Entenda</summary>
+            <div>
+            <p>O consumo dessa conta foi de {{ kwh_digitado(resultado.consumo_da_fatura_kwh) }} kWh. {% if resultado.tipo_ligacao_informado %}Na ligação {{ nomes_ligacao.get(resultado.tipo_ligacao, resultado.tipo_ligacao) }}, a distribuidora cobra no mínimo {{ minimo_conta }} kWh por mês (art. 291 da Resolução ANEEL nº 1.000/2021): nos meses em que a casa consome menos que isso, a conta cobra o mínimo, e não o consumo. Por isso a tarifa foi calculada dividindo o valor da conta por {{ minimo_conta }} kWh, e não por {{ kwh_digitado(resultado.consumo_da_fatura_kwh) }} kWh — senão ela sairia maior do que é, e a economia também.{% else %}Isso fica abaixo de {{ minimo_conta }} kWh, o mínimo da ligação bifásica, que consideramos quando o tipo de ligação não é informado (art. 291 da Resolução ANEEL nº 1.000/2021). Se a sua casa for bifásica, nesse mês a conta cobrou o mínimo, e não o consumo — por isso a tarifa foi calculada dividindo o valor da conta por {{ minimo_conta }} kWh. Se for monofásica, o mínimo é de 30 kWh: informe o tipo de ligação na seção 3 do formulário para a conta sair certa.{% endif %}</p>
+            </div>
+            </details>
+        </div>
+        {%- endif -%}
+        {% set falta_cobrancas = not resultado.cobrancas_nao_energia_reais %}
+        {% set falta_ligacao = resultado.tipo_ligacao and not resultado.tipo_ligacao_informado %}
+        {% if falta_cobrancas or falta_ligacao %}
+        <div class="aviso-destaque" id="aviso-opcionais">
+            <p><strong>{% if falta_cobrancas and falta_ligacao %}Dois dados deixariam{% else %}Um dado deixaria{% endif %} este resultado mais preciso.</strong>
+            {% if falta_cobrancas and falta_ligacao %}Os dois são opcionais e ficam{% else %}Ele é opcional e fica{% endif %}
+            na seção 3 do formulário, em “Deixar o resultado mais preciso”.</p>
+            <details class="nota-mais">
+            <summary>Por que isso muda o resultado</summary>
+            <div>
+            {% if falta_cobrancas %}
+            <p><strong>Cobranças da conta que não são energia.</strong> Iluminação pública, taxa de
+            lixo, multa e juros não são energia, e os painéis não reduzem essa parte. Sem
+            descontá-la, o tempo de retorno aparece mais curto do que será.</p>
+            {% endif %}
+            {% if falta_ligacao %}
+            <p><strong>Tipo de ligação da sua casa.</strong> Esta estimativa considera
+            ligação bifásica, adotada quando o tipo não é informado. O tipo de ligação
+            define o valor mínimo da conta, que pode limitar a economia de quem consome
+            pouco. Ele está escrito na sua fatura.</p>
+            {% endif %}
+            </div>
+            </details>
+        </div>
         {% endif %}
 
         {% if fatura_informada is defined and fatura_informada > 0 %}
         {% set escala_fatura = resultado.fatura_sem_solar_por_mes_reais.values() | list | max %}
 
-        <h3 style="margin-top: 24px;">Sua conta de luz, com e sem os painéis{% if resultado.modo_consumo != 'mensal' %} — um mês típico{% endif %}</h3>
+        <h3 class="fora-do-resumo" style="margin-top: 24px;">Sua conta de luz, com e sem os painéis{% if resultado.modo_consumo != 'mensal' %} — um mês típico{% endif %}</h3>
 
-        <p style="margin: 0 0 14px; font-size: 13px; color: #6b6b6b;">
-            <span style="display:inline-block;width:11px;height:11px;background:#CFC4B4;border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
+        {#- (06/10/2026, aprovado pela aluna) Esta legenda aparecia nos dois modos.
+            No modo 12 meses ela vinha em cima da legenda certa ("sem os painéis /
+            com os painéis") e chamava a MESMA barra cinza de "quanto você
+            economiza" - duas legendas para a mesma barra. Agora ela fica so no
+            modo media (um mes tipico). -#}
+        {% if resultado.modo_consumo != 'mensal' %}
+        <p class="fora-do-resumo" style="margin: 0 0 14px; font-size: 13px; color: var(--color-text-muted);">
+            {# (06/10/2026, acabamento) o quadradinho de "quanto voce economiza" era
+                cinza, mas no grafico do mes tipico a barra cinza e a conta SEM os
+                paineis; a economia e o pedaco claro tracejado da barra da direita.
+                O quadradinho passou a ter a mesma cara desse pedaco. #}
+            <span style="display:inline-block;width:11px;height:11px;background:var(--color-dica-bg);border:1px dashed var(--color-muted-bar);box-sizing:border-box;border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
             quanto você economiza &nbsp;&nbsp;
-            <span style="display:inline-block;width:11px;height:11px;background:#F2600C;border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
+            <span style="display:inline-block;width:11px;height:11px;background:var(--color-primary);border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
             quanto você ainda paga
         </p>
+        {% endif %}
 
         {% if resultado.modo_consumo == 'mensal' %}
-        <p style="margin: 0 0 14px; font-size: 13px; color: #6b6b6b;">
-            <span style="display:inline-block;width:11px;height:11px;background:#CFC4B4;border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
+        <p class="fora-do-resumo" style="margin: 0 0 14px; font-size: 13px; color: var(--color-text-muted);">
+            <span style="display:inline-block;width:11px;height:11px;background:var(--color-muted-bar);border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
             sem os painéis &nbsp;&nbsp;
-            <span style="display:inline-block;width:11px;height:11px;background:#F2600C;border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
+            <span style="display:inline-block;width:11px;height:11px;background:var(--color-primary);border-radius:2px;vertical-align:-1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></span>
             com os painéis
         </p>
 
-        <div style="overflow-x: auto;">
+        <div class="fora-do-resumo grafico-rolagem" style="overflow-x: auto;">
             <div style="display:flex; align-items:flex-end; gap:4px; min-width:560px; height:210px;">
                 {% for mes, fatura_mes in resultado.fatura_por_mes_reais.items() %}
                 {% set sem_solar = resultado.fatura_sem_solar_por_mes_reais[mes] %}
@@ -444,20 +721,23 @@
                 <div style="flex:1; display:flex; flex-direction:column; align-items:center; height:100%;">
                     <div style="flex:1; display:flex; align-items:flex-end; justify-content:center; gap:2px; width:100%;">
                         <div title="{{ mes }} sem os painéis: R$ {{ br(sem_solar) }}"
-                             style="width:44%; height:{{ (sem_solar / escala_fatura * 100) | round(1) }}%; background:#CFC4B4; border-radius:3px 3px 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
+                             style="width:44%; height:{{ (sem_solar / escala_fatura * 100) | round(1) }}%; background:var(--color-muted-bar); border-radius:3px 3px 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
                         <div title="{{ mes }} com os painéis: R$ {{ br(fatura_mes) }}"
-                             style="width:44%; height:{{ (fatura_mes / escala_fatura * 100) | round(1) }}%; background:#F2600C; border-radius:3px 3px 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
+                             style="width:44%; height:{{ (fatura_mes / escala_fatura * 100) | round(1) }}%; background:var(--color-primary); border-radius:3px 3px 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
                     </div>
-                    <span style="font-size:11px; color:#7a7a7a; margin-top:6px;">{{ mes }}</span>
+                    <span style="font-size:11px; color:var(--color-text-muted); margin-top:6px;">{{ mes }}</span>
                     {% set rotulo_eco = br(economia_mes, 0) %}
-                    <span style="font-size:10px; font-weight:700; color:#C25400;">{% if rotulo_eco == "0" %}0{% else %}−{{ rotulo_eco }}{% endif %}</span>
+                    <span style="font-size:10px; font-weight:700; color:var(--color-primary-dark);">{% if rotulo_eco == "0" %}R$ 0{% else %}R$ {{ rotulo_eco }}{% endif %}</span>
                 </div>
                 {% endfor %}
             </div>
         </div>
-        <p class="grafico-nota">Em cada mês, a barra clara é o que você pagaria <strong>sem</strong> os painéis e a laranja é o que pagaria <strong>com</strong> eles. O número embaixo é quanto você deixa de pagar naquele mês, em reais. O cálculo usa o histórico de 12 meses que você informou e considera o sistema de créditos: a energia que sobra nos meses de mais sol fica guardada e é usada nos meses de menos sol (créditos válidos por 60 meses, Lei nº 14.300/2022).</p>
+        <details class="nota-mais">
+            <summary>Como ler este gráfico</summary>
+            <p class="grafico-nota">Em cada mês, a barra clara é o que você pagaria <strong>sem</strong> os painéis e a laranja é o que pagaria <strong>com</strong> eles. O número embaixo é quanto você deixa de pagar naquele mês, em reais. O cálculo usa o histórico de 12 meses que você informou e considera o sistema de créditos: a energia que sobra nos meses de mais sol fica guardada e é usada nos meses de menos sol (créditos válidos por 60 meses, Lei nº 14.300/2022).</p>
+        </details>
 
-        <div class="tabela-wrap" style="margin-top: 20px;">
+        <div class="tabela-wrap fora-do-resumo" style="margin-top: 20px;">
             <table class="tabela-geracao">
                 <tr>
                     <th>Mês</th>
@@ -481,36 +761,42 @@
         {# Modo media: a pessoa informou UM numero de consumo, entao a
            plataforma so sabe descrever UM mes. Desenhar doze barras iguais
            devolveria a entrada dela disfarcada de previsao mensal. #}
-        <div style="display:flex; align-items:flex-end; gap:28px; height:230px; max-width:320px;">
+        <div class="fora-do-resumo" style="display:flex; align-items:flex-end; gap:28px; height:230px; max-width:320px;">
             <div style="flex:1; display:flex; flex-direction:column; align-items:center; height:100%;">
-                <span style="font-size:13px; color:#7a7a7a;">R$ {{ br(resultado.fatura_media_sem_solar) }}</span>
+                <span style="font-size:13px; color:var(--color-text-muted);">R$ {{ br(resultado.fatura_media_sem_solar) }}</span>
                 <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; width:100%; align-items:center;">
-                    <div style="width:80%; height:100%; background:#CFC4B4; border-radius:4px 4px 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
+                    <div style="width:80%; height:100%; background:var(--color-muted-bar); border-radius:4px 4px 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
                 </div>
-                <span style="font-size:12px; color:#7a7a7a; margin-top:8px; text-align:center;">Sem os painéis</span>
+                <span style="font-size:12px; color:var(--color-text-muted); margin-top:8px; text-align:center;">Sem os painéis</span>
             </div>
             <div style="flex:1; display:flex; flex-direction:column; align-items:center; height:100%;">
-                <span style="font-size:13px; font-weight:700; color:#C25400;">R$ {{ br(resultado.fatura_media_com_solar) }}</span>
+                <span style="font-size:13px; font-weight:700; color:var(--color-primary-dark);">R$ {{ br(resultado.fatura_media_com_solar) }}</span>
                 <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; width:100%; align-items:center;">
-                    <div style="width:80%; height:{{ (100 - (resultado.fatura_media_com_solar / resultado.fatura_media_sem_solar * 100)) | round(1) }}%; background:#F7EDE2; border-radius:4px 4px 0 0; border:1px dashed #CFC4B4; box-sizing:border-box; display:flex; align-items:center; justify-content:center; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
-                        <span style="font-size:11px; color:#8a7a68;">economia</span>
+                    <div style="width:80%; height:{{ (100 - (resultado.fatura_media_com_solar / resultado.fatura_media_sem_solar * 100)) | round(1) }}%; background:var(--color-dica-bg); border-radius:4px 4px 0 0; border:1px dashed var(--color-muted-bar); box-sizing:border-box; display:flex; align-items:center; justify-content:center; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
+                        <span style="font-size:11px; color:var(--color-text-muted);">economia</span>
                     </div>
-                    <div style="width:80%; height:{{ (resultado.fatura_media_com_solar / resultado.fatura_media_sem_solar * 100) | round(1) }}%; background:#F2600C; -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
+                    <div style="width:80%; height:{{ (resultado.fatura_media_com_solar / resultado.fatura_media_sem_solar * 100) | round(1) }}%; background:var(--color-primary); -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
                 </div>
-                <span style="font-size:12px; color:#7a7a7a; margin-top:8px; text-align:center;">Com os painéis</span>
+                <span style="font-size:12px; color:var(--color-text-muted); margin-top:8px; text-align:center;">Com os painéis</span>
             </div>
         </div>
-        <p class="grafico-nota">Este é o retrato de <strong>um mês típico</strong>, não uma previsão de cada mês do ano — e é de propósito. Você informou o seu consumo médio mensal, então a plataforma sabe descrever um mês médio, e mostrar doze barras aqui seria devolver o seu próprio número disfarçado de previsão. Duas coisas fazem a conta real variar de um mês para o outro: o seu consumo, que muda com a estação, e a bandeira tarifária, que encarece o kWh em alguns meses e que nenhuma simulação consegue prever. <strong>Quer um resultado mais preciso?</strong> Volte e preencha o histórico de 12 meses da sua conta. Não é só para ver o gráfico mês a mês: a média que dimensiona o seu sistema deixa de depender de uma estimativa e passa a sair do seu consumo real — e é ela que define quantos painéis você precisa e em quanto tempo o investimento se paga.</p>
+        <details class="nota-mais">
+            <summary>Por que aparece só um mês típico</summary>
+            <p class="grafico-nota">Você informou o consumo médio mensal, então mostramos <strong>um mês médio</strong>: doze barras iguais só repetiriam o seu próprio número. Na conta real, o valor muda de mês a mês com o seu consumo e com a bandeira tarifária. <strong>Quer um resultado mais preciso?</strong> Volte e preencha o histórico de 12 meses da sua conta: a média que define o tamanho do sistema e o tempo de retorno passa a sair do seu consumo real.</p>
+        </details>
         {% endif %}
 
-        <p class="grafico-nota">Sobre o que fica na conta mesmo com os painéis: a parte laranja é a parcela <strong>Fio B</strong>, cobrada sobre a energia compensada pelos créditos (Lei nº 14.300/2022){% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %}, completada até o <strong>valor mínimo</strong> que a distribuidora cobra de qualquer conta, o custo de disponibilidade{% endif %}. As duas cobranças não se somam: o Fio B já conta para atingir o mínimo (art. 655-I da Resolução ANEEL nº 1.000/2021). A conta não desaparece por mais energia que o sistema gere — é por isso que ela não chega a zero.</p>
+        <details class="nota-mais">
+            <summary>Por que a conta não chega a zero</summary>
+            <p class="grafico-nota">A parte laranja é o que continua na conta: o <strong>Fio B</strong> cobrado sobre a energia compensada (Lei nº 14.300/2022){% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %}, completado até o <strong>valor mínimo</strong> da distribuidora, o custo de disponibilidade. As duas cobranças não se somam (art. 655-I da Resolução ANEEL nº 1.000/2021){% else %}. No seu caso essa cobrança já passa do <strong>valor mínimo</strong> da distribuidora, o custo de disponibilidade, e por isso o mínimo não entra: as duas não se somam (art. 655-I da Resolução ANEEL nº 1.000/2021){% endif %}.</p>
+        </details>
 
         {% set fatura_media_com_solar = resultado.fatura_media_com_solar %}
         {% set percentual_reducao = resultado.reducao_percentual_fatura %}
 
         {% if resultado.modo_consumo == 'mensal' %}
-        <h3 style="margin-top: 28px;">Na média do ano</h3>
-        <div class="comparacao-simples">
+        <h3 class="fora-do-resumo" style="margin-top: 28px;">Na média do ano</h3>
+        <div class="comparacao-simples fora-do-resumo">
             <div class="comparacao-col">
                 <span class="comparacao-valor">R$ {{ br(resultado.fatura_media_sem_solar) }}</span>
                 <div class="comparacao-barra comparacao-antes" style="height: 100%;"></div>
@@ -528,17 +814,121 @@
                 <span class="comparacao-label">Com os painéis</span>
             </div>
         </div>
-        <p class="grafico-nota">A diferença de R$ {{ br(resultado.fatura_media_sem_solar - fatura_media_com_solar) }} é exatamente a economia mensal estimada mostrada mais acima — as duas partes desta seção saem do mesmo cálculo.</p>
+        <p class="grafico-nota fora-do-resumo">A diferença de R$ {{ br(resultado.fatura_media_sem_solar - fatura_media_com_solar) }} é exatamente a economia por mês de {{ resultado.retorno_por_ano[0].ano }} mostrada mais acima — as duas partes desta seção saem do mesmo cálculo.</p>
         {% endif %}
         {% endif %}
 
-        <p style="margin:16px 0 0; font-size:0.86rem; color:#6B6257; line-height:1.5;">
+        <details class="nota-mais nota-fontes">
+        <summary>De onde vêm o Fio B e as regras usadas</summary>
+        <p class="nota-fonte">
             Base regulatória do cálculo: considera
             {{ br(resultado.percentual_fio_b * 100, 0) }}% de cobrança do Fio B sobre a
             energia compensada (Lei nº 14.300/2022{% if resultado.ano_referencia_fio_b %}, referência {{ resultado.ano_referencia_fio_b }}{% endif %}){% if resultado.tipo_ligacao %}
             e, como valor mínimo da conta, o custo de disponibilidade de {{ resultado.piso_disponibilidade_kwh | round | int }} kWh/mês
             da ligação {{ nomes_ligacao.get(resultado.tipo_ligacao, resultado.tipo_ligacao) }} (arts. 291 e 655-I da Resolução ANEEL nº 1.000/2021){% endif %}.
         </p>
+
+        {#- FASE 1, PASSO 3 (30/09/2026) - ITEM 23 DO BACKLOG: mostrar o Fio B
+            que entrou na conta. Auditabilidade, nao enfeite. So ESCREVE o que
+            o simulacao.py ja devolve (campos da correcao T19); nenhuma conta
+            nova. Tres situacoes:
+              (1) Fio B informado na chamada (so nas reproducoes dos casos
+                  antigos, fio_b=0,20) - diz que nao veio da tabela;
+              (2) estado identificado - valor, distribuidora da capital,
+                  resolucao, fonte e data da tabela, em uma linha discreta;
+              (3) estado NAO identificado - mediana nacional, em caixa de
+                  destaque, porque o resultado nasceu de uma premissa (mesmo
+                  desenho do aviso do tipo de ligacao, T7).
+            PASSO 6 (01/10/2026): o motor passou a devolver a VIGENCIA da
+            tarifa (fio_b_vigencia_inicio/fim) e um aviso quando ela acabou
+            (fio_b_vigencia_expirada). A linha passa a dizer ate quando o
+            valor usado vale, em vez de so a data em que a tabela foi
+            montada; sem vigencia na tabela, volta a mostrar essa data. O
+            aviso de vigencia vencida usa a classe aviso-destaque, igual ao
+            do tipo de ligacao - nenhum estilo novo.
+            PASSO 7 (02/10/2026): o Fio B passou a vir da distribuidora do
+            MUNICIPIO. A linha agora diz QUAL distribuidora entrou na conta e
+            DE ONDE veio essa escolha (fio_b_origem): "informada" pela pessoa,
+            "unica" do municipio, "maior" entre as do municipio (quando ha mais
+            de uma e a pessoa nao soube dizer) ou "estado" (plano B, criterio
+            da capital). O caso "maior" ganha aviso proprio, porque o resultado
+            nasceu de uma premissa - mesmo desenho do tipo de ligacao. -#}
+        {% if resultado.fio_b_informado_na_chamada %}
+        <p class="nota-fio-b">
+            Fio B usado: R$ {{ br(resultado.valor_fio_b_por_kwh, 4) }}/kWh, informado
+            diretamente na simulação (não veio da tabela da ANEEL).
+        </p>
+        {% elif resultado.fio_b_estado_identificado %}
+        <p class="nota-fio-b">
+            Fio B usado: R$ {{ br(resultado.valor_fio_b_por_kwh, 4) }}/kWh —
+            {{ resultado.fio_b_distribuidora_referencia }},
+            {%- if resultado.fio_b_origem == "informada" %} a distribuidora que você informou
+            {%- elif resultado.fio_b_origem == "unica" %} a distribuidora que atende o seu município
+            {%- elif resultado.fio_b_origem == "maior" %} uma das distribuidoras do seu município
+            {%- else %} distribuidora da capital de {{ resultado.fio_b_uf }}{% endif %}
+            {#- ITEM 6, PARTE 3 (07/10/2026): desde o passo 7 a resolucao da distribuidora do
+                municipio vem do arquivo da ANEEL escrita por extenso ("RESOLUCAO HOMOLOGATORIA No 3.592,
+                DE 23 DE JUNHO DE 2026"); antes so o formato "REH n." da tabela por estado aparecia, e
+                a tela dizia "resolucao nao informada" para 79 das 80 distribuidoras. #}
+            {%- set resolucao = (resultado.fio_b_resolucao or "") | trim %}
+            ({%- if resolucao.startswith("REH") %}{{ resolucao | replace("REH n.", "Resolução Homologatória nº") }}
+            {%- elif "Nº " in resolucao %}Resolução Homologatória nº {{ resolucao.split("Nº ", 1)[1] | lower }}
+            {%- elif resolucao and not resolucao.startswith("resolucao nao") %}{{ resolucao }}
+            {%- else %}resolução não informada no conjunto{% endif %}; ANEEL, valor
+            sem impostos{% if resultado.fio_b_vigencia_inicio and resultado.fio_b_vigencia_fim %}, em vigor de {{ resultado.fio_b_vigencia_inicio }} a {{ resultado.fio_b_vigencia_fim }}{% else %} vigente em {{ resultado.fio_b_data_referencia }}{% endif %}).
+            <span class="tip">
+                {#- ITEM 6, PARTE 3 (07/10/2026): este balao dizia sempre "Usamos a distribuidora que
+                    atende a capital do seu estado", o que deixou de ser verdade no passo 7 (02/10): o
+                    Fio B vem da distribuidora do MUNICIPIO, e a linha acima ja dizia isso. A frase da
+                    capital ficou so para o plano B (fio_b_origem == "estado"). #}
+                <button type="button" class="tip-btn" aria-label="{% if resultado.fio_b_origem == 'estado' %}Por que a distribuidora da capital?{% else %}De onde vem esse valor?{% endif %}">i</button>
+                <span class="tip-bubble">{% if resultado.fio_b_origem == "estado" %}Usamos a distribuidora que atende a capital do seu estado. Se a sua conta vem de outra distribuidora ou de uma cooperativa, o Fio B dela pode ser diferente — e a economia e o tempo de retorno também. O nome da sua distribuidora está na conta de luz. {% endif %}Cada distribuidora tem o seu próprio Fio B, homologado pela ANEEL, e reajusta a tarifa uma vez por ano, na data da sua resolução — por isso mostramos até quando o valor usado vale. Fonte: {{ textos_do_motor.get(resultado.fio_b_fonte, resultado.fio_b_fonte) }}.</span>
+            </span>
+        </p>
+        {% endif %}
+        </details>
+        {#- (06/10/2026) Este aviso era o "else" do if/elif acima. Saiu de dentro
+            do rodape recolhido para continuar visivel; a condicao e a mesma do
+            else: nem informado na chamada, nem estado identificado. -#}
+        {% if not resultado.fio_b_informado_na_chamada and not resultado.fio_b_estado_identificado %}
+        <div class="aviso-destaque">
+            <p><strong>Não foi possível identificar o estado da sua cidade.</strong></p>
+            <details class="nota-mais">
+            <summary>Entenda</summary>
+            <div><p>Por isso o
+            cálculo usou um valor de referência nacional para o Fio B, a mediana dos 27
+            estados: R$ {{ br(resultado.valor_fio_b_por_kwh, 4) }} por kWh. Na sua
+            distribuidora o valor pode ser diferente — e a economia e o tempo de retorno também.</p></div>
+            </details>
+        </div>
+        {% endif %}
+        {%- if resultado.fio_b_origem == "maior" %}
+        <div class="aviso-destaque">
+            <p><strong>O seu município é atendido por mais de uma distribuidora</strong>, e você não
+            informou qual é a sua.</p>
+            <details class="nota-mais">
+            <summary>Entenda</summary>
+            <div><p>São {{ resultado.fio_b_opcoes_do_municipio | length }}:
+            {% for d in resultado.fio_b_opcoes_do_municipio %}{{ d.distribuidora }} (R$ {{ br(d.fio_b, 4) }}/kWh){% if not loop.last %}, {% endif %}{% endfor %}.
+            O cálculo usou a de maior Fio B, que é a que resulta na <strong>menor economia</strong> —
+            assim o resultado não promete mais do que você pode ter. O nome da sua distribuidora
+            está na conta de luz: informe na página inicial e o cálculo fica exato.</p></div>
+            </details>
+        </div>
+        {%- endif %}
+        {%- if resultado.fio_b_vigencia_expirada %}
+        <div class="aviso-destaque">
+            <p><strong>Atenção: o período de vigência deste valor de Fio B já terminou.</strong></p>
+            <details class="nota-mais">
+            <summary>Entenda</summary>
+            <div><p>{% if resultado.fio_b_vigencia_fim %}Ele valia até {{ resultado.fio_b_vigencia_fim }} e{% else %}A tabela usada pelo cálculo{% endif %}
+            {% if resultado.fio_b_estado_identificado %}a distribuidora já deve ter passado por reajuste{% else %}já tem valores reajustados depois da data de referência{% endif %}.
+            Como os reajustes costumam aumentar o Fio B, a economia e o tempo de retorno
+            mostrados aqui tendem a estar um pouco otimistas. O valor atualizado está no
+            Portal de Dados Abertos da ANEEL, no conjunto Componentes Tarifárias.</p></div>
+            </details>
+        </div>
+        {%- endif %}
     </div>
 
     <div class="card">
@@ -565,7 +955,7 @@
                     Instalação, projeto e homologação
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="O que está incluído aqui?">i</button>
-                        <span class="tip-bubble">Mão de obra de instalação, projeto elétrico com ART, e todo o processo junto à distribuidora até o sistema ser aprovado e ligado. Costuma custar quase o mesmo que o material — e, em sistemas pequenos, até mais, porque boa parte desse trabalho não diminui com o tamanho do sistema.</span>
+                        <span class="tip-bubble">Mão de obra de instalação, projeto elétrico com ART (a Anotação de Responsabilidade Técnica do engenheiro), e todo o processo junto à distribuidora até o sistema ser aprovado e ligado. Costuma custar quase o mesmo que o material — e, em sistemas pequenos, até mais, porque boa parte desse trabalho não diminui com o tamanho do sistema.</span>
                     </span>
                 </span>
                 <span class="valor">R$ {{ br(resultado.custo_servico_instalacao) }}</span>
@@ -582,59 +972,108 @@
                 <span class="valor">{{ br(resultado.payback_meses, 1) }} meses (~{{ br(resultado.payback_meses / 12, 1) }} anos)</span>
             </li>
         </ul>
+        {#- ITENS 28 E 11 (06/10/2026): o retorno passou a ser MES A MES no motor
+            (calculo.retorno_mes_a_mes). Custo / economia de hoje deixou de dar
+            o retorno, entao o quadro so continua conferivel com a economia de
+            cada ano ao lado: a tabela abaixo e lida pronta do motor
+            (retorno_por_ano) - nenhuma conta financeira aqui (regra do T2b). A
+            ultima linha e o ano em que o acumulado passa o custo. -#}
+        <div class="tabela-wrap" style="margin-top: 16px;">
+            <table class="tabela-geracao tabela-retorno">
+                <tr>
+                    <th>Ano</th>
+                    <th>Fio B cobrado</th>
+                    <th>Economia no ano (R$)</th>
+                    <th>Somada (R$)</th>
+                </tr>
+                {% for linha in resultado.retorno_por_ano %}
+                <tr{% if loop.last %} class="linha-retorno"{% endif %}>
+                    <td>{{ linha.ano }}{% if linha.meses < 12 %} <span class="retorno-meses">({{ linha.meses }} {{ "mês" if linha.meses == 1 else "meses" }})</span>{% endif %}</td>
+                    <td>{{ (linha.percentual_fio_b * 100) | round | int }}%</td>
+                    <td>{{ br(linha.economia) }}</td>
+                    <td>{{ br(linha.acumulado) }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <p class="nota-exata">Conta exata da plataforma, com centavos, para conferir — não é um preço. O sistema se paga quando a economia somada alcança o custo, o que acontece em {{ resultado.retorno_por_ano[-1].ano }}. No resumo do topo os valores aparecem arredondados, porque um orçamento real pode vir acima ou abaixo da média nacional.</p>
+        <details class="nota-mais">
+            <summary>Como o retorno é calculado</summary>
+            <div>
+            <p>A economia é somada mês a mês, a partir de {{ ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"][resultado.retorno_inicio_mes - 1] }} de {{ resultado.retorno_inicio_ano }}, até alcançar o custo do sistema. Ela muda de um ano para o outro por dois motivos:</p>
+            <ul>
+                {% if resultado.percentual_fio_b_informado %}
+                <li><strong>Fio B:</strong> nesta simulação o percentual do Fio B foi informado diretamente e vale para todos os anos.</li>
+                {% else %}
+                <li><strong>Fio B:</strong> a Lei nº 14.300/2022 (art. 27) aumenta todo ano a parte do Fio B cobrada: 60% em 2026, 75% em 2027 e 90% em 2028. De 2029 em diante, a regra (art. 17) ainda não foi definida pela ANEEL; usamos 100%, como premissa provisória.</li>
+                {% endif %}
+                <li><strong>Desgaste dos painéis:</strong> cerca de 0,5% de rendimento a menos por ano (Manual de Engenharia para Sistemas Fotovoltaicos, CEPEL/CRESESB, 2014). No começo quase não pesa, porque o sistema costuma gerar um pouco mais do que a conta deixa abater.</li>
+            </ul>
+            {% if not resultado.economia_diminui and not resultado.percentual_fio_b_informado %}
+            <p>No seu caso a economia fica igual em todos os anos: com os painéis, a conta já fica no valor mínimo da distribuidora (o custo de disponibilidade), e continua nele quando a lei aumenta o Fio B.</p>
+            {% endif %}
+            <p>A tarifa é mantida constante, como se acompanhasse a inflação; se subir mais que ela, o retorno chega antes. Não entram manutenção, troca de equipamento nem juros.</p>
+            {% if resultado.economia_diminui %}
+            <p>Pela conta simples — custo dividido pela economia de hoje, como se ela nunca mudasse — daria {{ br(resultado.payback_simples_meses, 1) }} meses: mais curto, mas não é o que a lei prevê.</p>
+            {% endif %}
+            </div>
+        </details>
 
         {% if resultado.custo_fora_da_faixa_medida %}
-        <p class="aviso-destaque">
-            <strong>Atenção ao tamanho deste sistema.</strong> Ele ficou abaixo de 2 kWp,
+        <div class="aviso-destaque">
+            <p><strong>Atenção ao tamanho deste sistema.</strong> <strong>Peça orçamento a pelo menos três empresas antes de decidir.</strong></p>
+            <details class="nota-mais">
+            <summary>Entenda</summary>
+            <div><p>Ele ficou abaixo de 2 kWp,
             um porte tão pequeno que quase não é vendido no Brasil — por isso a pesquisa de
             preços não chega a medi-lo. O valor acima é uma estimativa da plataforma, feita
             considerando que o material encolhe junto com o sistema, mas o trabalho de
             instalar, projetar e homologar praticamente não encolhe. Na prática, sistemas
-            muito pequenos custam caro por painel instalado e demoram mais para se pagar.
-            <strong>Peça orçamento a pelo menos três empresas antes de decidir.</strong>
-        </p>
+            muito pequenos custam caro por painel instalado e demoram mais para se pagar.</p></div>
+            </details>
+        </div>
         {% endif %}
 
-        <p style="margin:16px 0 0; font-size:0.86rem; color:#6B6257; line-height:1.5;">
+        <details class="nota-mais nota-fontes">
+        <summary>De onde vem o preço</summary>
+        <p class="nota-fonte">
             Preços de referência: {{ textos_do_motor.get(resultado.referencia_precos, resultado.referencia_precos) }}. Valor médio nacional de
             sistemas fotovoltaicos residenciais instalados, equivalente a
             R$ {{ br(resultado.custo_por_wp) }} por Wp neste porte de sistema. Não
             considera diferenças regionais nem obras adicionais, como troca do padrão de
             entrada ou reforço de telhado.
         </p>
+        </details>
     </div>
 
-    <div class="card">
+    <div class="card fora-do-resumo">
         <h2><span class="divider-dot"></span>Perguntas frequentes</h2>
+
+        {#- ITEM 6 DO BACKLOG (07/10/2026) - REVISAO DO FAQ, decidida com a aluna. O FAQ foi
+            relido inteiro contra a tela de hoje (retorno mes a mes, itens 28 + 11).
+            De 6 perguntas ficaram 3: "Por que a economia nao e o valor de toda a energia
+            gerada?" saiu porque o balao do numero "Energia que de fato abate sua conta"
+            responde o mesmo, adaptado ao caso da pessoa (a resposta do FAQ nao falava do
+            minimo da distribuidora); "Por que a economia nao e igual a tarifa cheia?" foi
+            juntada a "Minha conta vai zerar?" (as duas eram o Fio B); "O que faz o
+            inversor?" ficou so na pagina inicial.
+            A linha "Ficou com mais duvidas? Veja..." (fase 1, passo 5) saiu: o link foi para
+            dentro da resposta em que ele faz sentido, e os 9 links continuam no rodape.
+            Registro: claude/melhorias_site_item6_07-10.txt. -#}
 
         <details class="faq-item">
             <summary>Minha conta de luz vai zerar?</summary>
-            <p>Não. Mesmo que o sistema gere mais energia do que a sua casa consome, a fatura nunca chega a zero. O componente Fio B continua sendo cobrado sobre a energia compensada pelos créditos (Lei nº 14.300/2022), e toda conta tem um valor mínimo, o custo de disponibilidade, que depende do tipo de ligação da sua casa (art. 291 da Resolução ANEEL nº 1.000/2021). As duas cobranças não se somam: o Fio B já conta para atingir o mínimo, e a conta fica no maior dos dois valores (art. 655-I da mesma resolução). É esse o valor residual que aparece no gráfico acima, e ele já está considerado no cálculo desta simulação.</p>
+            <p>Não. Toda conta tem um valor mínimo, o custo de disponibilidade, que depende do tipo de ligação da sua casa (art. 291 da Resolução ANEEL nº 1.000/2021). E sobre a energia abatida pelos créditos continua sendo cobrada uma parte da tarifa, o Fio B, que paga a rede de distribuição — e que a Lei nº 14.300/2022 aumenta ano a ano até 2029. Por isso cada kWh abatido economiza menos que a tarifa cheia. As duas cobranças não se somam: a conta fica no maior dos dois valores (art. 655-I da mesma resolução). Tudo isso já está no cálculo desta simulação. Mais detalhes em <a href="{{ url_for('pagina', nome='economia') }}">Economia e retorno</a>.</p>
         </details>
 
         <details class="faq-item">
-            <summary>Por que a economia não é o valor de toda a energia gerada?</summary>
-            <p>Porque só a energia que encontra consumo para abater vira dinheiro. Como não existe "meio painel", o sistema é arredondado para cima e costuma gerar mais do que a casa consome ao longo do ano. Essa sobra é injetada na rede e vira crédito em kWh, válido por 60 meses — mas se não houver consumo para abater, ela expira sem virar economia. Por isso a simulação mostra separadamente a energia gerada, a que de fato abate a sua conta e o excedente.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>Por que a economia não é igual ao valor cheio da minha tarifa?</summary>
-            <p>Porque parte da tarifa é o componente Fio B, que remunera a rede de distribuição e continua sendo cobrado, de forma crescente, sobre a energia compensada pelo sistema de créditos (Lei nº 14.300/2022). A economia mostrada já desconta essa parcela — por isso ela é realista, e não um valor otimista demais.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>O que faz o inversor solar?</summary>
-            <p>Os painéis geram energia em corrente contínua (CC), mas os aparelhos da sua casa usam corrente alternada (CA) — a mesma da rede elétrica. O inversor converte a energia de CC para CA, para que ela possa ser usada em casa e injetada na rede quando sobrar. Ele também desliga automaticamente durante uma queda de energia, por segurança das equipes de manutenção.</p>
-        </details>
-
-        <details class="faq-item">
-            <summary>O payback considera manutenção ao longo dos anos?</summary>
-            <p>Não. O cálculo é um payback simples: custo total do sistema dividido pela economia mensal média, sem considerar eventuais custos de manutenção, limpeza dos painéis ou troca de componentes ao longo da vida útil do sistema (estimada em 25 anos para os módulos).</p>
+            <summary>O tempo de retorno considera manutenção ao longo dos anos?</summary>
+            <p>Não. O retorno soma a economia de cada ano até ela alcançar o custo do sistema — já considerando o aumento do Fio B cobrado previsto em lei e o desgaste dos painéis —, mas não inclui custos de manutenção, limpeza dos painéis ou troca de componentes ao longo dos 25 anos da garantia de desempenho dos módulos.</p>
         </details>
 
         <details class="faq-item">
             <summary>Posso confiar 100% nesse resultado para fechar um contrato?</summary>
-            <p>Use o resultado como uma referência de viabilidade, não como orçamento definitivo. Fatores como sombreamento do telhado, orientação solar, distância até o quadro de energia e o instalador escolhido podem alterar o valor final — por isso recomendamos sempre validar com um orçamento real antes de decidir.</p>
+            <p>Use o resultado como uma referência de viabilidade, não como orçamento definitivo. Fatores como sombreamento do telhado, orientação solar, distância até o quadro de energia e o instalador escolhido podem alterar o valor final — por isso vale pedir orçamento a pelo menos três empresas antes de decidir. Quanto o resultado pode variar está em <a href="{{ url_for('pagina', nome='precisao') }}">Quão preciso é o resultado</a>.</p>
         </details>
     </div>
 
@@ -642,9 +1081,28 @@
 
 {% endif %}
 
+    {# FASE 1, PASSO 5 (30/09/2026) - links para as paginas de explicacao
+        (arquivos em static/, sem rota nova no app.py).
+        PASSO 8 (02/10/2026): os links passaram a usar os enderecos limpos
+        (/metodologia etc.), servidos pela rota "pagina" do app.py. #}
+    <nav class="rodape rodape-links no-print" aria-label="Páginas de explicação, no rodapé"><a href="{{ url_for('pagina', nome='entenda') }}">Como funciona</a> · <a href="{{ url_for('pagina', nome='economia') }}">Economia e retorno</a> · <a href="{{ url_for('pagina', nome='equipamentos') }}">Painéis, inversores e preços</a> · <a href="{{ url_for('pagina', nome='precisao') }}">Quão preciso é</a> · <a href="{{ url_for('pagina', nome='metodologia') }}">Metodologia</a> · <a href="{{ url_for('pagina', nome='limitacoes') }}">Limitações</a> · <a href="{{ url_for('pagina', nome='sobre') }}">Sobre</a> · <a href="{{ url_for('pagina', nome='contato') }}">Contato</a> · <a href="{{ url_for('pagina', nome='apoie') }}">Apoie o projeto</a></nav>
     <p class="rodape">Ferramenta de dimensionamento fotovoltaico residencial — Trabalho de Conclusão de Curso</p>
+    {# FASE 1, PASSO 3 (30/09/2026) - creditos das fontes de dados (item 24c
+        e credito da NASA POWER). Fora do "if": aparece em toda tela de
+        resultado, inclusive na de erro e no PDF impresso.
+        NASA POWER: licenca CC BY 4.0, que pede o credito; frase adaptada da
+        pagina power.larc.nasa.gov/docs/referencing/.
+        OpenStreetMap: licenca ODbL, que exige atribuicao visivel com link
+        para openstreetmap.org/copyright.
+        FASE 1, PASSO 8 (02/10/2026) - ANEEL: os tres conjuntos usados (Componentes
+        Tarifarias, IndQual Municipio e Indicadores Coletivos de Continuidade)
+        sao publicados sob a ODbL 1.0 (conferido no portal em 02/10/2026). O Fio B
+        e o nome da distribuidora mostrados aqui sao "Produced Work" da licenca, e
+        a secao 4.3 pede um aviso dizendo de onde veio e qual e a licenca, com
+        link. Ver dados-ANEEL-LICENCA.txt. #}
+    <p class="rodape rodape-creditos">Irradiação solar: projeto POWER (Prediction Of Worldwide Energy Resources) do NASA Langley Research Center, financiado pela NASA Earth Science Division — <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>, licença CC BY 4.0. Localização: dados © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, licença ODbL. Municípios: códigos e nomes oficiais do IBGE. Fio B e distribuidoras: contém informações dos conjuntos <a href="https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias" target="_blank" rel="noopener">Componentes Tarifárias</a>, <a href="https://dadosabertos.aneel.gov.br/dataset/indqual-municipio" target="_blank" rel="noopener">IndQual Município</a> e <a href="https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec" target="_blank" rel="noopener">Indicadores Coletivos de Continuidade</a>, da ANEEL, disponibilizados sob a licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>.</p>
 
-</div>
+</main>
 {#- A sanfona tecnica abre sozinha na impressao. Motivo: nos testes 13 e
     14 o PDF saiu com ela fechada, e o laudo eletrico sumiu do documento que
     mais provavelmente vai parar na mao de um instalador. Depois da
@@ -655,8 +1113,18 @@
     /* Cada sanfona aberta pela impressao ganha uma marca propria. Assim,
        se dois pedidos de impressao se sobrepuserem, nenhuma fica aberta
        por engano (achado no teste de bancada de 15/09/2026). */
+    /* ITEM 6, PARTE 2 (07/10/2026): os dois botoes de impressao. Ctrl+P continua sendo o
+       completo; o resumo so vale para a impressao pedida pelo botao dele. */
+    window.imprimirResultado = function (resumo) {
+        document.body.classList.toggle('imprimir-resumo', !!resumo);
+        window.print();
+    };
+    window.addEventListener('afterprint', function () {
+        document.body.classList.remove('imprimir-resumo');
+    });
     window.addEventListener('beforeprint', function () {
-        document.querySelectorAll('details.detalhes-tecnicos').forEach(function (d) {
+        if (document.body.classList.contains('imprimir-resumo')) { return; }
+        document.querySelectorAll('details.detalhes-tecnicos, details.nota-mais').forEach(function (d) {
             if (!d.open) { d.open = true; d.dataset.abertaParaImprimir = 'sim'; }
         });
     });
@@ -668,5 +1136,6 @@
     });
 })();
 </script>
+<script src="{{ url_for('static', filename='tabelas.js') }}" defer></script>
 </body>
 </html>

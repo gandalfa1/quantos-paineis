@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quão preciso é o resultado? — Quantos Painéis</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/paginas.css">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="pular-conteudo no-print" href="#conteudo">Pular para o conteúdo</a>
+<header class="topo-site no-print">
+    <div class="topo-conteudo">
+        <a class="topo-marca" href="/"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><radialGradient id="solTopoGrad" cx="35%" cy="35%" r="70%"><stop offset="0%" stop-color="#FFC24B"/><stop offset="55%" stop-color="#F2600C"/><stop offset="100%" stop-color="#C94E0A"/></radialGradient></defs><g stroke="#F2600C" stroke-width="3" stroke-linecap="round" opacity="0.8"><line x1="32" y1="2" x2="32" y2="10"/><line x1="32" y1="54" x2="32" y2="62"/><line x1="2" y1="32" x2="10" y2="32"/><line x1="54" y1="32" x2="62" y2="32"/><line x1="10.7" y1="10.7" x2="16.2" y2="16.2"/><line x1="47.8" y1="47.8" x2="53.3" y2="53.3"/><line x1="10.7" y1="53.3" x2="16.2" y2="47.8"/><line x1="47.8" y1="16.2" x2="53.3" y2="10.7"/></g><circle cx="32" cy="32" r="16" fill="url(#solTopoGrad)"/></svg><span>Quantos Painéis</span></a>
+        <div class="topo-acoes">
+            <details class="topo-menu-celular">
+                <summary>Páginas</summary>
+                <ul>
+                    <li><a href="/entenda">Como funciona</a></li>
+                    <li><a href="/economia">Economia e retorno</a></li>
+                    <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+                    <li><a href="/precisao" aria-current="page">Quão preciso é</a></li>
+                    <li><a href="/metodologia">Metodologia</a></li>
+                    <li><a href="/limitacoes">Limitações</a></li>
+                    <li><a href="/sobre">Sobre</a></li>
+                    <li><a href="/contato">Contato</a></li>
+                </ul>
+            </details>
+            <a class="btn-simular-topo" href="/"><span class="so-pc">Fazer uma simulação</span><span class="so-cel">Simular</span></a>
+        </div>
+    </div>
+    <nav class="topo-menu" aria-label="Páginas de explicação">
+        <ul>
+            <li><a href="/entenda">Como funciona</a></li>
+            <li><a href="/economia">Economia e retorno</a></li>
+            <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+            <li><a href="/precisao" aria-current="page">Quão preciso é</a></li>
+            <li><a href="/metodologia">Metodologia</a></li>
+            <li><a href="/limitacoes">Limitações</a></li>
+            <li><a href="/sobre">Sobre</a></li>
+            <li><a href="/contato">Contato</a></li>
+        </ul>
+    </nav>
+</header>
+<main id="conteudo">
+<div class="faixa-pagina">
+<div class="faixa-pagina-conteudo">
+<h1 class="pagina-titulo">Quão preciso é o resultado?</h1>
+<div class="resumo-pagina">
+    <p><strong>Em resumo:</strong> comparamos a plataforma com um programa profissional de projeto em cinco cidades. Nas cinco, a plataforma estimou <strong>de 4% a 7% menos energia</strong> que o programa. Ou seja, ela errou sempre para o lado seguro.</p>
+    <p>Mesmo assim, a geração de um sistema de verdade pode ser <strong>maior ou menor</strong> que as duas estimativas. Isso depende do telhado, da sombra, da sujeira e da instalação. Por isso, use o resultado como uma <strong>boa estimativa para conversar com as empresas</strong>, e não como uma promessa.</p>
+</div>
+</div>
+</div>
+<div class="page-wrap pagina-corpo">
+<p class="abrir-todas no-print"><button type="button" class="btn-abrir-todas" aria-pressed="false">Abrir todas as seções</button></p>
+
+<section class="card secao" aria-labelledby="comparada">
+<details class="secao-sanfona">
+    <summary><h2 id="comparada"><span class="divider-dot"></span>Com o que a plataforma foi comparada?</h2></summary>
+<div class="secao-conteudo">
+    <p>Com o <strong>PVsyst</strong>, um programa usado por engenheiros para projetar sistemas solares. A plataforma faz uma conta simples, com médias de cada mês. O PVsyst simula o sistema <strong>hora a hora</strong>, com a temperatura dos painéis, o comportamento do inversor e várias perdas que a plataforma resume num número só.</p>
+    <p>O teste foi feito assim:</p>
+    <ul>
+        <li><strong>Cinco cidades, uma de cada região do Brasil:</strong> Bom Jesus da Lapa (BA), Cuiabá (MT), Guaíra (PR), Manaus (AM) e Campinas (SP).</li>
+        <li><strong>O mesmo sistema nas duas ferramentas:</strong> os mesmos painéis, o mesmo inversor e os mesmos dados de sol da NASA.</li>
+        <li><strong>Painéis deitados (na horizontal) nas duas</strong>, para comparar só o jeito de calcular, e não a posição do telhado.</li>
+    </ul>
+
+    <h3 id="cidades">Por que essas cinco cidades?</h3>
+    <p>Porque cada uma coloca a plataforma à prova numa situação diferente. O Brasil é grande, e o sol e o calor mudam muito de um lugar para outro. Para o teste não valer só para um tipo de clima, escolhemos <strong>uma cidade em cada região do país</strong>, cobrindo uma faixa ampla de sol e de temperatura:</p>
+    <div class="tabela-wrap">
+    <table class="tabela-geracao">
+        <thead><tr><th scope="col">Cidade</th><th scope="col">Região</th><th scope="col" class="num">Sol (h/dia)</th><th scope="col" class="num">Temperatura</th><th scope="col">O que ela testa</th></tr></thead>
+        <tbody>
+        <tr><th scope="row">Bom Jesus da Lapa (BA)</th><td>Nordeste</td><td class="num"><strong>6,04</strong></td><td class="num">26,8 °C</td><td class="texto">O maior sol dos cinco, com calor, o ano inteiro</td></tr>
+        <tr><th scope="row">Cuiabá (MT)</th><td>Centro-Oeste</td><td class="num">5,27</td><td class="num">26,6 °C</td><td class="texto">Sol forte e calor, no meio do país</td></tr>
+        <tr><th scope="row">Guaíra (PR)</th><td>Sul</td><td class="num">4,94</td><td class="num">23,0 °C</td><td class="texto">A maior diferença entre verão e inverno: 6,5 horas de sol em janeiro e só 3,0 em junho</td></tr>
+        <tr><th scope="row">Manaus (AM)</th><td>Norte</td><td class="num"><strong>4,67</strong></td><td class="num"><strong>27,1 °C</strong></td><td class="texto">Perto do Equador: o menor sol e o maior calor, quase sem estações</td></tr>
+        <tr><th scope="row">Campinas (SP)</th><td>Sudeste</td><td class="num">5,14</td><td class="num"><strong>20,5 °C</strong></td><td class="texto">O clima mais ameno dos cinco</td></tr>
+        </tbody>
+        <caption>Sol: horas de sol pleno por dia, média do ano. Temperatura: média do ar. Médias de 2001 a 2020, da NASA POWER.</caption>
+    </table>
+    </div>
+    <p><strong>Por que o calor importa?</strong> Painel quente rende menos. Então, além de sol, o teste precisava de lugares mais quentes e mais frios, para ver se a plataforma erra diferente em cada um. E erra mesmo: Campinas, a cidade mais fria, teve a maior diferença para o PVsyst. O porquê está logo abaixo, em <a href="#porque-menos">Por que a plataforma dá sempre menos?</a>.</p>
+    <p><strong>E o consumo de cada casa?</strong></p>
+    <ul>
+        <li>Três cidades (Bom Jesus da Lapa, Cuiabá e Guaíra) usaram o <strong>mesmo consumo, 300 kWh por mês</strong>. Assim só o lugar muda, e dá para ver o efeito do clima sozinho.</li>
+        <li><strong>Manaus</strong> usou <strong>550 kWh por mês</strong>, para testar uma casa de consumo alto.</li>
+        <li><strong>Campinas</strong> usou <strong>180 kWh por mês</strong>, para testar uma casa de consumo baixo, onde o valor mínimo da conta pesa mais.</li>
+    </ul>
+    <p>Nos cinco casos, a ligação foi bifásica e a tarifa foi a mesma, uma tarifa de teste (R$ 0,75/kWh), para que a diferença entre as tarifas das cidades não se misturasse ao efeito do clima.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="resultado">
+<details class="secao-sanfona">
+    <summary><h2 id="resultado"><span class="divider-dot"></span>O resultado</h2></summary>
+<div class="secao-conteudo">
+    <div class="tabela-wrap">
+    <table class="tabela-geracao">
+        <thead><tr><th scope="col">Cidade</th><th scope="col" class="num">Plataforma (kWh por ano)</th><th scope="col" class="num">PVsyst (kWh por ano)</th><th scope="col" class="num">Diferença</th></tr></thead>
+        <tbody>
+        <tr><th scope="row">Bom Jesus da Lapa (BA)</th><td class="num">4.236</td><td class="num">4.411,8</td><td class="num">3,98% a menos</td></tr>
+        <tr><th scope="row">Cuiabá (MT)</th><td class="num">3.691</td><td class="num">3.872,6</td><td class="num">4,69% a menos</td></tr>
+        <tr><th scope="row">Guaíra (PR)</th><td class="num">4.323</td><td class="num">4.574,1</td><td class="num">5,49% a menos</td></tr>
+        <tr><th scope="row">Manaus (AM)</th><td class="num">7.369</td><td class="num">7.834,6</td><td class="num">5,94% a menos</td></tr>
+        <tr><th scope="row">Campinas (SP)</th><td class="num">2.702</td><td class="num">2.901,8</td><td class="num">6,89% a menos</td></tr>
+        </tbody>
+    </table>
+    </div>
+    <p><strong>O que isso quer dizer, num exemplo:</strong> em Guaíra, a plataforma calculou 4.323 kWh por ano, e o PVsyst, 4.574 kWh. São 251 kWh a menos por ano, uns 21 kWh por mês.</p>
+    <p>Antes do teste, definimos que o resultado seria aceito se a diferença no ano ficasse em <strong>até 10%</strong>. As cinco cidades ficaram dentro disso.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="porque-menos">
+<details class="secao-sanfona">
+    <summary><h2 id="porque-menos"><span class="divider-dot"></span>Por que a plataforma dá sempre menos?</h2></summary>
+<div class="secao-conteudo">
+    <p>Por causa das <strong>perdas</strong>. Nem toda a energia do sol que chega ao painel vira energia na sua tomada: parte se perde com o calor, nos cabos e no inversor. A fração que sobra se chama <strong>taxa de desempenho</strong>.</p>
+    <ul>
+        <li>A <strong>plataforma</strong> usa <strong>80%</strong> em todas as cidades e em todos os meses. É o limite de cima da faixa de 70% a 80% indicada pelo manual de engenharia do CEPEL-CRESESB para casas no Brasil.</li>
+        <li>O <strong>PVsyst</strong> calculou de <strong>83% a 86%</strong>, o valor de um sistema novo, limpo e sem sombra nenhuma.</li>
+    </ul>
+    <p>A diferença entre esses dois números explica quase toda a diferença na geração.</p>
+
+    <h3>Mês a mês</h3>
+    <p>O erro muda ao longo do ano. Painel solar funciona melhor no frio, então nos meses frios o PVsyst calcula perdas menores. A plataforma, por sua vez, usa os mesmos 80% o ano inteiro. Por isso o erro é maior no inverno. Em Guaíra, por exemplo, foi de 3,3% em dezembro a 8,0% em julho. Em Manaus, onde a temperatura quase não muda, o erro ficou praticamente igual o ano todo.</p>
+
+    <figure class="grafico-linhas" id="grafico-mensal">
+        <figcaption><strong>Quanto a plataforma estimou a menos que o PVsyst, mês a mês (%)</strong></figcaption>
+        <ul class="grafico-legenda-linhas" id="legenda-mensal"></ul>
+        <div class="grafico-rolagem" id="rolagem-mensal"></div>
+        <div class="grafico-dica" id="dica-mensal" role="status" aria-live="polite"></div>
+        <noscript><p class="nota-pequena">O gráfico precisa de JavaScript. Os mesmos números estão na tabela logo abaixo.</p></noscript>
+    </figure>
+    <p class="nota-pequena">Todas as 60 marcas (5 cidades × 12 meses) ficam acima de zero: em nenhum mês de nenhuma cidade a plataforma estimou mais que o PVsyst.</p>
+    <details class="abre">
+        <summary>Ver os números do gráfico em tabela</summary>
+        <div class="tabela-wrap"><table class="tabela-geracao"><caption>Diferença mês a mês, em %: (PVsyst − plataforma) ÷ PVsyst. Valor positivo = a plataforma estimou menos. Geração da plataforma como aparece na tela de resultado; geração do PVsyst dos relatórios no GitHub.</caption><thead><tr><th scope="col">Cidade</th><th scope="col" class="num">Jan</th><th scope="col" class="num">Fev</th><th scope="col" class="num">Mar</th><th scope="col" class="num">Abr</th><th scope="col" class="num">Mai</th><th scope="col" class="num">Jun</th><th scope="col" class="num">Jul</th><th scope="col" class="num">Ago</th><th scope="col" class="num">Set</th><th scope="col" class="num">Out</th><th scope="col" class="num">Nov</th><th scope="col" class="num">Dez</th></tr></thead><tbody><tr><th scope="row">Bom Jesus da Lapa (BA)</th><td class="num">3,46</td><td class="num">3,23</td><td class="num">4,03</td><td class="num">4,67</td><td class="num">5,10</td><td class="num">5,86</td><td class="num">5,37</td><td class="num">4,69</td><td class="num">3,41</td><td class="num">2,32</td><td class="num">3,41</td><td class="num">3,42</td></tr><tr><th scope="row">Cuiabá (MT)</th><td class="num">4,18</td><td class="num">4,76</td><td class="num">4,31</td><td class="num">5,21</td><td class="num">6,14</td><td class="num">5,97</td><td class="num">5,47</td><td class="num">4,59</td><td class="num">4,49</td><td class="num">3,76</td><td class="num">3,99</td><td class="num">3,63</td></tr><tr><th scope="row">Guaíra (PR)</th><td class="num">3,87</td><td class="num">4,42</td><td class="num">4,92</td><td class="num">6,02</td><td class="num">7,31</td><td class="num">7,27</td><td class="num">7,98</td><td class="num">7,46</td><td class="num">6,96</td><td class="num">5,12</td><td class="num">4,85</td><td class="num">3,30</td></tr><tr><th scope="row">Manaus (AM)</th><td class="num">6,41</td><td class="num">6,42</td><td class="num">5,94</td><td class="num">6,10</td><td class="num">6,22</td><td class="num">6,37</td><td class="num">6,17</td><td class="num">6,01</td><td class="num">5,24</td><td class="num">5,20</td><td class="num">5,49</td><td class="num">5,98</td></tr><tr><th scope="row">Campinas (SP)</th><td class="num">5,67</td><td class="num">5,60</td><td class="num">6,37</td><td class="num">7,99</td><td class="num">8,95</td><td class="num">8,53</td><td class="num">8,81</td><td class="num">8,40</td><td class="num">8,00</td><td class="num">5,81</td><td class="num">5,83</td><td class="num">4,41</td></tr></tbody></table></div>
+    </details>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="economia-muda">
+<details class="secao-sanfona">
+    <summary><h2 id="economia-muda"><span class="divider-dot"></span>A diferença muda a minha economia?</h2></summary>
+<div class="secao-conteudo">
+    <p><strong>Nas cinco cidades testadas, não.</strong> A economia depende da energia que abate a sua conta, e não de toda a energia gerada. Como o número de painéis é sempre arredondado <strong>para cima</strong>, os painéis indicados geram um pouco mais do que a conta consegue abater. Essa sobra vira crédito na distribuidora, mas não vira dinheiro.</p>
+    <p>A energia a mais que o PVsyst calculou cairia nessa sobra. Por isso, <strong>nos cinco casos, a economia e o tempo de retorno seriam os mesmos com a geração do PVsyst.</strong></p>
+    <p class="destaque">O cuidado é no sentido contrário: se o seu sistema gerar <strong>menos</strong> do que a plataforma calculou (por sombra, sujeira ou desgaste), primeiro some a sobra, e só depois a economia começa a cair.</p>
+    <div class="tabela-wrap">
+    <table class="tabela-geracao">
+        <thead><tr><th scope="col">Cidade</th><th scope="col" class="num">Sobra (% da geração)</th></tr></thead>
+        <tbody>
+        <tr><th scope="row">Cuiabá (MT)</th><td class="num">2,5%</td></tr>
+        <tr><th scope="row">Manaus (AM)</th><td class="num">10,4%</td></tr>
+        <tr><th scope="row">Bom Jesus da Lapa (BA)</th><td class="num">15,0%</td></tr>
+        <tr><th scope="row">Guaíra (PR)</th><td class="num">16,7%</td></tr>
+        <tr><th scope="row">Campinas (SP)</th><td class="num">31,2%</td></tr>
+        </tbody>
+    </table>
+    </div>
+    <p>Em Cuiabá, por exemplo, basta o sistema gerar 2,5% a menos para a economia já começar a diminuir.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="telhado">
+<details class="secao-sanfona">
+    <summary><h2 id="telhado"><span class="divider-dot"></span>O que muda na sua casa</h2></summary>
+<div class="secao-conteudo">
+    <p>As duas ferramentas simularam um sistema ideal, com os painéis deitados. Na sua casa, algumas coisas <strong>diminuem</strong> a geração e outras <strong>aumentam</strong>:</p>
+    <p><strong>Diminuem:</strong></p>
+    <ul>
+        <li><strong>sombra</strong> de árvores, prédios ou caixa d'água;</li>
+        <li><strong>sujeira</strong> nos painéis;</li>
+        <li><strong>desgaste com o tempo</strong>: de 0,5% a 1% por ano, segundo o manual do CEPEL-CRESESB;</li>
+        <li><strong>instalação</strong> mal feita ou com pouca ventilação atrás dos painéis.</li>
+    </ul>
+    <p><strong>Aumentam:</strong></p>
+    <ul>
+        <li><strong>um telhado inclinado e virado para o norte.</strong> No PVsyst, a posição ideal renderia de 0,7% (Manaus) a 9,1% (Campinas) mais sol que os painéis deitados.</li>
+    </ul>
+    <p>Ou seja, a geração real pode ficar acima ou abaixo da estimativa. A plataforma não sabe como é o seu telhado, e por isso usa a mesma premissa simples para todo mundo e avisa que ela existe.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="campo">
+<details class="secao-sanfona">
+    <summary><h2 id="campo"><span class="divider-dot"></span>Quanto geram os sistemas de verdade?</h2></summary>
+<div class="secao-conteudo">
+    <p>A comparação com o PVsyst usa um sistema ideal, sem sombra e sem sujeira. Estudos que mediram casas de verdade no Brasil mostram o que acontece na prática:</p>
+    <ul>
+        <li><strong>No Rio Grande do Norte</strong>, 73 sistemas de casas, medidos durante 2022, perderam em média 21% da energia com calor, sujeira, cabos e inversor — quase os 20% que a plataforma desconta. Mas houve sistemas que perderam só 8% e outros que perderam 30% (Fonseca, Vieira e Guerra, 2025).</li>
+        <li><strong>Na Bahia, em Pernambuco e em São Paulo</strong>, 1.162 sistemas geraram, em média, quase o esperado (na Bahia, de 5% a 8% a mais), mas com bastante diferença de uma casa para outra (Nota Técnica EPE DEA-SEE 014/2023).</li>
+    </ul>
+    <p><strong>Na prática:</strong> a conta da plataforma acerta a média, mas a sua casa pode gerar uns 12% a menos ou até 15% a mais.</p>
+    <p class="nota-pequena">Esses estudos não fazem a conta exatamente do mesmo jeito que a plataforma. Por isso servem para mostrar o tamanho da variação, e não para comparar número com número.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="usar">
+<details class="secao-sanfona">
+    <summary><h2 id="usar"><span class="divider-dot"></span>Como usar o resultado</h2></summary>
+<div class="secao-conteudo">
+    <ul>
+        <li><strong>Para ter uma ideia do tamanho e do custo</strong> do sistema antes de pedir orçamento.</li>
+        <li><strong>Para comparar propostas.</strong> Se uma empresa prometer bem mais energia para a mesma potência, pergunte por quê: pode ser um telhado bem posicionado, ou pode ser promessa demais.</li>
+        <li><strong>Não é um projeto.</strong> Só um profissional habilitado, olhando o seu telhado, pode projetar e instalar o sistema.</li>
+    </ul>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="limites">
+<details class="secao-sanfona">
+    <summary><h2 id="limites"><span class="divider-dot"></span>O que este teste não mostra</h2></summary>
+<div class="secao-conteudo">
+    <p>O teste tem três limites:</p>
+    <ol>
+        <li><strong>A comparação foi com uma simulação, e não com um sistema de verdade medido no telhado.</strong> Comparar com sistemas reais é um dos próximos passos. Enquanto isso, a seção <a href="#campo">Quanto geram os sistemas de verdade?</a> mostra o que estudos com casas reais encontraram.</li>
+        <li><strong>Cinco cidades são poucas</strong> para tirar conclusões estatísticas sobre o Brasil inteiro.</li>
+        <li><strong>O erro dos próprios dados de sol da NASA não foi medido.</strong> Como as duas ferramentas usaram os mesmos dados, esse erro não aparece na comparação.</li>
+    </ol>
+    <p>Quer conferir tudo? Os relatórios do PVsyst, as telas dos cinco casos e o código estão no <a href="https://github.com/gandalfa1/dimensionamento-fotovoltaico/tree/v1.0-tcc" target="_blank" rel="noopener">repositório do GitHub</a>. As contas estão explicadas na página <a href="/metodologia">Metodologia</a>, e o que a plataforma não considera, na página <a href="/limitacoes">Limitações</a>.</p>
+</div>
+</details>
+</section>
+
+<script>
+(function () {
+    var dados = [{"nome": "Bom Jesus da Lapa (BA)", "desvio": [3.46, 3.23, 4.03, 4.67, 5.1, 5.86, 5.37, 4.69, 3.41, 2.32, 3.41, 3.42]}, {"nome": "Cuiabá (MT)", "desvio": [4.18, 4.76, 4.31, 5.21, 6.14, 5.97, 5.47, 4.59, 4.49, 3.76, 3.99, 3.63]}, {"nome": "Guaíra (PR)", "desvio": [3.87, 4.42, 4.92, 6.02, 7.31, 7.27, 7.98, 7.46, 6.96, 5.12, 4.85, 3.3]}, {"nome": "Manaus (AM)", "desvio": [6.41, 6.42, 5.94, 6.1, 6.22, 6.37, 6.17, 6.01, 5.24, 5.2, 5.49, 5.98]}, {"nome": "Campinas (SP)", "desvio": [5.67, 5.6, 6.37, 7.99, 8.95, 8.53, 8.81, 8.4, 8.0, 5.81, 5.83, 4.41]}];
+    var meses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+    var cores = ["var(--serie-1)","var(--serie-2)","var(--serie-3)","var(--serie-4)","var(--serie-5)"];
+    var fig = document.getElementById("grafico-mensal");
+    var dica = document.getElementById("dica-mensal");
+    var legenda = document.getElementById("legenda-mensal");
+    var W = 640, H = 300, m = {t: 12, r: 12, b: 28, l: 36};
+    var yMax = 10, pw = W - m.l - m.r, ph = H - m.t - m.b;
+    function x(i) { return m.l + pw * (i / 11); }
+    function y(v) { return m.t + ph * (1 - v / yMax); }
+    var ns = "http://www.w3.org/2000/svg";
+    function el(nome, attrs) { var e = document.createElementNS(ns, nome); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+    function br(v) { return v.toFixed(2).replace(".", ","); }
+
+    var svg = el("svg", {viewBox: "0 0 " + W + " " + H, role: "img",
+        "aria-label": "Gráfico de linhas: diferença mês a mês entre a plataforma e o PVsyst nas cinco cidades, de 2,32% a 8,95%, sempre acima de zero. Os números estão na tabela abaixo do gráfico."});
+    for (var g = 0; g <= yMax; g += 2) {
+        svg.appendChild(el("line", {x1: m.l, x2: W - m.r, y1: y(g), y2: y(g), "class": "grade"}));
+        var t = el("text", {x: m.l - 6, y: y(g) + 4, "text-anchor": "end", "class": "eixo-texto"}); t.textContent = g + "%"; svg.appendChild(t);
+    }
+    meses.forEach(function (nome, i) {
+        var t = el("text", {x: x(i), y: H - 8, "text-anchor": "middle", "class": "eixo-texto"}); t.textContent = nome; svg.appendChild(t);
+    });
+    dados.forEach(function (s, k) {
+        var d = s.desvio.map(function (v, i) { return (i ? "L" : "M") + x(i).toFixed(1) + "," + y(v).toFixed(1); }).join(" ");
+        svg.appendChild(el("path", {d: d, "class": "linha", style: "stroke:" + cores[k]}));
+        var li = document.createElement("li");
+        li.innerHTML = '<span class="amostra" style="background:' + cores[k] + '"></span>' + s.nome;
+        legenda.appendChild(li);
+    });
+    var mira = el("line", {y1: m.t, y2: m.t + ph, "class": "mira", visibility: "hidden"});
+    svg.appendChild(mira);
+    var pontos = dados.map(function (s, k) {
+        var c = el("circle", {r: 4.5, "class": "ponto", style: "fill:" + cores[k], visibility: "hidden"});
+        svg.appendChild(c); return c;
+    });
+    var alvo = el("rect", {x: m.l - 10, y: 0, width: pw + 20, height: H, fill: "transparent"});
+    svg.appendChild(alvo);
+    document.getElementById("rolagem-mensal").appendChild(svg);
+    document.getElementById("rolagem-mensal").addEventListener("scroll", esconderSeDefinido);
+
+    function mostrar(i) {
+        mira.setAttribute("x1", x(i)); mira.setAttribute("x2", x(i)); mira.setAttribute("visibility", "visible");
+        var ordem = dados.map(function (s, k) { return k; }).sort(function (a, b) { return dados[b].desvio[i] - dados[a].desvio[i]; });
+        pontos.forEach(function (p, k) { p.setAttribute("cx", x(i)); p.setAttribute("cy", y(dados[k].desvio[i])); p.setAttribute("visibility", "visible"); });
+        dica.innerHTML = "<strong>" + meses[i] + "</strong>" + ordem.map(function (k) {
+            return '<div class="linha-dica"><span><span class="amostra" style="display:inline-block;width:10px;height:3px;border-radius:2px;background:' + cores[k] + '"></span>' + dados[k].nome + "</span><span>" + br(dados[k].desvio[i]) + "%</span></div>";
+        }).join("");
+        dica.style.display = "block";
+        var r = svg.getBoundingClientRect(), f = fig.getBoundingClientRect();
+        var px = (x(i) / W) * r.width + (r.left - f.left);
+        var larg = dica.offsetWidth;
+        var esq = px + 12; if (esq + larg > f.width) esq = px - larg - 12; if (esq < 0) esq = 0;
+        dica.style.left = esq + "px";
+        dica.style.top = (r.top - f.top + 8) + "px";
+    }
+    function esconderSeDefinido() { esconder(); }
+    function esconder() { mira.setAttribute("visibility", "hidden"); pontos.forEach(function (p) { p.setAttribute("visibility", "hidden"); }); dica.style.display = "none"; }
+    function mesDoEvento(ev) {
+        var r = svg.getBoundingClientRect();
+        var cx = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
+        var vx = cx / r.width * W;
+        return Math.max(0, Math.min(11, Math.round((vx - m.l) / pw * 11)));
+    }
+    alvo.addEventListener("mousemove", function (ev) { mostrar(mesDoEvento(ev)); });
+    alvo.addEventListener("touchstart", function (ev) { mostrar(mesDoEvento(ev)); }, {passive: true});
+    alvo.addEventListener("touchmove", function (ev) { mostrar(mesDoEvento(ev)); }, {passive: true});
+    alvo.addEventListener("mouseleave", esconder);
+})();
+</script>
+</div>
+</main>
+<div class="page-wrap rodape-wrap">
+<footer class="rodape-paginas">
+    <ul>
+        <li><a href="/entenda">Como funciona</a></li>
+        <li><a href="/economia">Economia e retorno</a></li>
+        <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+        <li><a href="/precisao">Quão preciso é</a></li>
+        <li><a href="/metodologia">Metodologia</a></li>
+        <li><a href="/limitacoes">Limitações</a></li>
+        <li><a href="/sobre">Sobre</a></li>
+        <li><a href="/contato">Contato</a></li>
+        <li><a href="/apoie">Apoie o projeto</a></li>
+    </ul>
+    <p>Simulação educativa: não substitui o projeto de um profissional habilitado. Código aberto (AGPL-3.0) no <a href="https://github.com/gandalfa1/dimensionamento-fotovoltaico" target="_blank" rel="noopener">GitHub</a>.</p>
+    <p class="rodape-creditos">Irradiação solar: projeto POWER do NASA Langley Research Center, financiado pela NASA Earth Science Division — <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>, licença CC BY 4.0. Localização: dados © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, licença ODbL. Municípios: códigos e nomes oficiais do IBGE. Fio B e distribuidoras: contém informações dos conjuntos <a href="https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias" target="_blank" rel="noopener">Componentes Tarifárias</a>, <a href="https://dadosabertos.aneel.gov.br/dataset/indqual-municipio" target="_blank" rel="noopener">IndQual Município</a> e <a href="https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec" target="_blank" rel="noopener">Indicadores Coletivos de Continuidade</a>, da ANEEL, disponibilizados sob a licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. Preços: Greener, março de 2026.</p>
+</footer>
+</div>
+<script>
+(function () {
+    var secoes = document.querySelectorAll("details.secao-sanfona");
+    function abrirAlvo() {
+        if (!location.hash) { return; }
+        var alvo = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        if (!alvo) { return; }
+        var d = alvo.closest("details.secao-sanfona");
+        if (d && !d.open) { d.open = true; }
+        alvo.scrollIntoView();
+    }
+    window.addEventListener("hashchange", abrirAlvo);
+    abrirAlvo();
+    var botao = document.querySelector(".btn-abrir-todas");
+    function todasAbertas() { return Array.prototype.every.call(secoes, function (d) { return d.open; }); }
+    function atualizarBotao() {
+        if (!botao) { return; }
+        var abertas = todasAbertas();
+        botao.textContent = abertas ? "Fechar todas as seções" : "Abrir todas as seções";
+        botao.setAttribute("aria-pressed", abertas ? "true" : "false");
+    }
+    if (botao) {
+        botao.addEventListener("click", function () {
+            var abrir = !todasAbertas();
+            secoes.forEach(function (d) { d.open = abrir; });
+            atualizarBotao();
+        });
+        secoes.forEach(function (d) { d.addEventListener("toggle", atualizarBotao); });
+    }
+    window.addEventListener("beforeprint", function () {
+        secoes.forEach(function (d) { if (!d.open) { d.open = true; d.dataset.abertaParaImprimir = "sim"; } });
+    });
+    window.addEventListener("afterprint", function () {
+        document.querySelectorAll("details[data-aberta-para-imprimir]").forEach(function (d) {
+            d.open = false; delete d.dataset.abertaParaImprimir;
+        });
+        atualizarBotao();
+    });
+})();
+</script>
+<script src="/static/tabelas.js" defer></script>
+</body>
+</html>

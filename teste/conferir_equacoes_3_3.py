@@ -1,6 +1,41 @@
+# Quantos Painéis — dimensionamento de sistemas fotovoltaicos residenciais
+# Copyright (C) 2026 Brenda Morel Bueno Ferreira
+#
+# Este programa é software livre: você pode redistribuí-lo e/ou modificá-lo
+# nos termos da GNU Affero General Public License, versão 3 ou (a seu critério)
+# qualquer versão posterior, publicada pela Free Software Foundation. Ele é
+# distribuído SEM NENHUMA GARANTIA. O texto oficial, em inglês, vale sobre este
+# resumo e está logo abaixo; a licença completa está no arquivo LICENSE do
+# repositório.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
 conferir_equacoes_3_3.py - confere o motor da plataforma contra as equacoes
 escritas na secao 3.3 do artigo (Equacoes 1 a 11).
+
+ITENS 28 E 11 (06/10/2026): o retorno que a plataforma mostra passou a ser
+MES A MES, com a escalada do Fio B (Lei 14.300/2022, art. 27) e a degradacao
+dos modulos (0,5% ao ano). A Equacao 11 do artigo (custo / economia de um
+mes) continua conferida, contra o campo payback_simples_meses do motor; a
+conta nova e programada aqui a partir do TEXTO do bloco "Retorno MES A MES"
+do calculo.py (eq11_mes_a_mes, abaixo), sem chamar a funcao do motor, e
+conferida contra payback_meses e retorno_por_ano. A data e FIXADA em
+06/10/2026 (DATA_DA_CONFERENCIA): o resultado nao muda com o dia em que a
+conferencia roda, e o percentual de 2026 das Equacoes 3 e 4 continua valendo.
 
 COMO FOI FEITO: as equacoes abaixo foram programadas A PARTIR DO TEXTO do
 artigo, sem chamar nenhuma funcao do calculo.py. Depois o motor real
@@ -16,6 +51,12 @@ Tres procedimentos, os mesmos descritos no ultimo paragrafo da secao 3.3:
      qualquer entrada;
   3. ERROS PLANTADOS: erros conhecidos sao introduzidos no motor, um de cada
      vez, e o programa confirma que os procedimentos 1 e 2 os detectam.
+
+REVISAO GERAL (07/10/2026): a Equacao 2 do site passou a dividir o valor
+da conta pelo MAIOR entre o consumo da conta e o custo de disponibilidade
+(mes abaixo do minimo e cobrado pelo minimo - REN ANEEL 1.000/2021, arts. 290
+e 291). eq2 abaixo segue essa regra; a varredura ganhou contas de mes abaixo
+do minimo; e um erro plantado novo (a Equacao 2 sem o minimo) - 14 ao todo.
 
 Roda sem internet: a geocodificacao e a NASA POWER sao substituidas por
 dubles que devolvem o estado e os 12 valores de HSP informados no teste.
@@ -42,11 +83,38 @@ geo.buscar_coordenadas = lambda cidade: {
     "latitude": 0.0, "longitude": 0.0, "nome_encontrado": cidade, "uf": _ENTRADA["uf"]}
 nasa = types.ModuleType("nasa_power")
 nasa.buscar_hsp_mensal = lambda lat, lon: list(_ENTRADA["hsp"])
+
+
+# PASSO 6 (01/10/2026): o simulacao.py passou a tratar as falhas dos dois
+# servicos de fora (mensagem amigavel em vez da pagina de erro do Flask),
+# entao ele agora IMPORTA destes dois modulos as classes de excecao e as
+# listas de diagnostico. Os dubles precisam te-las, ou o import falha e
+# esta conferencia nem comeca. Os dubles nunca levantam as excecoes: aqui
+# o sol e o estado vem de _ENTRADA, e o que se confere sao as equacoes.
+class ErroNominatim(Exception):
+    """Duble da excecao real do geocoding.py."""
+
+
+class ErroNasaPower(Exception):
+    """Duble da excecao real do nasa_power.py."""
+
+
+geo.ErroNominatim = ErroNominatim
+geo.ULTIMAS_TENTATIVAS = []
+nasa.ErroNasaPower = ErroNasaPower
+nasa.ULTIMO_DIAGNOSTICO = {"fonte": "duble do teste", "tentativas": []}
 sys.modules["geocoding"] = geo
 sys.modules["nasa_power"] = nasa
 
 import calculo      # noqa: E402  (o motor real)
 import simulacao    # noqa: E402
+from datetime import date   # noqa: E402
+
+# Itens 28 e 11: o motor le a data em UM ponto so (calculo.data_de_hoje). Fixa-
+# la aqui deixa a conferencia reproduzivel em qualquer dia - antes ela passaria
+# a divergir sozinha em 01/01/2027, quando o motor trocaria para 75%.
+DATA_DA_CONFERENCIA = date(2026, 10, 6)
+calculo.data_de_hoje = lambda: DATA_DA_CONFERENCIA
 
 # ---------------------------------------------------------------------------
 # AS EQUACOES DA SECAO 3.3, escritas a partir do texto (nao usam o calculo.py)
@@ -67,8 +135,13 @@ def eq1(H):
     return sum(h * d for h, d in zip(H, DIAS)) / 365
 
 
-def eq2(V_fat, C_fat):
-    return V_fat / C_fat
+def eq2(V_fat, C_fat, C_disp=0.0):
+    # REVISAO GERAL (07/10/2026): o divisor e o consumo que a conta COBROU, o
+    # maior entre o consumo da conta e o custo de disponibilidade (REN ANEEL
+    # 1.000/2021, art. 290, caput, e art. 291) - num mes abaixo do minimo a
+    # distribuidora cobra o minimo. O artigo do TCC (tag v1.0-tcc) dividia pelo
+    # consumo da conta; os dois so diferem quando C_fat < C_disp.
+    return V_fat / max(C_fat, C_disp)
 
 
 def eq3(F_B, p, T):
@@ -128,6 +201,32 @@ def eq11(I, S_ano):
     return math.inf if S_ano <= 0 else 12 * I / S_ano
 
 
+# Retorno mes a mes (itens 28 e 11, 06/10/2026), pelo TEXTO do calculo.py:
+#   p(t) = percentual do ano civil do mes t; f(t) = Fio B x p(t);
+#   G(t) = G_ano x (1 - d)^k, k = anos completos desde a instalacao;
+#   teto(t) = Equacao 4 com f(t); economia(t) = min(G(t); teto(t)) x (T - f(t)) / 12;
+#   retorno = mes em que a soma alcanca o custo, com a fracao do ultimo mes.
+# Ate 300 meses (25 anos); alem disso, infinito.
+PERCENTUAL_LEI = {2023: 0.15, 2024: 0.30, 2025: 0.45, 2026: 0.60, 2027: 0.75, 2028: 0.90}
+PERCENTUAL_2029_EM_DIANTE = 1.00   # premissa provisoria (art. 17 ainda sem regra)
+DEGRADACAO = 0.005                 # PINHO e GALDINO (2014), p. 132; EPE DEA-SEE 014/2023
+
+
+def eq11_mes_a_mes(I, G_ano, C_meses, C_disp, T, F_B, ano0, mes0, d=DEGRADACAO):
+    soma, anos = 0.0, {}
+    for t in range(300):
+        ano = ano0 + (mes0 - 1 + t) // 12
+        p = PERCENTUAL_LEI.get(ano, PERCENTUAL_2029_EM_DIANTE)
+        f = F_B * p
+        _, teto = eq4(C_meses, C_disp, T, f)
+        eco = min(G_ano * (1 - d) ** (t // 12), teto) * (T - f) / 12
+        anos[ano] = anos.get(ano, 0.0) + eco
+        if eco > 0 and soma + eco >= I:
+            return t + (I - soma) / eco, anos
+        soma += eco
+    return math.inf, anos
+
+
 # ---------------------------------------------------------------------------
 # Fio B da concessionaria da capital: conferido contra a tabela da ANEEL
 # ---------------------------------------------------------------------------
@@ -157,13 +256,13 @@ def fio_b_da_tabela_aneel():
 # ---------------------------------------------------------------------------
 def pelas_equacoes(C_meses, V_fat, C_fat, ligacao, uf, H, fio_b_uf, mediana):
     C_disp = C_DISP.get(ligacao, C_DISP["bifasica"])     # sem tipo: bifasica
-    T = eq2(V_fat, C_fat)
+    T = eq2(V_fat, C_fat, C_disp)
     F_B = fio_b_uf.get(uf, mediana)
     f, v = eq3(F_B, P_FIO_B_2026, T)
     H_ano = eq1(H)
     Ccm, C_comp = eq4(C_meses, C_disp, T, f)
     r = {"T": T, "f": f, "v": v, "H_ano": H_ano, "C_comp": C_comp, "Ccm": Ccm,
-         "C_disp": C_disp}
+         "C_disp": C_disp, "C_meses": list(C_meses), "F_B": F_B}
     if C_comp <= 0:
         r["guarda"] = "sem_energia_compensavel"
         return r
@@ -181,8 +280,10 @@ def completar(r, N_final, H):
     E_comp, S_ano = eq9(G_ano, r["C_comp"], r["v"])
     I = eq10(P_inst)
     PB = eq11(I, S_ano)
+    PB_mes, eco_anos = eq11_mes_a_mes(I, G_ano, r["C_meses"], r["C_disp"], r["T"], r["F_B"],
+                                      DATA_DA_CONFERENCIA.year, DATA_DA_CONFERENCIA.month)
     r.update(P_inst_final=P_inst, P_inv=P_inv, G_m=G_m, G_ano=G_ano,
-             E_comp=E_comp, S_ano=S_ano, I=I, PB=PB)
+             E_comp=E_comp, S_ano=S_ano, I=I, PB=PB, PB_mes=PB_mes, eco_anos=eco_anos)
     return r
 
 
@@ -246,7 +347,17 @@ def comparar(entrada, fio_b_uf, mediana, motor=None):
         conf("E_comp (Eq. 9)", res["energia_compensavel_anual_kwh"], eq["E_comp"])
         conf("S_ano (Eq. 9)", res["economia_anual"], eq["S_ano"])
         conf("I (Eq. 10)", res["custo_total_sistema"], eq["I"])
-        conf("PB (Eq. 11)", res["payback_meses"], eq["PB"])
+        conf("PB simples (Eq. 11)", res["payback_simples_meses"], eq["PB"])
+        conf("PB mes a mes", res["payback_meses"], eq["PB_mes"])
+        anos_motor = {l["ano"]: l["economia"] for l in res["retorno_por_ano"]}
+        if sorted(anos_motor) != sorted(eq["eco_anos"]):
+            erros.append(f"anos do retorno: motor={sorted(anos_motor)} texto={sorted(eq['eco_anos'])}")
+        else:
+            for ano, eco in eq["eco_anos"].items():
+                if not perto(anos_motor[ano], eco, rel=1e-9, absol=1e-6):
+                    ultimo = ano == max(eq["eco_anos"])   # o texto para no mes do retorno
+                    if not (ultimo and anos_motor[ano] >= eco - 1e-6):
+                        erros.append(f"economia de {ano}: motor={anos_motor[ano]} texto={eco}")
         # Propriedades que valem para qualquer entrada
         if res["geracao_anual_kwh"] < res["consumo_compensavel_anual_kwh"] - 1e-6:
             erros.append("PROPRIEDADE: geracao anual abaixo do consumo compensavel")
@@ -262,8 +373,23 @@ def comparar(entrada, fio_b_uf, mediana, motor=None):
         if not perto(sum(res["compensado_por_mes_kwh"].values()),
                      res["energia_compensavel_anual_kwh"], rel=1e-6, absol=0.05):
             erros.append("PROPRIEDADE: serie mensal nao fecha com a Eq. 9")
-        if eq["PB"] > 300:
+        if eq["PB_mes"] > 300:
             erros.append("PROPRIEDADE: payback acima de 25 anos exibido")
+        # Propriedades do retorno mes a mes (itens 28 e 11)
+        if res["payback_meses"] < res["payback_simples_meses"] - 1e-9:
+            erros.append("PROPRIEDADE: retorno mes a mes MENOR que o simples "
+                         "(com tarifa constante, a economia nunca sobe)")
+        linhas = res["retorno_por_ano"]
+        if not perto(linhas[0]["economia_por_mes"], res["economia_mensal_media"]):
+            erros.append("PROPRIEDADE: 1o ano do retorno diferente da economia de hoje")
+        if linhas[-1]["acumulado"] < res["custo_total_sistema"] - 1e-6 or (
+                len(linhas) > 1 and linhas[-2]["acumulado"] >= res["custo_total_sistema"]):
+            erros.append("PROPRIEDADE: a tabela do retorno nao termina no ano em que se paga")
+        soma = 0.0
+        for l in linhas:
+            soma += l["economia"]
+            if not perto(soma, l["acumulado"], rel=1e-9, absol=1e-6):
+                erros.append(f"PROPRIEDADE: acumulado de {l['ano']} nao fecha")
     else:
         # Guarda dos 25 anos: o motor devolve so os numeros principais.
         if N_final != eq["N"] and N_final < eq["N"]:
@@ -272,10 +398,13 @@ def comparar(entrada, fio_b_uf, mediana, motor=None):
         conf("P_inst (Eq. 6) na guarda", res["potencia_instalada_kwp"], eq["P_inst_final"])
         conf("I (Eq. 10) na guarda", res["custo_total_sistema"], eq["I"])
         conf("S_ano/12 (Eq. 9) na guarda", res["economia_mensal_media"], eq["S_ano"] / 12)
-        conf("PB (Eq. 11) na guarda", res["payback_meses"], eq["PB"])
-        if eq["PB"] <= 300:
-            erros.append("guarda de 25 anos acionada com payback de "
-                         f"{eq['PB']:.1f} meses")
+        conf("PB simples (Eq. 11) na guarda", res["payback_simples_meses"], eq["PB"])
+        if res["payback_meses"] != math.inf:
+            erros.append(f"guarda: retorno do motor deveria ser infinito, veio {res['payback_meses']}")
+        conf("economia em 25 anos na guarda", res["economia_25_anos"], sum(eq["eco_anos"].values()))
+        if eq["PB_mes"] <= 300:
+            erros.append("guarda de 25 anos acionada com retorno mes a mes de "
+                         f"{eq['PB_mes']:.1f} meses")
     return erros, res, eq
 
 
@@ -324,6 +453,11 @@ def varredura():
                     # modo historico: sazonalidade de +-35%, fatura de um mes qualquer
                     Cm = [consumo * (1 + 0.35 * math.sin(2 * math.pi * m / 12)) for m in range(12)]
                     yield (Cm, Cm[4] * tarifa, Cm[4], lig, uf, PERFIS[uf], "mensal")
+                    # REVISAO GERAL (07/10/2026): conta de um mes ABAIXO do
+                    # minimo (ferias), cobrada pelo minimo - a media e outra.
+                    piso = C_DISP.get(lig, C_DISP["bifasica"])
+                    for c_fat in (10.0, 0.6 * piso):
+                        yield (C, max(c_fat, piso) * tarifa, c_fat, lig, uf, PERFIS[uf], "media")
 
 
 def rodar(motor=None, mostrar=True):
@@ -378,10 +512,13 @@ def erros_plantados():
                                             "energia_diaria", "potencia_inversor_comercial",
                                             "custo_sistema_greener", "payback_meses",
                                             "valor_economizado_por_kwh", "geracao_estimada")}
+    orig_ret = simulacao.retorno_mes_a_mes
+    orig_pct = calculo.percentual_fio_b_vigente
     orig_sim = {n: getattr(simulacao, n) for n in ("hsp_medio_anual", "energia_diaria",
                                                   "valor_economizado_por_kwh",
                                                   "custo_sistema_greener", "payback_meses",
-                                                  "geracao_estimada", "numero_paineis")}
+                                                  "geracao_estimada", "numero_paineis",
+                                                  "consumo_faturado_da_conta")}
 
     def regra_antiga(C, P=0.0, T=None, f=0.0):             # minimo descontado em energia
         return max(C - P, 0.0) if P else max(C, 0.0)
@@ -404,10 +541,23 @@ def erros_plantados():
                            - (3520 if P < 2 else 0))),
         "payback em anos no lugar de meses": ("simulacao", "payback_meses",
                                               lambda I, e: I / (e * 12) if e > 0 else math.inf),
+        # Itens 28 e 11 (06/10/2026): os erros que a conta nova pode ter
+        "retorno com o Fio B de hoje para sempre": (
+            "simulacao", "retorno_mes_a_mes",
+            lambda *a, **k: orig_ret(*a, **dict(k, percentual_fixo=calculo.percentual_fio_b_vigente()))),
+        "retorno sem a degradacao": (
+            "simulacao", "retorno_mes_a_mes",
+            lambda *a, **k: orig_ret(*a, **dict(k, degradacao_anual=0.0))),
+        "escalada do Fio B um ano adiantada": (
+            "calculo", "percentual_fio_b_vigente",
+            lambda ano=None: orig_pct(ano if ano is None else ano + 1)),
         "geracao sem a TD": ("simulacao", "geracao_estimada",
                              lambda P, h, td, d: P * h * d),
         "modulos arredondados para baixo": ("simulacao", "numero_paineis",
                                             lambda pt, wp: max(math.floor(pt / (wp / 1000)), 1)),
+        # Revisao geral (07/10/2026): a Equacao 2 sem o minimo da conta
+        "tarifa pelo consumo da conta abaixo do minimo": (
+            "simulacao", "consumo_faturado_da_conta", lambda c, p=0.0: c),
         "inversor arredondado para baixo": (
             "calculo", "potencia_inversor_comercial",
             lambda kw: (lambda abaixo: {"potencia_kw": abaixo, "potencia_calculada_kw": kw,
@@ -417,6 +567,10 @@ def erros_plantados():
     }
     detectadas = 0
     for nome, (modulo, funcao, nova) in mutacoes.items():
+        if funcao == "percentual_fio_b_vigente":
+            # so a escalada FUTURA: o percentual de hoje continua certo
+            hoje = DATA_DA_CONFERENCIA.year
+            nova = (lambda f: (lambda ano=None: orig_pct(hoje) if ano in (None, hoje) else f(ano)))(nova)
         alvo = calculo if modulo == "calculo" else simulacao
         antiga = getattr(alvo, funcao)
         setattr(alvo, funcao, nova)

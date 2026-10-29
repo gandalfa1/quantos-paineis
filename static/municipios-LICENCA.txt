@@ -1,0 +1,82 @@
+LISTA DE MUNICIPIOS (static/municipios.json) - ORIGEM E LICENCA
+
+O arquivo municipios.json tem 5.571 registros, cada um com tres campos:
+  ibge - codigo do municipio no IBGE (7 digitos)
+  nome - nome do municipio
+  uf   - sigla do estado
+
+ORIGEM DA ESTRUTURA: conjunto de dados aberto "municipios-brasileiros", de Kelvin S. do
+Prado, https://github.com/kelvins/municipios-brasileiros, arquivos
+csv/municipios.csv e csv/estados.csv, na versao do commit 503e2f7 (10/12/2025).
+
+O QUE FOI FEITO COM ELE: foram mantidos so o codigo IBGE, o nome e a sigla do
+estado (a sigla veio do estados.csv, ligada pelo codigo do estado). As
+coordenadas (latitude e longitude) do conjunto original NAO foram copiadas,
+de proposito: o conjunto nao informa de onde elas vieram, e a plataforma so
+usa coordenadas com fonte documentada. As coordenadas usadas no calculo vem
+do Nominatim/OpenStreetMap (ver geocoding.py).
+
+NOMES CORRIGIDOS PARA OS OFICIAIS DO IBGE (30/09/2026): a lista foi
+conferida contra a lista oficial do IBGE (API de Localidades,
+https://servicodados.ibge.gov.br/api/v1/localidades/municipios, consultada em
+30/09/2026) pelo programa teste/conferir_cidades.py. Resultado: os 5.571
+codigos e os 27 estados batem um a um; 31 NOMES estavam diferentes do IBGE
+(16 de grafia ou nome e 15 so de acento, hifen ou maiuscula) e foram trocados
+pelo nome oficial do IBGE. Depois disso, codigo, nome e estado desta lista sao
+os do IBGE. Os 31 nomes trocados (codigo, nome antigo -> nome do IBGE):
+
+  1400605  São Luiz  ->  São Luiz do Anauá
+  1505551  Pau d'Arco  ->  Pau D'Arco
+  1708254  Fortaleza do Tabocão  ->  Tabocão
+  2304277  Ererê  ->  Ereré
+  2400208  Açu  ->  Assú
+  2401206  Arês  ->  Arez
+  2401305  Augusto Severo (Campo Grande)  ->  Campo Grande
+  2405306  Januário Cicco (Boa Saúde)  ->  Januário Cicco
+  2408409  Olho-d'Água do Borges  ->  Olho d'Água do Borges
+  2512606  Quixabá  ->  Quixaba
+  2613107  São Caetano  ->  São Caitano
+  2613800  São Vicente Ferrer  ->  São Vicente Férrer
+  2800100  Amparo de São Francisco  ->  Amparo do São Francisco
+  2802601  Gracho Cardoso  ->  Graccho Cardoso
+  2902054  Araças  ->  Araçás
+  2917334  Iuiú  ->  Iuiu
+  2922250  Muquém de São Francisco  ->  Muquém do São Francisco
+  2928505  Santa Teresinha  ->  Santa Terezinha
+  3105509  Barão de Monte Alto  ->  Barão do Monte Alto
+  3122900  Dona Eusébia  ->  Dona Euzébia
+  3145455  Olhos d'Água  ->  Olhos-d'Água
+  3147808  Passa-Vinte  ->  Passa Vinte
+  3165206  São Thomé das Letras  ->  São Tomé das Letras
+  3200706  Atilio Vivacqua  ->  Atílio Vivácqua
+  3506607  Biritiba-Mirim  ->  Biritiba Mirim
+  3516101  Florínia  ->  Florínea
+  3522158  Itaóca  ->  Itaoca
+  4206108  Grão Pará  ->  Grão-Pará
+  4209607  Lauro Muller  ->  Lauro Müller
+  4216057  São Cristovão do Sul  ->  São Cristóvão do Sul
+  5107800  Santo Antônio do Leverger  ->  Santo Antônio de Leverger
+
+LICENCA DO CONJUNTO ORIGINAL (MIT), reproduzida como a licenca exige:
+
+MIT License
+
+Copyright (c) 2016 Kelvin S. do Prado
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -1,0 +1,36 @@
+{#- TOPO COMUM (design B, parte 1 - melhorias do site, 03/10/2026). A MESMA
+    marcacao sai do gerador das 9 paginas de explicacao (claude/paginas_base.py,
+    funcao topo()); mudou aqui, mudar la tambem - a prova compara as duas.
+    No computador o menu fica na segunda linha (nav.topo-menu); no celular
+    ele vira o botao "Paginas" (details.topo-menu-celular), sem script.
+    esconder_cta: a pagina inicial nao mostra "Fazer uma simulacao" (ja e ela). -#}
+{%- set itens_menu = [("entenda", "Como funciona"), ("economia", "Economia e retorno"),
+    ("equipamentos", "Painéis, inversores e preços"), ("precisao", "Quão preciso é"),
+    ("metodologia", "Metodologia"), ("limitacoes", "Limitações"), ("sobre", "Sobre"),
+    ("contato", "Contato")] %}
+<a class="pular-conteudo no-print" href="#conteudo">Pular para o conteúdo</a>
+<header class="topo-site no-print">
+    <div class="topo-conteudo">
+        <a class="topo-marca" href="{{ url_for('pagina_inicial') }}"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><radialGradient id="solTopoGrad" cx="35%" cy="35%" r="70%"><stop offset="0%" stop-color="#FFC24B"/><stop offset="55%" stop-color="#F2600C"/><stop offset="100%" stop-color="#C94E0A"/></radialGradient></defs><g stroke="#F2600C" stroke-width="3" stroke-linecap="round" opacity="0.8"><line x1="32" y1="2" x2="32" y2="10"/><line x1="32" y1="54" x2="32" y2="62"/><line x1="2" y1="32" x2="10" y2="32"/><line x1="54" y1="32" x2="62" y2="32"/><line x1="10.7" y1="10.7" x2="16.2" y2="16.2"/><line x1="47.8" y1="47.8" x2="53.3" y2="53.3"/><line x1="10.7" y1="53.3" x2="16.2" y2="47.8"/><line x1="47.8" y1="16.2" x2="53.3" y2="10.7"/></g><circle cx="32" cy="32" r="16" fill="url(#solTopoGrad)"/></svg><span>Quantos Painéis</span></a>
+        <div class="topo-acoes">
+            <details class="topo-menu-celular">
+                <summary>Páginas</summary>
+                <ul>
+                    {%- for nome, rotulo in itens_menu %}
+                    <li><a href="{{ url_for('pagina', nome=nome) }}">{{ rotulo }}</a></li>
+                    {%- endfor %}
+                </ul>
+            </details>
+            {%- if not esconder_cta %}
+            <a class="btn-simular-topo" href="{{ url_for('pagina_inicial') }}"><span class="so-pc">Fazer uma simulação</span><span class="so-cel">Simular</span></a>
+            {%- endif %}
+        </div>
+    </div>
+    <nav class="topo-menu" aria-label="Páginas de explicação">
+        <ul>
+            {%- for nome, rotulo in itens_menu %}
+            <li><a href="{{ url_for('pagina', nome=nome) }}">{{ rotulo }}</a></li>
+            {%- endfor %}
+        </ul>
+    </nav>
+</header>

@@ -1,3 +1,28 @@
+# Quantos Painéis — dimensionamento de sistemas fotovoltaicos residenciais
+# Copyright (C) 2026 Brenda Morel Bueno Ferreira
+#
+# Este programa é software livre: você pode redistribuí-lo e/ou modificá-lo
+# nos termos da GNU Affero General Public License, versão 3 ou (a seu critério)
+# qualquer versão posterior, publicada pela Free Software Foundation. Ele é
+# distribuído SEM NENHUMA GARANTIA. O texto oficial, em inglês, vale sobre este
+# resumo e está logo abaixo; a licença completa está no arquivo LICENSE do
+# repositório.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
 Motor de calculo - plataforma web de dimensionamento fotovoltaico
 residencial (TCC de Engenharia Eletrica, Uninter, 2026).
@@ -30,7 +55,10 @@ pasta), digite:
     python3 calculo.py       (Mac/Linux)
 """
 
+import csv
+import json
 import math
+import os
 import statistics
 from datetime import date
 
@@ -238,6 +266,27 @@ def tarifa_total(valor_fatura_reais, consumo_do_mes_kwh):
 
 
 # ---------------------------------------------------------------------
+# O consumo que a conta de fato COBROU (revisao geral, parte 1, 07/10/2026)
+# ---------------------------------------------------------------------
+# A Equacao 6 divide o valor da conta pelo consumo da mesma conta. Isso so
+# vale quando o consumo daquele mes ficou acima do custo de disponibilidade:
+# sem paineis, a distribuidora fatura o MAIOR entre o consumo medido e o
+# minimo (art. 290, caput, e art. 291 da REN ANEEL 1.000/2021 - a mesma
+# regra que faturas_mensais_com_creditos(), abaixo, usa para a conta sem
+# paineis). Num mes de ferias com 20 kWh numa casa bifasica, a conta cobra
+# 50 kWh; dividir por 20 infla a tarifa 2,5 vezes, e com ela a economia - e,
+# pelo art. 655-I, ate o numero de paineis muda (Guaira, 300 kWh/mes: 4 em
+# vez de 5). Por isso o divisor da Equacao 6 passa por esta funcao.
+def consumo_faturado_da_conta(consumo_da_conta_kwh, piso_disponibilidade_kwh=0.0):
+    """
+    kWh que a conta cobrou: o maior entre o consumo medido e o minimo da
+    ligacao (30, 50 ou 100 kWh). Acima do minimo, devolve o proprio consumo,
+    e a Equacao 6 fica exatamente como antes.
+    """
+    return max(consumo_da_conta_kwh, piso_disponibilidade_kwh or 0.0)
+
+
+# ---------------------------------------------------------------------
 # Percentual do Fio B cobrado sobre a energia compensada
 # (Lei 14.300/2022 - entra na Equacao 7, logo abaixo)
 # ---------------------------------------------------------------------
@@ -271,14 +320,25 @@ TABELA_PERCENTUAL_FIO_B = {
 PERCENTUAL_FIO_B_A_PARTIR_DE_2029 = 1.00
 
 
+def data_de_hoje():
+    """
+    Devolve a data de hoje.
+
+    Fica isolada numa funcao de proposito: e o UNICO ponto do sistema que
+    consulta o relogio. Assim o simulacao.py nao precisa saber de datas, e
+    quem quiser reproduzir um resultado antigo passa a data na mao para as
+    funcoes que aceitam (fio_b_do_estado) ou o ano (percentual_fio_b_vigente).
+    Antes de 01/10/2026 esta funcao era o ano_referencia_fio_b() abaixo, que
+    so devolvia o ano; a vigencia da tarifa precisa do dia e do mes tambem.
+    """
+    return date.today()
+
+
 def ano_referencia_fio_b():
     """
     Ano usado como referencia regulatoria quando ninguem informa um.
-
-    Fica isolado numa funcao de proposito: e o UNICO ponto do sistema que
-    consulta o relogio. Assim o simulacao.py nao precisa saber de datas.
     """
-    return date.today().year
+    return data_de_hoje().year
 
 
 def percentual_fio_b_vigente(ano=None):
@@ -360,7 +420,26 @@ def percentual_fio_b_vigente(ano=None):
 # Quem passar fio_b na chamada de simular() continua mandando, do mesmo
 # jeito que o percentual e o piso de disponibilidade - e assim que os 5
 # casos de validacao antigos seguem reproduziveis (fio_b=0.20).
+#
+# CONFERENCIA DE 01/10/2026 (item 25 do backlog). A tabela foi conferida
+# contra os arquivos "componentes-tarifarias-2025" e "-2026" dos Dados
+# Abertos da ANEEL GERADOS EM 27/09/2026, dez dias mais novos que os de
+# 17/09/2026 que a montaram: os 27 valores e as 27 vigencias sao IGUAIS.
+# Nenhuma distribuidora de capital foi reajustada no intervalo, por isso
+# nada mudou aqui. Duas observacoes da conferencia:
+#  (a) a API de consulta (CKAN datastore) do conjunto estava INCOMPLETA
+#      naquele dia: devolvia 5.560 das 2.993.205 linhas do arquivo de 2025,
+#      de uma unica distribuidora. Quem conferir por ela vai achar que 9
+#      capitais (DF, GO, RS, PI, PA, AC, RO, AP e CE) desapareceram. A
+#      conferencia foi feita nos arquivos completos (formato Parquet);
+#  (b) Rondonia tem duas tarifas vigentes ao mesmo tempo no conjunto
+#      (R$ 0,321813/kWh, REH n. 3.560/2025, e R$ 0,404016/kWh, REH
+#      n. 3.320/2026, as duas terminando em 12/12/2026). A tabela usa a de
+#      inicio de vigencia mais recente, que e a segunda.
+# PROXIMOS VENCIMENTOS: DF e GO em 21/10/2026; RS em 21/11; PI em 01/12;
+# AC e RO em 12/12; PA em 31/12/2026.
 DATA_REFERENCIA_FIO_B = "22/09/2026"
+DATA_ULTIMA_CONFERENCIA_FIO_B = "01/10/2026"
 FONTE_FIO_B = ("ANEEL, Dados Abertos, Componentes Tarifarias 2025 e 2026 "
                "(TUSD_FioB, B1 residencial convencional)")
 
@@ -429,31 +508,267 @@ FIO_B_PADRAO_REAIS_POR_KWH = statistics.median(
     d["fio_b"] for d in FIO_B_POR_UF.values())
 
 
-def fio_b_do_estado(uf=None):
+def _partes_da_vigencia(texto):
+    """
+    Quebra "2026-06-24 a 2027-06-23" nas duas datas, em ISO.
+
+    Devolve (inicio, fim) como texto, ou (None, None) se o formato nao for
+    o esperado - um campo mal digitado na tabela nao pode derrubar o
+    calculo, so deixa de mostrar a vigencia na tela.
+    """
+    partes = [p.strip() for p in (texto or "").split(" a ")]
+    if len(partes) != 2 or not all(len(p) == 10 for p in partes):
+        return None, None
+    return partes[0], partes[1]
+
+
+def _data_br(iso):
+    """Converte "2027-06-23" em "23/06/2027" (None continua None)."""
+    if not iso:
+        return None
+    ano, mes, dia = iso.split("-")
+    return f"{dia}/{mes}/{ano}"
+
+
+def vigencia_expirada(fim_iso, hoje=None):
+    """
+    Diz se a tarifa ja passou do fim da vigencia homologada pela ANEEL.
+
+    Acrescentado em 01/10/2026 (passo 6). Cada distribuidora reajusta a
+    tarifa uma vez por ano, em data propria: a tabela FIO_B_POR_UF e um
+    retrato, e quando a vigencia vence o valor envelhece em silencio. Com
+    este campo a tela avisa, em vez de apresentar um numero velho como se
+    fosse o atual. Os reajustes sobem o Fio B na maioria dos casos, ou
+    seja, a economia mostrada tende a ficar um pouco OTIMISTA.
+
+    Sem fim de vigencia (campo vazio), devolve False: nao da para afirmar
+    que venceu, e inventar aviso tambem engana.
+    """
+    if not fim_iso:
+        return False
+    if hoje is None:
+        hoje = data_de_hoje()
+    return hoje.isoformat() > fim_iso
+
+
+def fio_b_do_estado(uf=None, hoje=None):
     """
     Devolve o Fio B (R$/kWh) que a plataforma usa para o estado informado.
 
-    Recebe a sigla do estado ("PR", "BA"...). Devolve um dicionario:
+    Recebe a sigla do estado ("PR", "BA"...) e, opcionalmente, a data a usar
+    como "hoje" (para reproduzir um resultado antigo). Devolve:
       fio_b              - o valor em R$/kWh
       uf                 - a sigla usada, ou None
       distribuidora      - a concessionaria de referencia, ou None
+      resolucao          - a resolucao homologatoria da ANEEL, ou None
+      vigencia_inicio    - inicio da vigencia, "2026-06-24", ou None
+      vigencia_fim       - fim da vigencia, "2027-06-23", ou None
+      vigencia_inicio_br - a mesma data em "24/06/2026", para a tela
+      vigencia_fim_br    - idem
+      vigencia_expirada  - True quando hoje ja passou do fim da vigencia
       estado_identificado- False quando a sigla veio vazia ou desconhecida
                            e a mediana nacional foi aplicada
 
     O campo estado_identificado existe pelo mesmo motivo do tipo de ligacao
     (T7): quando e False, o resultado nasceu de uma premissa e a tela
-    precisa dizer isso.
+    precisa dizer isso. Os campos de vigencia (01/10/2026, passo 6) existem
+    pelo mesmo motivo: a tela mostra ATE QUANDO o valor usado vale.
+
+    NA MEDIANA (estado nao identificado) nao existe uma vigencia unica: o
+    valor sai das 27 tarifas da tabela, cada uma com a sua. Nesse caso as
+    datas vem None e vigencia_expirada e True se QUALQUER tarifa da tabela
+    ja venceu - porque basta uma para a mediana poder estar velha.
     """
     chave = (uf or "").strip().upper()
     if chave in FIO_B_POR_UF:
         ref = FIO_B_POR_UF[chave]
+        inicio, fim = _partes_da_vigencia(ref["vigencia"])
         return {"fio_b": ref["fio_b"], "uf": chave,
                 "distribuidora": ref["distribuidora"],
                 "resolucao": ref["resolucao"],
+                "vigencia_inicio": inicio,
+                "vigencia_fim": fim,
+                "vigencia_inicio_br": _data_br(inicio),
+                "vigencia_fim_br": _data_br(fim),
+                "vigencia_expirada": vigencia_expirada(fim, hoje),
                 "estado_identificado": True}
+    alguma_venceu = any(
+        vigencia_expirada(_partes_da_vigencia(d["vigencia"])[1], hoje)
+        for d in FIO_B_POR_UF.values())
     return {"fio_b": FIO_B_PADRAO_REAIS_POR_KWH, "uf": None,
             "distribuidora": None, "resolucao": None,
+            "vigencia_inicio": None, "vigencia_fim": None,
+            "vigencia_inicio_br": None, "vigencia_fim_br": None,
+            "vigencia_expirada": alguma_venceu,
             "estado_identificado": False}
+
+
+# ---------------------------------------------------------------------
+# Fio B pela distribuidora do MUNICIPIO (passo 7, 02/10/2026)
+# ---------------------------------------------------------------------
+# POR QUE ISTO EXISTE. A tabela FIO_B_POR_UF acima adota, para cada estado, o
+# Fio B da distribuidora que atende a CAPITAL. E um criterio objetivo, mas
+# erra em todo municipio atendido por outra empresa - e o proprio
+# recalculo_fio_b.py ja declarava o caso de Campinas, atendida pela CPFL
+# Paulista e nao pela distribuidora da capital de SP.
+#
+# MEDIDO EM 01/10/2026, cruzando os dados abertos da ANEEL: dos 5.571
+# municipios, 4.247 ficariam com o MESMO valor de hoje, 823 passariam a usar o
+# valor da distribuidora que de fato os atende, e 501 caem nas regras de
+# desempate abaixo.
+#
+# DE ONDE VEM O DADO: dos dois arquivos que o atualizar_dados_aneel.py grava -
+# fio_b_por_distribuidora.csv (o Fio B de cada CNPJ) e
+# static/distribuidoras_por_municipio.json (quem atende cada codigo IBGE). Os
+# dois sao reconstruidos a partir do Portal de Dados Abertos da ANEEL. Se
+# faltarem, estiverem corrompidos ou vierem vazios, NADA QUEBRA: o motor volta
+# para a tabela embutida acima, e a tela declara qual das duas esta em uso.
+#
+# A ORDEM DE ESCOLHA (decisoes da aluna, 01 e 02/10/2026):
+#   1. a distribuidora que a PESSOA escolheu na tela, quando ela escolheu;
+#   2. a unica que atende o municipio, quando so ha uma (91% dos casos);
+#   3. quando ha mais de uma e a pessoa nao sabe qual e a dela: a de MAIOR
+#      Fio B entre as que atendem aquele municipio. E a escolha conservadora -
+#      maior Fio B significa menor economia -, e usa so valores de empresas que
+#      realmente atendem a cidade. ISTO FOI MEDIDO: em 74% dos 481 municipios
+#      com mais de uma distribuidora, a empresa da capital do estado NEM
+#      ATENDE o municipio (Araruama-RJ, por exemplo, tem ENEL RJ e CERAL
+#      Araruama; a Light, da capital, nao passa la). Por isso cair no valor do
+#      estado seria pior do que parece;
+#   4. municipio sem nenhuma distribuidora com tarifa vigente (14 casos em
+#      01/10/2026, cooperativas de SC cuja vigencia venceu em 29/09): volta
+#      para a tabela do estado, declarada na tela.
+_ARQUIVO_FIO_B_DISTRIBUIDORAS = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "fio_b_por_distribuidora.csv")
+_ARQUIVO_MAPA_DISTRIBUIDORAS = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "static",
+    "distribuidoras_por_municipio.json")
+
+
+def _carregar_fio_b_por_distribuidora():
+    """
+    Le fio_b_por_distribuidora.csv. Devolve {cnpj: {...}} ou {} se nao der.
+
+    Nunca levanta excecao: arquivo que falta, linha torta ou numero invalido
+    apenas reduzem a tabela - no limite, para vazia, e o motor usa a embutida.
+    """
+    tabela = {}
+    try:
+        with open(_ARQUIVO_FIO_B_DISTRIBUIDORAS, encoding="utf-8-sig", newline="") as f:
+            for linha in csv.DictReader(f, delimiter=";"):
+                try:
+                    cnpj = str(linha["cnpj"]).strip().zfill(14)
+                    valor = float(str(linha["fio_b_reais_por_kwh"]).replace(",", "."))
+                except (KeyError, ValueError, AttributeError):
+                    continue
+                if not cnpj or valor <= 0:
+                    continue
+                inicio = str(linha.get("inicio_vigencia") or "").strip() or None
+                fim = str(linha.get("fim_vigencia") or "").strip() or None
+                tabela[cnpj] = {
+                    "cnpj": cnpj,
+                    "distribuidora": str(linha.get("distribuidora") or "").strip(),
+                    "fio_b": valor,
+                    "vigencia_inicio": inicio,
+                    "vigencia_fim": fim,
+                    "resolucao": str(linha.get("resolucao_homologatoria") or "").strip(),
+                }
+    except (OSError, csv.Error):
+        return {}
+    return tabela
+
+
+def _carregar_mapa_distribuidoras():
+    """
+    Le static/distribuidoras_por_municipio.json. Devolve {ibge: [cnpj, ...]}
+    ou {} se nao der. Tambem nunca levanta excecao.
+    """
+    try:
+        with open(_ARQUIVO_MAPA_DISTRIBUIDORAS, encoding="utf-8") as f:
+            conteudo = json.load(f)
+        municipios = conteudo.get("municipios") or {}
+        if not isinstance(municipios, dict):
+            return {}
+        return {str(ibge): [str(c).strip().zfill(14) for c in lista]
+                for ibge, lista in municipios.items() if isinstance(lista, list)}
+    except (OSError, ValueError, AttributeError):
+        return {}
+
+
+FIO_B_POR_DISTRIBUIDORA = _carregar_fio_b_por_distribuidora()
+DISTRIBUIDORAS_POR_MUNICIPIO = _carregar_mapa_distribuidoras()
+# True quando os dois arquivos vieram utilizaveis; False = motor na tabela
+# embutida (plano B). A tela mostra isso.
+TABELA_FIO_B_DE_ARQUIVO = bool(FIO_B_POR_DISTRIBUIDORA and DISTRIBUIDORAS_POR_MUNICIPIO)
+
+
+def distribuidoras_do_municipio(codigo_ibge):
+    """
+    Lista as distribuidoras com Fio B vigente que atendem um municipio.
+
+    Devolve uma lista de dicionarios (cnpj, distribuidora, fio_b...), do menor
+    para o maior Fio B. Lista vazia quando o municipio nao esta no mapa ou
+    nenhuma das suas distribuidoras tem tarifa vigente.
+    """
+    if not TABELA_FIO_B_DE_ARQUIVO or codigo_ibge in (None, ""):
+        return []
+    cnpjs = DISTRIBUIDORAS_POR_MUNICIPIO.get(str(codigo_ibge), [])
+    achadas = [FIO_B_POR_DISTRIBUIDORA[c] for c in cnpjs if c in FIO_B_POR_DISTRIBUIDORA]
+    return sorted(achadas, key=lambda d: (d["fio_b"], d["distribuidora"]))
+
+
+def fio_b_do_municipio(codigo_ibge=None, uf=None, cnpj_escolhido=None, hoje=None):
+    """
+    Devolve o Fio B (R$/kWh) que a plataforma usa para um municipio.
+
+    Recebe o codigo IBGE do municipio (que a geocodificacao ja devolve), a
+    sigla do estado, e opcionalmente o CNPJ da distribuidora que a pessoa
+    escolheu na tela. Devolve os mesmos campos de fio_b_do_estado(), mais:
+      cnpj                - o CNPJ da distribuidora usada, ou None
+      origem              - "informada", "unica", "maior", "estado"
+      opcoes              - as distribuidoras do municipio (para a tela)
+      tabela_de_arquivo   - False quando foi usada a tabela embutida
+
+    A ordem de escolha esta explicada no comentario acima.
+    """
+    opcoes = distribuidoras_do_municipio(codigo_ibge)
+
+    escolhida, origem = None, None
+    if opcoes:
+        chave = (cnpj_escolhido or "").strip().zfill(14) if cnpj_escolhido else None
+        por_cnpj = {d["cnpj"]: d for d in opcoes}
+        if chave and chave in por_cnpj:
+            escolhida, origem = por_cnpj[chave], "informada"
+        elif len(opcoes) == 1:
+            escolhida, origem = opcoes[0], "unica"
+        else:
+            # regra 3: a de MAIOR Fio B entre as que atendem o municipio
+            escolhida, origem = opcoes[-1], "maior"
+
+    if escolhida is None:
+        # regra 4 (ou tabela embutida): volta para o criterio do estado
+        referencia = fio_b_do_estado(uf, hoje)
+        referencia.update({"cnpj": None, "origem": "estado", "opcoes": opcoes,
+                           "tabela_de_arquivo": TABELA_FIO_B_DE_ARQUIVO})
+        return referencia
+
+    inicio, fim = escolhida["vigencia_inicio"], escolhida["vigencia_fim"]
+    return {
+        "fio_b": escolhida["fio_b"],
+        "uf": (uf or "").strip().upper() or None,
+        "distribuidora": escolhida["distribuidora"],
+        "cnpj": escolhida["cnpj"],
+        "resolucao": escolhida["resolucao"],
+        "vigencia_inicio": inicio,
+        "vigencia_fim": fim,
+        "vigencia_inicio_br": _data_br(inicio),
+        "vigencia_fim_br": _data_br(fim),
+        "vigencia_expirada": vigencia_expirada(fim, hoje),
+        "estado_identificado": True,
+        "origem": origem,
+        "opcoes": opcoes,
+        "tabela_de_arquivo": True,
+    }
 
 
 # ---------------------------------------------------------------------
@@ -825,8 +1140,10 @@ def faturas_mensais_com_creditos(geracao_por_mes_kwh, consumo_por_mes_kwh, tarif
     dezembro entrando em janeiro. O laco repete o ano ate o total
     compensado parar de mudar (convergencia), e devolve esse ciclo estavel.
     Efeito importante: em regime, a soma do que foi compensado no ano fecha
-    com min(geracao anual, consumo anual) - ou seja, este resultado e a
-    Equacao 8a mostrada mes a mes, nao um calculo paralelo.
+    com min(geracao anual, consumo COMPENSAVEL do ano) - ou seja, este
+    resultado e a Equacao 8a mostrada mes a mes, nao um calculo paralelo.
+    (Revisao geral de 07/10/2026: o texto dizia "consumo anual", que era
+    verdade antes do T20; desde o T20 o teto e o consumo compensavel.)
 
     piso_disponibilidade_kwh:
     o custo de disponibilidade do art. 291 da REN ANEEL 1.000/2021.
@@ -961,6 +1278,145 @@ def payback_dentro_da_vida_util(payback_em_meses):
     if payback_em_meses is None:
         return False
     return payback_em_meses <= PAYBACK_MAXIMO_MESES
+
+
+# ---------------------------------------------------------------------
+# Retorno MES A MES (itens 28 e 11 do backlog, 06/10/2026). Substitui a
+# Equacao 9 do desenvolvimento (Equacao 11 do artigo) no resultado da
+# plataforma; a conta antiga continua em payback_meses(), acima, e vai
+# para a tela e para quem quiser reproduzir os numeros do TCC.
+# ---------------------------------------------------------------------
+# O QUE ESTAVA ERRADO NA CONTA SIMPLES. payback_meses() divide o custo pela
+# economia de UM mes e supoe que ela se repete igual ate o sistema se pagar.
+# Mas a Lei 14.300/2022 (art. 27) sobe a cobranca do Fio B sobre a energia
+# compensada todo 1o de janeiro: 60% em 2026, 75% em 2027, 90% em 2028 e,
+# de 2029 em diante, a regra do art. 17 (100% e a premissa provisoria ja
+# adotada em PERCENTUAL_FIO_B_A_PARTIR_DE_2029). A economia de cada kWh
+# compensado cai a cada virada de ano, e o retorno sai otimista. Medido em
+# 06/10/2026 com o motor da fase 1, para quem instala em out/2026: Bom
+# Jesus da Lapa 4,1 -> 5,1 anos (+25%); na varredura de 1.354 pontos da
+# faixa residencial, mediana +9,6% e maximo +29,9% (registro:
+# claude/melhorias_site_item28_11_medicao_06-10.txt).
+#
+# A CONTA NOVA, para cada mes t contado a partir da instalacao:
+#   p(t) = percentual do Fio B do ano civil do mes t (tabela acima)
+#   f(t) = Fio B x p(t)                                   (R$/kWh)
+#   G(t) = geracao do ano x (1 - d)^k, k = anos completos desde a instalacao
+#   teto(t) = consumo compensavel do ano com f(t) (consumo_compensavel_do_ano,
+#             a MESMA funcao do dimensionamento e da Equacao 8a)
+#   economia(t) = min(G(t) ; teto(t)) x (T - f(t)) / 12
+#   retorno = o mes em que a soma das economias alcanca o custo, com a
+#             fracao do ultimo mes interpolada (como na conta simples, que
+#             tambem devolve meses fracionados).
+# Com percentual fixo e d = 0 a economia de todo mes e economia_anual/12 e
+# o retorno e exatamente custo / economia mensal: a conta simples e o caso
+# particular desta.
+#
+# DEGRADACAO DOS MODULOS (item 11): 0,5% ao ano. Fontes: PINHO e GALDINO
+# (2014, Manual de Engenharia para Sistemas Fotovoltaicos, CEPEL/CRESESB,
+# p. 132), que registram 0,5% a 1,0% ao ano em campo; e a Nota Tecnica EPE
+# DEA-SEE 014/2023, que adota 0,5% ao ano. Usamos o valor de baixo da faixa
+# do Manual, o mesmo da EPE. O efeito no retorno e pequeno (no maximo 1,5%
+# na varredura de 06/10/2026), porque no ano 1 a geracao costuma ter folga
+# sobre o teto compensavel; ele pesa mais em prazos longos.
+#
+# PREMISSAS DECLARADAS (decisao da aluna, 06/10/2026):
+#   - TARIFA CONSTANTE em termos reais: a tarifa acompanha a inflacao e nao
+#     sobe acima dela. E o lado conservador. O crescimento real da tarifa
+#     anotado no projeto (2,72% ao ano) e de fonte secundaria e nao entra.
+#   - O Fio B em R$/kWh fica o de hoje (o da distribuidora do municipio):
+#     so o PERCENTUAL cobrado muda com o ano.
+#   - O retorno comeca no mes da simulacao (data_de_hoje()), sem supor um
+#     prazo de homologacao, que nao tem fonte.
+#   - Sem troca de inversor, manutencao nem juros (retorno simples, nao
+#     descontado), como antes.
+#   - O dimensionamento NAO muda: paineis, kWp, inversor e geracao continuam
+#     os do ano 1.
+#   - Quem passa o percentual do Fio B na chamada de simular() continua
+#     mandando: nesse caso ele vale para todos os meses (percentual_fixo).
+DEGRADACAO_ANUAL_MODULOS = 0.005
+
+
+def retorno_mes_a_mes(custo_total, geracao_anual_kwh, consumo_por_mes_kwh,
+                      piso_disponibilidade_kwh, tarifa, valor_fio_b,
+                      inicio=None, percentual_fixo=None,
+                      degradacao_anual=DEGRADACAO_ANUAL_MODULOS,
+                      meses_max=PAYBACK_MAXIMO_MESES):
+    """
+    Retorno do investimento mes a mes, com a escalada do Fio B da Lei
+    14.300/2022 e a degradacao dos modulos (ver o bloco acima).
+
+    inicio: (ano, mes) da instalacao; sem ele, o mes de hoje.
+    percentual_fixo: quando informado, vale para todos os meses (e assim
+    que os casos antigos seguem reproduziveis).
+
+    Devolve um dicionario:
+      payback_meses        - meses ate se pagar (fracionado); infinito se
+                             nao se paga dentro de meses_max
+      inicio_ano, inicio_mes
+      acumulado_no_prazo   - economia somada nos meses_max meses (so quando
+                             nao se paga; senao None)
+      anos                 - uma linha por ANO CIVIL, da instalacao ate o
+                             ano em que o sistema se paga (ou ate o fim do
+                             prazo): ano, meses (quantos meses daquele ano
+                             entraram), percentual_fio_b, economia (R$ no
+                             ano), economia_por_mes e acumulado (R$ no fim
+                             daquele ano)
+    Nunca levanta excecao por economia zero ou negativa: o retorno sai
+    infinito e quem decide o que dizer e o simulacao.py (mesma regra de
+    payback_meses).
+    """
+    if inicio is None:
+        hoje = data_de_hoje()
+        inicio = (hoje.year, hoje.month)
+    ano0, mes0 = inicio
+    consumos = _consumos_do_ano(0.0, consumo_por_mes_kwh)
+    consumo_anual = sum(consumos)
+
+    teto_por_percentual = {}      # o teto so depende de f: no maximo 4 contas
+    acumulado = 0.0
+    payback = math.inf
+    anos = []
+    linha = None
+    t = 0
+    while t < meses_max:
+        ano_civil = ano0 + (mes0 - 1 + t) // 12
+        if linha is None or linha["ano"] != ano_civil:
+            if linha is not None:
+                anos.append(linha)
+                if payback != math.inf:
+                    linha = None
+                    break
+            p = (percentual_fixo if percentual_fixo is not None
+                 else percentual_fio_b_vigente(ano_civil))
+            linha = {"ano": ano_civil, "meses": 0, "percentual_fio_b": p,
+                     "economia": 0.0, "acumulado": acumulado}
+        p = linha["percentual_fio_b"]
+        f = valor_fio_b * p
+        if p not in teto_por_percentual:
+            teto_por_percentual[p] = consumo_compensavel_do_ano(
+                consumo_anual, piso_disponibilidade_kwh, consumos, tarifa, f)
+        k = t // 12
+        geracao = geracao_anual_kwh * (1 - degradacao_anual) ** k
+        economia = max(min(geracao, teto_por_percentual[p]), 0.0) * (tarifa - f) / 12
+        if payback == math.inf and economia > 0 and acumulado + economia >= custo_total:
+            payback = t + (custo_total - acumulado) / economia
+        acumulado += economia
+        linha["meses"] += 1
+        linha["economia"] += economia
+        linha["acumulado"] = acumulado
+        t += 1
+    if linha is not None:
+        anos.append(linha)
+    for l in anos:
+        l["economia_por_mes"] = l["economia"] / l["meses"] if l["meses"] else 0.0
+    return {
+        "payback_meses": payback,
+        "inicio_ano": ano0,
+        "inicio_mes": mes0,
+        "acumulado_no_prazo": acumulado if payback == math.inf else None,
+        "anos": anos,
+    }
 
 
 # ---------------------------------------------------------------------
@@ -2054,7 +2510,7 @@ if __name__ == "__main__":
     print()
     print("=== T15: verificacao eletrica do arranjo ===\n")
 
-    print(f"Premissas: {TEMP_MINIMA_PROJETO_C:.0f} C de ambiente (condicao mais fria) "
+    print(f"Premissas: {TEMP_MINIMA_PROJETO_C:.0f} C de celula (condicao mais fria) "
           f"e {TEMP_MAXIMA_CELULA_C:.0f} C de celula (mais quente)")
     print(f"Limiar de excesso de corrente adotado: "
           f"{EXCESSO_CORRENTE_ACEITAVEL*100:.0f}%\n")
@@ -2090,7 +2546,11 @@ if __name__ == "__main__":
                   f"{laudo['isc_a_quente_a']:>8.2f} "
                   f"{laudo['excesso_corrente']*100:>7.2f}%  {estado}")
 
-    print("\nOs 5 casos de validacao, com o dimensionamento pos-T16/T17:")
+    # HISTORICO (revisao geral, 07/10/2026): os numeros de modulos abaixo sao
+    # os de 15/09/2026, antes do T20 - o teste confere a verificacao eletrica
+    # desses arranjos, nao os casos de hoje (4, 5, 9, 3 e 4 modulos Jinko,
+    # na ordem da lista: Lapa, Guaira, Manaus, Campinas, Cuiaba).
+    print("\nOs 5 casos de validacao, com o dimensionamento de 15/09/2026 (antes do T20):")
     print(f"  {'caso':22s} {'mod':>4s} {'kWp':>6s}  {'inversor':14s} "
           f"{'strings':>8s} {'V frio':>8s} {'Vmp 70C':>8s}  laudo")
     casos_t15 = [

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entenda o dimensionamento — Quantos Painéis</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/paginas.css">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="pular-conteudo no-print" href="#conteudo">Pular para o conteúdo</a>
+<header class="topo-site no-print">
+    <div class="topo-conteudo">
+        <a class="topo-marca" href="/"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><radialGradient id="solTopoGrad" cx="35%" cy="35%" r="70%"><stop offset="0%" stop-color="#FFC24B"/><stop offset="55%" stop-color="#F2600C"/><stop offset="100%" stop-color="#C94E0A"/></radialGradient></defs><g stroke="#F2600C" stroke-width="3" stroke-linecap="round" opacity="0.8"><line x1="32" y1="2" x2="32" y2="10"/><line x1="32" y1="54" x2="32" y2="62"/><line x1="2" y1="32" x2="10" y2="32"/><line x1="54" y1="32" x2="62" y2="32"/><line x1="10.7" y1="10.7" x2="16.2" y2="16.2"/><line x1="47.8" y1="47.8" x2="53.3" y2="53.3"/><line x1="10.7" y1="53.3" x2="16.2" y2="47.8"/><line x1="47.8" y1="16.2" x2="53.3" y2="10.7"/></g><circle cx="32" cy="32" r="16" fill="url(#solTopoGrad)"/></svg><span>Quantos Painéis</span></a>
+        <div class="topo-acoes">
+            <details class="topo-menu-celular">
+                <summary>Páginas</summary>
+                <ul>
+                    <li><a href="/entenda" aria-current="page">Como funciona</a></li>
+                    <li><a href="/economia">Economia e retorno</a></li>
+                    <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+                    <li><a href="/precisao">Quão preciso é</a></li>
+                    <li><a href="/metodologia">Metodologia</a></li>
+                    <li><a href="/limitacoes">Limitações</a></li>
+                    <li><a href="/sobre">Sobre</a></li>
+                    <li><a href="/contato">Contato</a></li>
+                </ul>
+            </details>
+            <a class="btn-simular-topo" href="/"><span class="so-pc">Fazer uma simulação</span><span class="so-cel">Simular</span></a>
+        </div>
+    </div>
+    <nav class="topo-menu" aria-label="Páginas de explicação">
+        <ul>
+            <li><a href="/entenda" aria-current="page">Como funciona</a></li>
+            <li><a href="/economia">Economia e retorno</a></li>
+            <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+            <li><a href="/precisao">Quão preciso é</a></li>
+            <li><a href="/metodologia">Metodologia</a></li>
+            <li><a href="/limitacoes">Limitações</a></li>
+            <li><a href="/sobre">Sobre</a></li>
+            <li><a href="/contato">Contato</a></li>
+        </ul>
+    </nav>
+</header>
+<main id="conteudo">
+<div class="faixa-pagina">
+<div class="faixa-pagina-conteudo">
+<h1 class="pagina-titulo">Entenda o dimensionamento</h1>
+<div class="resumo-pagina">
+<p>"Dimensionar" um sistema solar é descobrir <strong>de que tamanho ele precisa ser</strong> para a sua casa: quantos painéis, qual inversor, quanto vai gerar, quanto custa e em quanto tempo se paga. Esta página explica, sem conta difícil, como a plataforma faz isso, e usa como exemplo um dos casos de teste da plataforma, em Guaíra (PR): uma casa que consome 300 kWh por mês e paga R$ 225,00 de conta. Com a sua conta, os números serão outros.</p>
+</div>
+</div>
+</div>
+<div class="page-wrap pagina-corpo">
+<p class="abrir-todas no-print"><button type="button" class="btn-abrir-todas" aria-pressed="false">Abrir todas as seções</button></p>
+
+<section class="card secao" aria-labelledby="1-como-funciona-a-energia-solar-em-casa">
+<details class="secao-sanfona">
+    <summary><h2 id="1-como-funciona-a-energia-solar-em-casa"><span class="divider-dot"></span>1. Como funciona a energia solar em casa</h2></summary>
+<div class="secao-conteudo">
+<figure class="desenho">
+<div class="grafico-rolagem">
+<svg viewBox="0 0 720 250" role="img" aria-label="Desenho do caminho da energia: o sol ilumina os painéis; os painéis geram corrente contínua; o inversor transforma em corrente alternada; a casa usa a energia; a sobra passa pelo medidor, que conta nos dois sentidos, e vai para a rede da distribuidora, onde vira crédito. À noite, a casa usa energia da rede e o crédito abate a conta.">
+  <defs>
+    <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#C94E0A"/>
+    </marker>
+  </defs>
+  <!-- sol -->
+  <g stroke="#F2600C" stroke-width="3" stroke-linecap="round" opacity="0.6">
+    <line x1="48" y1="18" x2="48" y2="26"/><line x1="48" y1="94" x2="48" y2="102"/>
+    <line x1="6" y1="60" x2="14" y2="60"/><line x1="82" y1="60" x2="90" y2="60"/>
+    <line x1="18" y1="30" x2="24" y2="36"/><line x1="72" y1="84" x2="78" y2="90"/>
+    <line x1="18" y1="90" x2="24" y2="84"/><line x1="72" y1="36" x2="78" y2="30"/>
+  </g>
+  <circle cx="48" cy="60" r="22" fill="#FFC24B" stroke="#F2600C" stroke-width="3"/>
+  <text x="48" y="128" text-anchor="middle" class="d-rotulo">Sol</text>
+  <!-- luz -->
+  <line x1="80" y1="60" x2="112" y2="66" stroke="#FFC24B" stroke-width="3" stroke-dasharray="5 4"/>
+  <!-- painéis -->
+  <g>
+    <path d="M124,44 L214,44 L204,96 L114,96 Z" fill="#2B4A7A" stroke="#1C3357" stroke-width="2"/>
+    <line x1="154" y1="44" x2="144" y2="96" stroke="#9FB6D9" stroke-width="1.5"/>
+    <line x1="184" y1="44" x2="174" y2="96" stroke="#9FB6D9" stroke-width="1.5"/>
+    <line x1="119" y1="70" x2="209" y2="70" stroke="#9FB6D9" stroke-width="1.5"/>
+  </g>
+  <text x="164" y="128" text-anchor="middle" class="d-rotulo">Painéis</text>
+  <text x="164" y="146" text-anchor="middle" class="d-nota">geram corrente</text>
+  <text x="164" y="161" text-anchor="middle" class="d-nota">contínua</text>
+  <line x1="216" y1="70" x2="258" y2="70" stroke="#C94E0A" stroke-width="2.5" marker-end="url(#seta)"/>
+  <!-- inversor -->
+  <rect x="262" y="44" width="80" height="52" rx="8" fill="#FFFFFF" stroke="#6E655C" stroke-width="2"/>
+  <path d="M280,70 q10,-14 20,0 t20,0" fill="none" stroke="#F2600C" stroke-width="3" stroke-linecap="round"/>
+  <text x="302" y="128" text-anchor="middle" class="d-rotulo">Inversor</text>
+  <text x="302" y="146" text-anchor="middle" class="d-nota">transforma em</text>
+  <text x="302" y="161" text-anchor="middle" class="d-nota">corrente alternada</text>
+  <line x1="344" y1="70" x2="386" y2="70" stroke="#C94E0A" stroke-width="2.5" marker-end="url(#seta)"/>
+  <!-- casa -->
+  <path d="M392,72 L430,40 L468,72 L468,100 L392,100 Z" fill="#FFF6E6" stroke="#6E655C" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="421" y="78" width="18" height="22" fill="#F0DFC8" stroke="#6E655C" stroke-width="1.5"/>
+  <text x="430" y="128" text-anchor="middle" class="d-rotulo">Sua casa</text>
+  <text x="430" y="146" text-anchor="middle" class="d-nota">usa a energia</text>
+  <text x="430" y="161" text-anchor="middle" class="d-nota">na hora</text>
+  <line x1="474" y1="70" x2="514" y2="70" stroke="#C94E0A" stroke-width="2.5" marker-end="url(#seta)" marker-start="url(#seta)"/>
+  <!-- medidor -->
+  <rect x="518" y="46" width="60" height="48" rx="8" fill="#FFFFFF" stroke="#6E655C" stroke-width="2"/>
+  <text x="548" y="75" text-anchor="middle" class="d-medidor">kWh</text>
+  <text x="548" y="128" text-anchor="middle" class="d-rotulo">Medidor</text>
+  <text x="548" y="146" text-anchor="middle" class="d-nota">conta nos dois</text>
+  <text x="548" y="161" text-anchor="middle" class="d-nota">sentidos</text>
+  <line x1="580" y1="70" x2="620" y2="70" stroke="#C94E0A" stroke-width="2.5" marker-end="url(#seta)" marker-start="url(#seta)"/>
+  <!-- rede -->
+  <g stroke="#6E655C" stroke-width="2.5" stroke-linecap="round" fill="none">
+    <line x1="660" y1="30" x2="660" y2="102"/>
+    <line x1="640" y1="42" x2="680" y2="42"/>
+    <line x1="646" y1="56" x2="674" y2="56"/>
+    <path d="M626,48 q14,10 14,-6 M680,42 q14,10 30,4"/>
+  </g>
+  <text x="662" y="128" text-anchor="middle" class="d-rotulo">Rede da</text>
+  <text x="662" y="144" text-anchor="middle" class="d-rotulo">distribuidora</text>
+  <text x="662" y="161" text-anchor="middle" class="d-nota">a sobra vira crédito</text>
+  <!-- legenda de dia / de noite -->
+  <rect x="20" y="186" width="680" height="54" rx="10" fill="#FFF6E6"/>
+  <circle cx="40" cy="204" r="6" fill="#FFC24B" stroke="#F2600C" stroke-width="2"/>
+  <text x="54" y="208" class="d-nota-forte">De dia: a casa usa o que precisa, e a sobra vai para a rede e vira crédito.</text>
+  <path d="M44,222 a7,7 0 1,0 0,12 a5,5 0 1,1 0,-12 z" fill="#6E655C"/>
+  <text x="54" y="232" class="d-nota-forte">À noite ou em dia nublado: a casa usa energia da rede, e o crédito abate a conta.</text>
+</svg>
+</div>
+</figure>
+
+<p>O sistema que a plataforma calcula é o <strong>ligado à rede</strong> (também chamado de <em>on-grid</em>). Ele funciona assim:</p>
+<ol>
+<li><strong>Os painéis</strong> transformam a luz do sol em eletricidade. Essa eletricidade sai em <strong>corrente contínua</strong>, que os aparelhos da casa não usam.</li>
+<li><strong>O inversor</strong> transforma a corrente contínua em <strong>corrente alternada</strong>, a mesma da tomada. Ele também ajusta o funcionamento dos painéis o tempo todo para tirar deles o máximo de energia.</li>
+<li><strong>A casa usa</strong> essa energia na hora.</li>
+<li><strong>O que sobra vai para a rede</strong> da distribuidora, passando por um <strong>medidor que conta nos dois sentidos</strong>: o que entra na casa e o que sai dela. A energia que sai vira <strong>crédito</strong>.</li>
+<li><strong>À noite, ou em dia nublado,</strong> a casa usa energia da rede normalmente, e os créditos abatem esse consumo na conta.</li>
+</ol>
+<p>Esse sistema <strong>não tem baterias</strong>. A rede faz o papel de "guardar" a energia.</p>
+<p><strong>E se faltar luz na rua?</strong> O sistema <strong>desliga sozinho</strong> e só volta quando a rede voltar. Isso é obrigatório, por segurança: os inversores ligados à rede precisam ter uma proteção (chamada <em>anti-ilhamento</em>) que os desconecta sempre que a rede fica sem energia, por falha ou por manutenção. Assim, ninguém que esteja consertando a rede leva choque por causa da energia dos painéis. Ou seja, <strong>painel solar sem bateria não garante luz no apagão</strong>.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="2-o-que-a-plataforma-precisa-saber-de-vo">
+<details class="secao-sanfona">
+    <summary><h2 id="2-o-que-a-plataforma-precisa-saber-de-vo"><span class="divider-dot"></span>2. O que a plataforma precisa saber de você, e por quê</h2></summary>
+<div class="secao-conteudo">
+<p>A plataforma pede o mínimo possível. Cada dado tem uma função:</p>
+<div class="tabela-wrap"><table class="tabela-geracao">
+<thead>
+<tr>
+<th scope="col">O que pedimos</th>
+<th scope="col">Para que serve</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row"><strong>Consumo médio por mês (kWh)</strong></th>
+<td>Define o tamanho do sistema. É o dado mais importante.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Os 12 meses do histórico</strong> (opcional)</th>
+<td>Deixa o resultado mais preciso: o consumo muda ao longo do ano, e o valor mínimo da conta é descontado mês a mês.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Valor (R$) e consumo (kWh) de uma mesma conta</strong></th>
+<td>Dão a sua <strong>tarifa</strong>, ou seja, quanto você paga por kWh, já com impostos e bandeira. A economia é calculada com ela.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Cidade</strong></th>
+<td>Dá a quantidade de sol do lugar e a distribuidora de energia que atende o município. É dela o valor do Fio B.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Distribuidora</strong> (só quando o município tem mais de uma)</th>
+<td>Define o valor do Fio B. Se você não souber, a plataforma usa a de maior Fio B, que dá a menor economia.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Tipo de ligação</strong> (opcional)</th>
+<td>Define o valor mínimo da conta: 30, 50 ou 100 kWh. Se você não souber, a plataforma considera bifásica e avisa.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Cobranças da conta que não são energia</strong> (opcional)</th>
+<td>Iluminação pública, taxa de lixo, multa, juros: saem do valor da conta antes do cálculo da tarifa. Em branco, a economia sai otimista, e a tela avisa.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Não pedimos nome, e-mail, endereço nem cadastro.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="3-o-caminho-do-calculo-com-um-exemplo">
+<details class="secao-sanfona">
+    <summary><h2 id="3-o-caminho-do-calculo-com-um-exemplo"><span class="divider-dot"></span>3. O caminho do cálculo, com um exemplo</h2></summary>
+<div class="secao-conteudo">
+<ol class="passos-calculo" aria-label="As sete etapas do cálculo">
+    <li><span class="passo-num">1</span>Quanto da conta dá para abater</li>
+    <li><span class="passo-num">2</span>Quanto sol a cidade recebe</li>
+    <li><span class="passo-num">3</span>As perdas</li>
+    <li><span class="passo-num">4</span>Quantos painéis</li>
+    <li><span class="passo-num">5</span>Qual inversor</li>
+    <li><span class="passo-num">6</span>Verificação elétrica</li>
+    <li><span class="passo-num">7</span>Geração, economia e retorno</li>
+</ol>
+
+<p><strong>O exemplo:</strong> uma casa em Guaíra (PR) que consome <strong>300 kWh por mês</strong>, com ligação bifásica e uma conta de R$ 225,00. É um dos cinco casos usados para testar a plataforma.</p>
+<h3>Passo 1 — Quanto da conta dá para abater</h3>
+<p>Toda conta tem um <strong>valor mínimo</strong>, e com painéis ainda se paga uma parte do <strong>Fio B</strong> sobre a energia que volta da rede (veja a página <a href="/economia"><strong>A economia e o tempo de retorno</strong></a>). A plataforma dimensiona o sistema só para o consumo que, abatido, ainda gera economia. Painel a mais não traz economia, porque a sobra de crédito não vira dinheiro.</p>
+<ul>
+<li><strong>Em Guaíra</strong>, mesmo com os painéis, a conta fica acima do mínimo, porque o Fio B sobre os 300 kWh dá R$ 38,62, e o mínimo é R$ 37,50. Então vale a pena cobrir <strong>os 300 kWh inteiros</strong>: 3.600 kWh por ano.</li>
+<li><strong>Numa casa que consome pouco</strong>, o mínimo pesa. Em Campinas (SP), com 180 kWh por mês, o sistema cobre cerca de 155 kWh por mês, e não os 180.</li>
+</ul>
+<h3>Passo 2 — Quanto sol a cidade recebe</h3>
+<p>A plataforma busca na <strong>NASA</strong> a média de sol de cada mês da sua cidade, estimada por satélite ao longo de 20 anos (2001 a 2020). Esse número é dado em <strong>horas de sol pleno (HSP)</strong>: é como se todo o sol do dia viesse concentrado em algumas horas de sol forte (1.000 W por m²).</p>
+<ul>
+<li><strong>Em Guaíra</strong>, a média do ano é de <strong>4,94 horas de sol pleno por dia</strong>. Mas muda muito com as estações: 6,5 horas em janeiro e só 3,0 em junho.</li>
+</ul>
+<h3>Passo 3 — As perdas</h3>
+<p>Nem toda a energia do sol que chega ao painel vira energia na tomada. Parte se perde com o <strong>calor</strong> (painel quente rende menos), nos <strong>cabos</strong>, no <strong>inversor</strong> e com a <strong>sujeira</strong>. A plataforma considera que <strong>80%</strong> chegam à casa, o valor mais alto da faixa de 70% a 80% indicada pelo manual de engenharia do CEPEL-CRESESB para casas no Brasil. Esse número se chama <strong>taxa de desempenho</strong>.</p>
+<h3>Passo 4 — Quantos painéis</h3>
+<p>Agora é uma divisão:</p>
+<ul>
+<li><strong>Energia por dia:</strong> 3.600 kWh ÷ 365 dias = <strong>9,9 kWh por dia</strong>.</li>
+<li><strong>Potência necessária:</strong> 9,9 ÷ (4,94 horas de sol × 80%) = <strong>2,5 kWp</strong>. O <strong>kWp</strong> (quilowatt-pico) é a potência dos painéis somada, medida no sol forte de laboratório.</li>
+<li><strong>Número de painéis:</strong> cada painel do exemplo tem 600 Wp (0,6 kWp). 2,5 ÷ 0,6 = 4,2 painéis. Como não existe pedaço de painel, a conta é <strong>arredondada para cima: 5 painéis</strong>, que somam <strong>3,0 kWp</strong>.</li>
+</ul>
+<p>O arredondamento faz o sistema gerar um pouco mais do que a conta consegue abater. Em Guaíra, o sistema gera 723 kWh por ano a mais do que a casa consome (20,1% a mais), e essa sobra funciona como uma folga para quando o sistema gerar menos que o previsto (veja a página <a href="/precisao"><strong>Quão preciso é o resultado?</strong></a>).</p>
+<h3>Passo 5 — Qual inversor</h3>
+<p>O inversor pode ser um pouco <strong>menor</strong> que os painéis. Painel quente rende menos, e, mesmo com sol forte, os painéis dificilmente chegam à potência máxima. Por isso, usar um inversor um pouco menor, e mais barato, deixa a energia gerada mais barata sem perder quase nada. O manual de engenharia do CEPEL-CRESESB indica que o inversor tenha pelo menos <strong>75% a 85%</strong> da potência dos painéis, e não mais que <strong>105%</strong>. A plataforma usa <strong>80%</strong>: procura um inversor com pelo menos 80% da potência dos painéis.</p>
+<ul>
+<li><strong>Em Guaíra:</strong> 80% de 3,0 kWp = 2,4 kW. O menor inversor do catálogo que atende é o de <strong>2,5 kW</strong>.</li>
+</ul>
+<h3>Passo 6 — A verificação elétrica</h3>
+<p>Não basta a potência bater: os painéis e o inversor precisam <strong>funcionar bem juntos</strong> e <strong>com segurança</strong>. Os painéis ficam ligados em fila (em série), e as tensões de todos se somam. A plataforma confere quatro coisas, no frio e no calor:</p>
+<ul>
+<li><strong>no frio, a tensão sobe</strong>, e não pode passar do limite do inversor, para não danificá-lo;</li>
+<li><strong>no calor, a tensão cai</strong>, e não pode ficar abaixo da faixa em que o inversor trabalha bem;</li>
+<li><strong>a corrente dos painéis</strong> tem de caber na entrada do inversor, com duas verificações: uma de segurança e outra de desempenho.</li>
+</ul>
+<p><strong>Em Guaíra:</strong> a fila de 5 painéis chega a 281 V no frio (o limite do inversor é 550 V) e fica em 187 V no calor, acima do mínimo de trabalho do inversor. Passou nas quatro verificações.</p>
+<p>Se o painel não passar, a plataforma testa outro modelo. É por isso que <strong>ela escolhe o painel</strong>, e não você: um painel recusado na verificação não deveria ser oferecido como opção. Veja a página <a href="/equipamentos"><strong>Os painéis, os inversores e os preços</strong></a>.</p>
+<h3>Passo 7 — Geração, economia e retorno</h3>
+<ul>
+<li><strong>Geração:</strong> potência × horas de sol de cada mês × 80% × dias do mês. <strong>Em Guaíra: 4.323 kWh por ano</strong>, mais no verão e menos no inverno.</li>
+<li><strong>Economia:</strong> cada kWh abatido economiza a tarifa menos a parte do Fio B que continua sendo cobrada. <strong>Em Guaíra: R$ 186,38 por mês</strong>, e a conta cai de R$ 225,00 para R$ 38,62.</li>
+<li><strong>Preço:</strong> a média do mercado para um sistema de 3,0 kWp, segundo o estudo da Greener: <strong>R$ 9.150,00</strong>.</li>
+<li><strong>Tempo de retorno:</strong> a plataforma soma a economia mês a mês até alcançar o preço. A economia de R$ 186,38 por mês vale para 2026 e diminui até 2029, porque a parte do Fio B cobrada sobe todo ano. <strong>Em Guaíra, o sistema se paga em 55 meses</strong>, cerca de 4 anos e meio. Pela conta simples, R$ 9.150,00 ÷ R$ 186,38 = 49 meses, que sairia otimista.</li>
+</ul>
+<p><em>O exemplo usa uma tarifa de teste (R$ 0,75 por kWh) e uma simulação feita em outubro de 2026. O resultado de outra casa, com outra tarifa, será diferente.</em></p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="4-palavras-que-aparecem-no-resultado">
+<details class="secao-sanfona">
+    <summary><h2 id="4-palavras-que-aparecem-no-resultado"><span class="divider-dot"></span>4. Palavras que aparecem no resultado</h2></summary>
+<div class="secao-conteudo">
+<div class="tabela-wrap"><table class="tabela-geracao">
+<thead>
+<tr>
+<th scope="col">Palavra</th>
+<th scope="col">O que quer dizer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row"><strong>kWh</strong> (quilowatt-hora)</th>
+<td>A quantidade de energia. É a unidade da sua conta de luz.</td>
+</tr>
+<tr>
+<th scope="row"><strong>kWp</strong> (quilowatt-pico)</th>
+<td>A potência dos painéis somada, medida no sol forte de laboratório.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Wp</strong> (watt-pico)</th>
+<td>A mesma coisa, para um painel só: 600 Wp = 0,6 kWp.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Horas de sol pleno (HSP)</strong></th>
+<td>Quanto sol a cidade recebe por dia, contado como horas de sol forte.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Taxa de desempenho</strong></th>
+<td>A parte da energia do sol que chega à tomada depois das perdas. A plataforma usa 80%.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Inversor</strong></th>
+<td>O aparelho que transforma a energia dos painéis na energia da tomada.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Crédito</strong></th>
+<td>A energia que sobra, vai para a rede e abate a conta depois. Vale por 60 meses.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Custo de disponibilidade</strong></th>
+<td>O valor mínimo da conta, que se paga mesmo com painéis.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Fio B</strong></th>
+<td>A parte da tarifa que paga a rede da distribuidora. Uma parte dele continua sendo cobrada de quem tem painéis.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Tempo de retorno (payback)</strong></th>
+<td>Quanto tempo a economia leva para pagar o sistema.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Ligado à rede (<em>on-grid</em>)</strong></th>
+<td>O sistema sem baterias, que usa a rede da distribuidora para "guardar" a sobra.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="quer-ir-mais-fundo">
+<details class="secao-sanfona">
+    <summary><h2 id="quer-ir-mais-fundo"><span class="divider-dot"></span>Quer ir mais fundo?</h2></summary>
+<div class="secao-conteudo">
+<ul>
+<li><strong>A economia e o tempo de retorno:</strong> por que a conta não zera, o Fio B e o que fica fora da conta.</li>
+<li><strong>Os painéis, os inversores e os preços:</strong> as marcas, o estudo da Greener e por que o seu projeto pode usar outras.</li>
+<li><strong>Quão preciso é o resultado?:</strong> a comparação com um programa profissional.</li>
+<li><strong>Metodologia:</strong> todas as contas, com as fontes.</li>
+<li><strong>Limitações:</strong> o que a plataforma não considera.</li>
+</ul>
+</div>
+</details>
+</section>
+</div>
+</main>
+<div class="page-wrap rodape-wrap">
+<footer class="rodape-paginas">
+    <ul>
+        <li><a href="/entenda">Como funciona</a></li>
+        <li><a href="/economia">Economia e retorno</a></li>
+        <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+        <li><a href="/precisao">Quão preciso é</a></li>
+        <li><a href="/metodologia">Metodologia</a></li>
+        <li><a href="/limitacoes">Limitações</a></li>
+        <li><a href="/sobre">Sobre</a></li>
+        <li><a href="/contato">Contato</a></li>
+        <li><a href="/apoie">Apoie o projeto</a></li>
+    </ul>
+    <p>Simulação educativa: não substitui o projeto de um profissional habilitado. Código aberto (AGPL-3.0) no <a href="https://github.com/gandalfa1/dimensionamento-fotovoltaico" target="_blank" rel="noopener">GitHub</a>.</p>
+    <p class="rodape-creditos">Irradiação solar: projeto POWER do NASA Langley Research Center, financiado pela NASA Earth Science Division — <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>, licença CC BY 4.0. Localização: dados © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, licença ODbL. Municípios: códigos e nomes oficiais do IBGE. Fio B e distribuidoras: contém informações dos conjuntos <a href="https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias" target="_blank" rel="noopener">Componentes Tarifárias</a>, <a href="https://dadosabertos.aneel.gov.br/dataset/indqual-municipio" target="_blank" rel="noopener">IndQual Município</a> e <a href="https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec" target="_blank" rel="noopener">Indicadores Coletivos de Continuidade</a>, da ANEEL, disponibilizados sob a licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. Preços: Greener, março de 2026.</p>
+</footer>
+</div>
+<script>
+(function () {
+    var secoes = document.querySelectorAll("details.secao-sanfona");
+    function abrirAlvo() {
+        if (!location.hash) { return; }
+        var alvo = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        if (!alvo) { return; }
+        var d = alvo.closest("details.secao-sanfona");
+        if (d && !d.open) { d.open = true; }
+        alvo.scrollIntoView();
+    }
+    window.addEventListener("hashchange", abrirAlvo);
+    abrirAlvo();
+    var botao = document.querySelector(".btn-abrir-todas");
+    function todasAbertas() { return Array.prototype.every.call(secoes, function (d) { return d.open; }); }
+    function atualizarBotao() {
+        if (!botao) { return; }
+        var abertas = todasAbertas();
+        botao.textContent = abertas ? "Fechar todas as seções" : "Abrir todas as seções";
+        botao.setAttribute("aria-pressed", abertas ? "true" : "false");
+    }
+    if (botao) {
+        botao.addEventListener("click", function () {
+            var abrir = !todasAbertas();
+            secoes.forEach(function (d) { d.open = abrir; });
+            atualizarBotao();
+        });
+        secoes.forEach(function (d) { d.addEventListener("toggle", atualizarBotao); });
+    }
+    window.addEventListener("beforeprint", function () {
+        secoes.forEach(function (d) { if (!d.open) { d.open = true; d.dataset.abertaParaImprimir = "sim"; } });
+    });
+    window.addEventListener("afterprint", function () {
+        document.querySelectorAll("details[data-aberta-para-imprimir]").forEach(function (d) {
+            d.open = false; delete d.dataset.abertaParaImprimir;
+        });
+        atualizarBotao();
+    });
+})();
+</script>
+<script src="/static/tabelas.js" defer></script>
+</body>
+</html>

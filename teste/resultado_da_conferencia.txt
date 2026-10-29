@@ -1,22 +1,27 @@
-Saida do teste/conferir_equacoes_3_3.py - rodado em 27/09/2026 (Python 3.11, sem internet).
-Mesmo resultado registrado em 23/09/2026.
+Saida do teste/conferir_equacoes_3_3.py - rodado em 28/10/2026 (Python 3.13, sem internet),
+na versao publicada do site. A saida da versao do TCC (15.744 simulacoes, 10 erros plantados)
+continua na tag v1.0-tcc.
 
 === 1 e 2: casos resolvidos a mao e varredura ===
-Simulacoes da varredura: 15744
-Resultados: {'sem_energia_compensavel': 384, 'payback_acima_da_vida_util': 320, 'normal': 13433, 'sem_arranjo_valido': 1607}
+Simulacoes da varredura: 31488
+Resultados: {'sem_energia_compensavel': 864, 'payback_acima_da_vida_util': 565, 'normal': 26844, 'sem_arranjo_valido': 3215}
 Divergencias: 0
 
 === 3: erros plantados ===
-  DETECTADO: regra antiga do minimo (em energia) (14201 divergencias)
-  DETECTADO: minimo ignorado (3756 divergencias)
-  DETECTADO: HSP pela media simples (13443 divergencias)
-  DETECTADO: ano de 360 dias (13438 divergencias)
-  DETECTADO: Fio B sem o percentual (13484 divergencias)
-  DETECTADO: servico fixo esquecido abaixo de 2 kWp (1857 divergencias)
-  DETECTADO: payback em anos no lugar de meses (13758 divergencias)
-  DETECTADO: geracao sem a TD (13498 divergencias)
-  DETECTADO: modulos arredondados para baixo (12998 divergencias)
-  DETECTADO: inversor arredondado para baixo (11902 divergencias)
-Erros plantados detectados: 10 de 10
+  DETECTADO: regra antiga do minimo (em energia) (28291 divergencias)
+  DETECTADO: minimo ignorado (6710 divergencias)
+  DETECTADO: HSP pela media simples (26854 divergencias)
+  DETECTADO: ano de 360 dias (26849 divergencias)
+  DETECTADO: Fio B sem o percentual (26936 divergencias)
+  DETECTADO: servico fixo esquecido abaixo de 2 kWp (3609 divergencias)
+  DETECTADO: payback em anos no lugar de meses (27414 divergencias)
+  DETECTADO: retorno com o Fio B de hoje para sempre (25490 divergencias)
+  DETECTADO: retorno sem a degradacao (5124 divergencias)
+  DETECTADO: escalada do Fio B um ano adiantada (25447 divergencias)
+  DETECTADO: geracao sem a TD (26909 divergencias)
+  DETECTADO: modulos arredondados para baixo (25984 divergencias)
+  DETECTADO: tarifa pelo consumo da conta abaixo do minimo (13737 divergencias)
+  DETECTADO: inversor arredondado para baixo (23808 divergencias)
+Erros plantados detectados: 14 de 14
 
 RESULTADO: OK

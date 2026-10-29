@@ -3,110 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dimensionamento Solar</title>
+    <title>Quantos Painéis — Dimensionamento de sistema fotovoltaico residencial</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {# (06/10/2026) icone da aba: o sol do topo, guardado no proprio site #}
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+    <style>
+        /* Lista de cidades (29/09/2026): sugestao marcada pelo teclado, e os
+           creditos das fontes de dados no rodape. */
+        .sugestoes-lista li.sugestao-marcada { background: var(--color-dica-bg); }
+        .hint-fonte a, .rodape-creditos a { color: inherit; }
+        /* (03/10/2026, design B, parte 2) o estilo do nome e do subtitulo da
+           pagina inicial foi para o style.css, secao "FAIXA ESCURA". */
+        .rodape-creditos { font-size: 0.75rem; margin-top: 4px; }  /* sem opacidade: contraste (revisao geral, parte 3) */
+        /* Fase 1, passo 5 (30/09/2026): links das paginas de explicacao no rodape. */
+        .rodape-links a { color: var(--color-primary-dark); white-space: nowrap; }
+        .rodape-links { line-height: 1.9; }
+        /* Fase 1, passo 5 (01/10/2026): links para as paginas de explicacao no topo e no fim do FAQ. */
+        /* Item 6 (07/10/2026): a linha "Ficou com mais duvidas?" saiu do fim do FAQ; o link
+           para a pagina de explicacao foi para dentro da resposta em que ele faz sentido. */
+        .faq-item p a, .link-entenda a { color: var(--color-primary-dark); font-weight: 600; }
+    </style>
 </head>
 <body>
-<div class="page-wrap">
-
-    <div class="page-header">
-        <div class="sun-icon">
-            <svg width="44" height="44" viewBox="0 0 64 64" aria-hidden="true">
-                <defs>
-                    <radialGradient id="sunGrad" cx="35%" cy="35%" r="70%">
-                        <stop offset="0%" stop-color="#FFC24B"/>
-                        <stop offset="55%" stop-color="#F2600C"/>
-                        <stop offset="100%" stop-color="#C94E0A"/>
-                    </radialGradient>
-                </defs>
-                <g stroke="#F2600C" stroke-width="3" stroke-linecap="round" opacity="0.55">
-                    <line x1="32" y1="2" x2="32" y2="10"/>
-                    <line x1="32" y1="54" x2="32" y2="62"/>
-                    <line x1="2" y1="32" x2="10" y2="32"/>
-                    <line x1="54" y1="32" x2="62" y2="32"/>
-                    <line x1="10.7" y1="10.7" x2="16.2" y2="16.2"/>
-                    <line x1="47.8" y1="47.8" x2="53.3" y2="53.3"/>
-                    <line x1="10.7" y1="53.3" x2="16.2" y2="47.8"/>
-                    <line x1="47.8" y1="16.2" x2="53.3" y2="10.7"/>
-                </g>
-                <circle cx="32" cy="32" r="16" fill="url(#sunGrad)"/>
-            </svg>
-        </div>
-        <div>
-            <h1>Dimensionamento de Sistema Fotovoltaico Residencial</h1>
-            <p>Preencha os dados abaixo para simular o sistema solar da sua casa.</p>
-        </div>
+{% set esconder_cta = true %}
+{% include "_topo.html" %}
+{#- DESIGN B, PARTE 2 (melhorias do site, 03/10/2026): o cabecalho da pagina
+    (sol + nome + frases) virou a FAIXA ESCURA, e o cartao do formulario
+    "sobe" sobre ela. Os textos sao os mesmos de antes, na mesma ordem (o h1
+    vem primeiro no codigo; o subtitulo aparece em cima so pelo CSS). O sol
+    grande saiu daqui: ele agora fica no topo comum, em todas as telas. -#}
+{#- (06/10/2026, design B, pedido da aluna: "uma cara mais atrativa") A faixa
+    ganhou duas colunas no computador: a esquerda com o que ja existia, mais
+    tres selos (gratis, sem cadastro, de onde vem o dado); a direita, o quadro
+    "Voce vai descobrir", no mesmo azul-noite com dourado do resumo do
+    resultado. No celular o quadro sai (os selos ficam), para o formulario
+    continuar perto do topo. -#}
+<main id="conteudo">
+<section class="faixa-inicio">
+    <div class="faixa-grade">
+    <div class="faixa-conteudo">
+        <h1>Quantos Painéis</h1>
+        <p class="page-subtitulo">Simulação de energia solar para casas</p>
+        <p>Preencha os dados da sua conta de luz e descubra quantos painéis a sua casa precisa, quanto custam e em quanto tempo se pagam.</p>
+        <ul class="selos" aria-label="Sobre a simulação">
+            <li>Grátis</li>
+            <li>Sem cadastro</li>
+            <li>Dados da NASA e da ANEEL</li>
+        </ul>
+        <p class="link-entenda">Quer entender como o cálculo é feito? Veja <a href="{{ url_for('pagina', nome='entenda') }}">Como funciona</a>.</p>
     </div>
+    <aside class="faixa-quadro" aria-label="O que a simulação mostra">
+        <p class="faixa-quadro-titulo">Você vai descobrir</p>
+        <ul>
+            <li><span class="faixa-icone" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="12" rx="1.5"/><path d="M3 11h18M9 5v12M15 5v12M12 17v3M8 20h8"/></svg></span>Quantos painéis a sua casa precisa</li>
+            <li><span class="faixa-icone" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>A potência do sistema e do inversor</li>
+            <li><span class="faixa-icone" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16v12H4z"/><path d="M4 7l3-3h10l3 3M16 13h.01"/></svg></span>Quanto você economiza na conta</li>
+            <li><span class="faixa-icone" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Em quanto tempo o investimento se paga</li>
+        </ul>
+    </aside>
+    </div>
+</section>
+<div class="page-wrap sobe-na-faixa">
 
     <div class="card">
         <h2><span class="divider-dot"></span>Seus dados</h2>
 
         <form method="POST" action="/simular" id="form-simulacao">
+            <p class="aviso-campo" id="aviso-dados-mantidos" role="status" style="margin: 0 0 16px;" hidden>Mantivemos os dados da sua última simulação, para você só corrigir o que precisar. Eles ficam apenas neste navegador, até você fechar a aba. <button type="button" class="link-botao" id="limpar-formulario">Limpar o formulário</button></p>
 
+            {#- FASE 1 POS-TCC (29/09/2026), item 24 do backlog: a cidade deixou
+                de ser texto livre com sugestoes do Nominatim (a politica do
+                Nominatim proibe autocompletar) e passou a ser ESCOLHIDA numa
+                lista local dos municipios do IBGE (static/municipios.json).
+                A busca da lista roda no navegador, sem internet alem do
+                proprio site. O servidor so aceita um municipio da lista - ver
+                geocoding.py. -#}
             <div class="form-group autocomplete-wrap">
                 <label for="cidade">Cidade</label>
                 <input type="text" id="cidade" name="cidade" autocomplete="off"
-                       placeholder="Ex: Guaíra, PR, Brasil" required>
-                <ul id="cidade-sugestoes" class="sugestoes-lista" hidden></ul>
-                <p class="hint">Comece a digitar e escolha uma sugestão — usamos essa localização para buscar dados reais de irradiação solar (HSP) da sua região.</p>
-                <p class="hint-fonte">Busca de endereços: OpenStreetMap Nominatim</p>
+                       placeholder="Comece a digitar, ex: Guaíra"
+                       role="combobox" aria-autocomplete="list" aria-expanded="false"
+                       aria-controls="cidade-sugestoes" aria-describedby="cidade-aviso" required>
+                <ul id="cidade-sugestoes" class="sugestoes-lista" role="listbox" hidden></ul>
+                {#- (06/10/2026, design B, pedido da aluna: textos grandes atras de um
+                    clique) A frase de baixo do campo ficou curta; o resto da
+                    explicacao e o credito da lista foram para o "Por que a lista?".
+                    O id cidade-aviso continua aqui: e nele que o script escreve os
+                    avisos de cidade nao encontrada. -#}
+                <p class="hint" id="cidade-aviso" aria-live="polite">Digite o nome e escolha a sua cidade na lista.</p>
+                <details class="nota-mais">
+                    <summary>Por que escolher na lista?</summary>
+                    <p class="hint">A cidade vem com o estado, porque existem cidades com o mesmo nome em estados diferentes. Usamos essa localização para buscar os dados de irradiação solar (HSP) da sua região, estimados por satélite.</p>
+                    <p class="hint-fonte">Lista de municípios: códigos e nomes oficiais do IBGE (a partir do conjunto aberto <a href="https://github.com/kelvins/municipios-brasileiros" target="_blank" rel="noopener">municipios-brasileiros</a>, licença MIT). Localização: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>.</p>
+                </details>
             </div>
 
-            <p class="hint" style="margin: 0 0 4px;">Todas as perguntas daqui para baixo estão respondidas numa conta de luz recente. Pegue uma e abra o exemplo abaixo: ele mostra onde fica cada número.</p>
+            {#- FASE 1, PASSO 7 (02/10/2026) - DISTRIBUIDORA DO MUNICIPIO.
+                Este bloco nasce ESCONDIDO e so aparece quando a cidade
+                escolhida e atendida por MAIS DE UMA distribuidora (481 dos
+                5.571 municipios). Nos outros 91% a plataforma ja sabe qual e,
+                e nao pergunta nada. Se o arquivo de dados nao estiver la, o
+                bloco simplesmente nunca aparece e o motor usa o plano B. -#}
+            <div class="form-group" id="grupo-distribuidora" hidden>
+                <label for="distribuidora">
+                    Qual é a sua distribuidora de energia?
+                    <span class="tip">
+                        <button type="button" class="tip-btn" aria-label="Por que perguntamos isso?">i</button>
+                        <span class="tip-bubble">A sua cidade é atendida por mais de uma distribuidora, e cada uma cobra um valor diferente pelo uso da rede (o Fio B), que é descontado da sua economia. O nome da sua está na conta de luz, geralmente no alto. Se você não souber, deixe como está: usamos a de maior Fio B entre elas, a que dá a menor economia, para o resultado não prometer mais do que você pode ter.</span>
+                    </span>
+                </label>
+                <select id="distribuidora" name="distribuidora">
+                    <option value="">Não sei — usar a que dá a menor economia</option>
+                </select>
+                <p class="hint" id="hint-distribuidora">O nome está na sua conta de luz. Sem isso, o cálculo usa a opção que dá a menor economia.</p>
+            </div>
+
+            <div class="dica-conta">
+            <p class="hint intro-conta">Todas as perguntas daqui para baixo estão respondidas numa conta de luz recente. Pegue uma e abra o exemplo abaixo: ele mostra onde fica cada número.</p>
 
             <details class="exemplo-fatura">
-                <summary>📄 Ver exemplo: onde encontrar esses dados na minha fatura</summary>
+                <summary>Ver exemplo: onde encontrar esses dados na minha fatura</summary>
                 <div class="exemplo-fatura-conteudo">
+                    {#- (revisao geral, parte 3, 07/10/2026) no celular as letras da conta de
+                        exemplo ficavam com ~7 px: a imagem abre em tamanho grande num toque. -#}
+                    <a href="{{ url_for('static', filename='exemplo-fatura.svg') }}" target="_blank" rel="noopener" class="exemplo-fatura-link">
                     <img src="{{ url_for('static', filename='exemplo-fatura.svg') }}"
                          alt="Exemplo ilustrativo de fatura de energia elétrica, destacando o valor total a pagar, o consumo do mês em kWh, o tipo de ligação da casa e o histórico de consumo dos últimos 12 meses"
-                         class="exemplo-fatura-img">
+                         class="exemplo-fatura-img"></a>
+                    <p class="hint exemplo-ampliar">Letras pequenas? Clique ou toque na imagem para abri-la em tamanho grande.</p>
                     <p class="hint"><strong>①</strong> e <strong>②</strong> são os dois números da <strong>seção 1</strong> aqui do formulário: o valor total a pagar (R$) e o consumo daquele mês (kWh). Eles vêm da mesma conta, e é dessa dupla que sai a sua tarifa.</p>
                     <p class="hint"><strong>③</strong> é o histórico de consumo dos últimos 12 meses, quase sempre um gráfico de barras na parte de baixo da fatura. É dele que saem os doze valores da <strong>seção 2</strong>, para a plataforma calcular sua média sem você precisar somar nada.</p>
-                    <p class="hint"><strong>④</strong> é o <strong>tipo de ligação</strong> da sua casa, que costuma ficar na parte de cima da fatura, perto do endereço. É a <strong>seção 3</strong> aqui do formulário. Pode aparecer escrito como "tipo de ligação", "tipo de fornecimento" ou só "ligação", seguido de monofásica, bifásica ou trifásica. Repare que ele está no alto do papel, mas é a última seção do formulário — a numeração segue a ordem das perguntas aqui, não a ordem de leitura da conta.</p>
+                    <p class="hint"><strong>④</strong> é o <strong>tipo de ligação</strong> da sua casa, que costuma ficar na parte de cima da fatura, perto do endereço. Ele é opcional, e está na <strong>seção 3</strong> aqui do formulário — aquela que você abre clicando em <strong>"Deixar o resultado mais preciso"</strong>. Pode aparecer escrito como "tipo de ligação", "tipo de fornecimento" ou só "ligação", seguido de monofásica, bifásica ou trifásica. Repare que ele está no alto do papel, mas é a última seção do formulário — a numeração segue a ordem das perguntas aqui, não a ordem de leitura da conta.</p>
+                    <p class="hint"><strong>⑤</strong> são as <strong>cobranças que não são energia</strong>, que ficam num grupo à parte, como “Outros tributos, produtos e serviços”. A mais comum é a contribuição de <strong>iluminação pública</strong>, cuja descrição termina em “municipal” ou “distrital”. O valor dela vai no campo opcional da <strong>seção 3</strong>, somado à taxa de lixo, multa ou juros, se houver.</p>
                     <p class="hint">Este é um exemplo ilustrativo — o layout muda um pouco entre distribuidoras (Copel, Enel, CPFL, etc.), e a cor e a posição de cada bloco variam bastante, porque a ANEEL padroniza quais informações a fatura precisa trazer, não o desenho dela. Mesmo assim, esses elementos aparecem em praticamente todas.</p>
                 </div>
             </details>
+            </div>
 
-            <h3 style="margin: 4px 0 12px;">1. Sua conta de luz</h3>
-            <p class="hint" style="margin-top: -6px;">Os dois números abaixo estão na conta, no mesmo lugar — é só copiar. São os itens <strong>①</strong> e <strong>②</strong> do exemplo.</p>
+            <h3 class="passo-titulo"><span class="passo-num">1<span class="so-leitor">.</span></span> Sua conta de luz</h3>
+            <p class="hint passo-texto">Os dois números abaixo estão na conta, no mesmo lugar — é só copiar. São os itens <strong>①</strong> e <strong>②</strong> do exemplo.</p>
 
+            {#- ITEM 10 DO BACKLOG (06/10/2026) - OS DOIS CAMPOS DE CONSUMO SE
+                CONFUNDIAM. Eram tres caixas brancas iguais (R$, kWh de um mes,
+                kWh medio), e trocar uma pela outra rodava normalmente e dava um
+                resultado plausivel de outro cenario - aconteceu duas vezes com
+                a aluna em 15/09. Tres camadas, SO TELA (nomes dos campos iguais,
+                app.py e motor intocados):
+                  A. a unidade fica DENTRO da caixa (R$ na frente; kWh ou
+                     kWh/mes no fim) e os rotulos separam "um mes so" de
+                     "media por mes";
+                  B. avisos enquanto digita, NUNCA bloqueio, so com regras que
+                     nao precisam de numero inventado (ver o script "ITEM 10");
+                  C. o resumo "Vamos simular com", logo acima do botao.
+                A unidade visivel e aria-hidden: o leitor de tela ouve a unidade
+                pelo rotulo (span so-leitor), uma vez so. -#}
             <div class="form-row">
                 <div class="form-group">
-                    <label for="fatura">Valor total da conta (R$)</label>
-                    <input type="number" id="fatura" name="fatura" step="any" min="0.01" required>
+                    <label for="fatura">Valor total da conta<span class="so-leitor"> (R$)</span></label>
+                    <div class="campo-unidade com-prefixo">
+                        <span class="unidade unidade-antes" aria-hidden="true">R$</span>
+                        <input type="number" id="fatura" name="fatura" step="any" min="0.01" required>
+                    </div>
                     <p class="hint">O valor a pagar, em destaque no topo da fatura.</p>
                 </div>
 
                 <div class="form-group">
                     <label for="consumo_fatura">
-                        Consumo dessa mesma conta (kWh)
+                        Consumo desta conta, de um mês só<span class="so-leitor"> (kWh)</span>
                         <span class="tip">
                             <button type="button" class="tip-btn" aria-label="Por que precisamos dos dois?">i</button>
-                            <span class="tip-bubble">Com o valor em R$ e o consumo em kWh <strong>da mesma conta</strong>, calculamos a sua tarifa real dividindo um pelo outro — já com impostos e bandeira tarifária inclusos, em vez de usar uma média genérica do país. Por isso os dois precisam ser do mesmo mês.</span>
+                            <span class="tip-bubble">Com o valor em R$ e o consumo em kWh <strong>da mesma conta</strong>, calculamos a sua tarifa real dividindo um pelo outro — já com impostos e bandeira tarifária incluídos, em vez de usar uma média genérica do país. Por isso os dois precisam ser do mesmo mês.</span>
                         </span>
                     </label>
-                    <input type="number" id="consumo_fatura" name="consumo_fatura" step="any" min="0.01" required>
-                    <p class="hint">O consumo do mês, em kWh, na mesma fatura.</p>
+                    <div class="campo-unidade com-sufixo">
+                        <input type="number" id="consumo_fatura" name="consumo_fatura" step="any" min="0.01" required aria-describedby="aviso-consumo-fatura">
+                        <span class="unidade unidade-depois" aria-hidden="true">kWh</span>
+                    </div>
+                    <p class="hint">O kWh impresso nesta mesma conta (item <strong>②</strong>) — não é a média.</p>
+                    <p class="aviso-campo" id="aviso-consumo-fatura" role="status" hidden></p>
                 </div>
             </div>
 
+            {#- FASE 1, PASSO 8 (02/10/2026) - O CAMPO DAS COBRANCAS SAIU
+                DAQUI. Ele nasceu no passo 6 encaixado nesta secao 1, logo
+                depois de dois campos OBRIGATORIOS, e por isso parecia
+                obrigatorio tambem (observacao da aluna em 02/10). Foi para o
+                bloco "3. Deixar o resultado mais preciso", junto com o tipo de
+                ligacao - os dois unicos campos opcionais que a tela mostra
+                sempre. O NOME do campo nao mudou (name="cobrancas"), entao o
+                app.py continua lendo igual: nada mudou no calculo. -#}
 
-            <h3 style="margin: 22px 0 12px;">2. Seu consumo ao longo do ano</h3>
-            <p class="hint" style="margin-top: -6px;">É esse número que define o tamanho do sistema: quantos painéis, quanto custa e em quanto tempo se paga. Ele não vem impresso na conta — ou você já sabe a sua média, ou a plataforma calcula a partir do <strong>histórico de consumo</strong>, o item <strong>③</strong> do exemplo. <strong>Escolha um dos dois caminhos.</strong></p>
+            <h3 class="passo-titulo"><span class="passo-num">2<span class="so-leitor">.</span></span> Seu consumo ao longo do ano</h3>
+            <p class="hint passo-texto"><strong>Escolha um dos dois caminhos.</strong></p>
+            <details class="nota-mais" style="margin: -8px 0 14px;">
+                <summary>Por que esse número é tão importante?</summary>
+                <p class="hint">É esse número que define o tamanho do sistema: quantos painéis, quanto custa e em quanto tempo se paga. Ele não vem impresso na conta — ou você já sabe a sua média, ou a plataforma calcula a partir do <strong>histórico de consumo</strong>, o item <strong>③</strong> do exemplo.</p>
+            </details>
 
             <div class="caminhos">
             <div class="caminho">
             <p class="caminho-titulo">Já sei minha média</p>
             <div class="form-group" style="margin-bottom: 0;">
                 <label for="consumo">
-                    Consumo médio mensal (kWh)
+                    Média de consumo por mês<span class="so-leitor"> (kWh)</span>
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="Por que a média e não um mês só?">i</button>
-                        <span class="tip-bubble">O consumo de uma casa varia ao longo do ano (ar-condicionado no verão, chuveiro no inverno, férias). Dimensionar pela média anual evita que um mês fora do padrão defina o tamanho do seu sistema — e o sistema de créditos de energia, válido por 60 meses, absorve essa variação ao longo do ano.</span>
+                        <span class="tip-bubble">O consumo de uma casa varia ao longo do ano (ar-condicionado no verão, chuveiro no inverno, férias). Dimensionar pela média anual evita que um mês fora do padrão defina o tamanho do seu sistema — e os créditos de energia, válidos por 60 meses, absorvem essa variação ao longo do ano.</span>
                     </span>
                 </label>
-                <input type="number" id="consumo" name="consumo" step="any" min="0.01">
-                <p class="hint">Digite aqui e pronto.</p>
+                <div class="campo-unidade com-sufixo sufixo-longo">
+                    <input type="number" id="consumo" name="consumo" step="any" min="0.01" aria-describedby="aviso-consumo">
+                    <span class="unidade unidade-depois" aria-hidden="true">kWh/mês</span>
+                </div>
+                <p class="hint">A média dos seus meses, não o kWh de uma conta só. Não sabe? Use o outro caminho.</p>
+                <p class="aviso-campo" id="aviso-consumo" role="status" hidden></p>
             </div>
             </div>
 
@@ -119,7 +229,7 @@
                 <summary>🧮 Preencher os 12 meses</summary>
                 <div class="exemplo-fatura-conteudo">
                     <p class="hint">Copie os 12 valores do <strong>histórico de consumo</strong> da sua fatura — é o item <strong>③</strong> do exemplo lá em cima. Não precisa somar nada.</p>
-                    <p class="hint"><strong>Preencha os 12 ou nenhum</strong>, em kWh. Com o histórico completo, o campo ao lado é preenchido sozinho.</p>
+                    <p class="hint"><strong>Preencha os 12 ou nenhum</strong>, em kWh. Com o histórico completo, o campo “Média de consumo por mês” é preenchido sozinho.</p>
 
                     <div class="form-row">
                         <div class="form-group"><label for="consumo_jan">Jan</label><input type="number" id="consumo_jan" name="consumo_jan" class="consumo-mes" step="any" min="0.01" aria-label="Consumo de Janeiro em kWh"></div>
@@ -143,25 +253,60 @@
             </div>
             </div>
 
-            <h3 style="margin: 22px 0 12px;">3. A ligação da sua casa</h3>
-            <p class="hint" style="margin-top: -6px;">Está escrito na sua fatura, geralmente na parte de cima, perto do endereço — é o item <strong>④</strong> do exemplo.</p>
+            {#- FASE 1, PASSO 8 (02/10/2026) - SECAO 3, OS OPCIONAIS NUM SO
+                LUGAR. Antes, esta era a secao "3. A ligacao da sua casa", com
+                titulo proprio e sempre aberta, e as cobrancas ficavam soltas
+                dentro da secao 1. Os dois campos sao OPCIONAIS e agora moram
+                aqui, num bloco que a pessoa abre se quiser - e que e o lugar
+                dos proximos opcionais (orientacao do telhado, sombreamento,
+                preco de um kit que ela ja tenha em maos).
 
-            <div class="form-group">
-                <label for="ligacao">
-                    Tipo de ligação
-                    <span class="tip">
-                        <button type="button" class="tip-btn" aria-label="Por que o tipo de ligação importa?">i</button>
-                        <span class="tip-bubble">Toda conta de luz tem um <strong>valor mínimo</strong>, chamado custo de disponibilidade — é o que remunera a rede que continua à sua disposição. Ele depende do tipo de ligação: equivale a <strong>30 kWh</strong> na monofásica, <strong>50 kWh</strong> na bifásica e <strong>100 kWh</strong> na trifásica (art. 291 da Resolução ANEEL nº 1.000/2021). Com painéis, a conta nunca fica abaixo desse mínimo, mas a parcela Fio B que continua sendo cobrada já conta para atingi-lo (art. 655-I). Por isso o tipo de ligação pesa sobretudo em quem consome pouco.</span>
-                    </span>
-                </label>
-                <select id="ligacao" name="ligacao">
-                    <option value="" selected>Não sei — usar o mais comum</option>
-                    <option value="monofasica">Monofásica</option>
-                    <option value="bifasica">Bifásica</option>
-                    <option value="trifasica">Trifásica</option>
-                </select>
-                <p class="hint">Se não encontrar, pode deixar como está — usamos o tipo mais comum em residências e avisamos isso no resultado.</p>
-            </div>
+                O bloco nasce FECHADO. Como deixar as cobrancas em branco puxa
+                o resultado para o lado OTIMISTA (em Manaus, com R$ 47,91 de
+                iluminacao publica, o retorno vai de 33,5 para 38,0 meses), a
+                tela de resultado passou a avisar quando o campo ficou vazio -
+                ver o bloco "aviso-opcionais" no resultado.html. Esconder o
+                campo sem esse aviso seria esconder o otimismo junto.
+
+                Reusa a classe .exemplo-fatura (o estilo de bloco clicavel que
+                o exemplo da fatura e os 12 meses ja usam), de proposito: nao
+                precisou de uma linha nova de CSS, e os tres blocos da tela
+                ficam com a mesma cara. -#}
+            <details class="exemplo-fatura bloco-passo" id="bloco-opcionais">
+                <summary><span class="passo-num">3<span class="so-leitor">.</span></span> Deixar o resultado mais preciso — opcional</summary>
+                <div class="exemplo-fatura-conteudo">
+                    <p class="hint">Dá para simular sem preencher nada aqui: no lugar de cada campo vazio nós usamos uma premissa, e o resultado diz quando fez isso. Preenchendo, você troca a nossa premissa por um dado da sua conta.</p>
+
+                    <div class="form-group">
+                        <label for="cobrancas">
+                            Cobranças da conta que não são energia (R$)
+                            <span class="tip">
+                                <button type="button" class="tip-btn" aria-label="Que cobranças são essas?">i</button>
+                                <span class="tip-bubble"><strong>Some aqui:</strong> iluminação pública, taxa de lixo, multa, juros e parcelamento.<br><strong>Não inclua:</strong> bandeira tarifária e impostos (ICMS, PIS/Pasep, Cofins) — esses são cobrados sobre a energia, e os painéis reduzem junto.<br>Os painéis não diminuem as cobranças da primeira lista, então elas saem do valor antes de calcularmos a sua tarifa. Sem isso, a economia e o tempo de retorno apareceriam melhores do que serão de verdade.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="cobrancas" name="cobrancas" step="any" min="0">
+                        <p class="hint">A mais comum é a <strong>iluminação pública</strong> — na conta ela vem numa linha própria, terminando em “municipal” ou “distrital” (item <strong>⑤</strong> do exemplo). Não achou nenhuma? Deixe em branco.</p>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="ligacao">
+                            Tipo de ligação da sua casa
+                            <span class="tip">
+                                <button type="button" class="tip-btn" aria-label="Por que o tipo de ligação importa?">i</button>
+                                <span class="tip-bubble">Toda conta de luz tem um <strong>valor mínimo</strong>, chamado custo de disponibilidade — é o que remunera a rede que continua à sua disposição. Ele depende do tipo de ligação: equivale a <strong>30 kWh</strong> na monofásica, <strong>50 kWh</strong> na bifásica e <strong>100 kWh</strong> na trifásica (art. 291 da Resolução ANEEL nº 1.000/2021). Com painéis, a conta nunca fica abaixo desse mínimo, mas a parcela Fio B que continua sendo cobrada já conta para atingi-lo (art. 655-I). Por isso o tipo de ligação pesa sobretudo em quem consome pouco.</span>
+                            </span>
+                        </label>
+                        <select id="ligacao" name="ligacao">
+                            <option value="" selected>Não sei — usar a bifásica</option>
+                            <option value="monofasica">Monofásica</option>
+                            <option value="bifasica">Bifásica</option>
+                            <option value="trifasica">Trifásica</option>
+                        </select>
+                        <p class="hint">Está escrito na sua fatura, geralmente na parte de cima, perto do endereço — é o item <strong>④</strong> do exemplo. Se não encontrar, pode deixar como está: usamos a ligação bifásica e avisamos isso no resultado.</p>
+                    </div>
+                </div>
+            </details>
 
             {#- PENDENCIAS 11, 12 e 13 (16/09/2026): aqui ficavam os seletores
                 "Opcao de painel solar" e "Opcao de inversor", lado a lado numa
@@ -192,6 +337,13 @@
                 termina agora no campo de tipo de ligacao, que e do que ela
                 trata. -#}
 
+            {#- ITEM 10, camada C (06/10/2026): o resumo do que vai ser usado,
+                escrito pelo script "ITEM 10" no fim da pagina. Nasce escondido
+                e aparece quando algum dos tres numeros e preenchido. Repete os
+                avisos da camada B em uma linha, porque e aqui que a pessoa
+                olha antes de clicar. Sem JavaScript, nao aparece e nada muda. -#}
+            <div class="resumo-envio" id="resumo-envio" aria-live="polite" hidden></div>
+
             <button type="submit" class="btn-simular" id="btn-simular">Simular meu sistema solar</button>
 
         </form>
@@ -199,6 +351,15 @@
 
     <div class="card">
         <h2><span class="divider-dot"></span>Perguntas frequentes</h2>
+
+        {#- ITEM 6 DO BACKLOG (07/10/2026) - REVISAO DO FAQ, decidida com a aluna. O FAQ foi
+            relido inteiro contra a tela de hoje (retorno mes a mes, itens 28 + 11).
+            Entrou "Quem escolhe o painel e o inversor?" (lacuna aberta em 16/09, quando os
+            dois seletores sairam do formulario); a resposta dos precos ficou com metade do
+            tamanho.
+            A linha "Ficou com mais duvidas? Veja..." (fase 1, passo 5) saiu: o link foi para
+            dentro da resposta em que ele faz sentido, e os 9 links continuam no rodape.
+            Registro: claude/melhorias_site_item6_07-10.txt. -#}
 
         <details class="faq-item">
             <summary>O excedente de energia gerado é vendido para a concessionária?</summary>
@@ -211,8 +372,13 @@
         </details>
 
         <details class="faq-item">
+            <summary>Quem escolhe o painel e o inversor?</summary>
+            <p>A plataforma. Ela confere, com os dados das folhas dos fabricantes, se cada painel do catálogo pode ser ligado ao inversor do tamanho certo — corrente e tensão, no frio e no calor — e, entre os que passam, fica com o de menor corrente, que é o que mais folga deixa para o inversor. No resultado, painel e inversor aparecem como referência técnica: modelos de outras marcas também servem, desde que respeitem os mesmos limites. Na prática, quem define a marca é a empresa que vai instalar.</p>
+        </details>
+
+        <details class="faq-item">
             <summary>De onde vêm os preços dos equipamentos e da instalação?</summary>
-            <p>De uma pesquisa setorial feita com milhares de empresas instaladoras de todo o Brasil, que mede o preço médio de sistemas fotovoltaicos residenciais <strong>já instalados</strong> — equipamento, mão de obra, projeto elétrico e homologação na distribuidora, tudo junto. A plataforma usa esse preço conforme o tamanho do sistema, porque sistema pequeno custa mais caro por painel instalado. Vale saber que a instalação, o projeto e a homologação costumam custar quase o mesmo que o material, e em sistemas pequenos até mais, porque boa parte desse trabalho não diminui com o tamanho do sistema — por isso pesquisar painel barato resolve menos do que parece. Na tela de resultado esses dois valores aparecem separados, junto com a fonte e a data de referência dos preços. São médias nacionais: o seu orçamento pode vir acima ou abaixo delas, conforme a região e o instalador escolhido.</p>
+            <p>De uma pesquisa feita com milhares de empresas instaladoras de todo o Brasil, que mede o preço médio de sistemas residenciais <strong>já instalados</strong>: equipamento, mão de obra, projeto elétrico e homologação na distribuidora, tudo junto. Sistema pequeno custa mais caro por painel, porque boa parte do trabalho de instalar, projetar e homologar não diminui com o tamanho do sistema. São médias nacionais: o seu orçamento pode vir acima ou abaixo delas, conforme a região e o instalador. Mais detalhes em <a href="{{ url_for('pagina', nome='equipamentos') }}">Painéis, inversores e preços</a>.</p>
         </details>
 
         <details class="faq-item">
@@ -221,9 +387,19 @@
         </details>
     </div>
 
+    {# FASE 1, PASSO 5 (30/09/2026) - links para as paginas de explicacao
+        (arquivos em static/, sem rota nova no app.py).
+        PASSO 8 (02/10/2026): os links passaram a usar os enderecos limpos
+        (/metodologia etc.), servidos pela rota "pagina" do app.py. #}
+    <nav class="rodape rodape-links no-print" aria-label="Páginas de explicação, no rodapé"><a href="{{ url_for('pagina', nome='entenda') }}">Como funciona</a> · <a href="{{ url_for('pagina', nome='economia') }}">Economia e retorno</a> · <a href="{{ url_for('pagina', nome='equipamentos') }}">Painéis, inversores e preços</a> · <a href="{{ url_for('pagina', nome='precisao') }}">Quão preciso é</a> · <a href="{{ url_for('pagina', nome='metodologia') }}">Metodologia</a> · <a href="{{ url_for('pagina', nome='limitacoes') }}">Limitações</a> · <a href="{{ url_for('pagina', nome='sobre') }}">Sobre</a> · <a href="{{ url_for('pagina', nome='contato') }}">Contato</a> · <a href="{{ url_for('pagina', nome='apoie') }}">Apoie o projeto</a></nav>
     <p class="rodape">Ferramenta de dimensionamento fotovoltaico residencial — Trabalho de Conclusão de Curso</p>
+    {# FASE 1, PASSO 8 (02/10/2026) - credito da ANEEL (licenca ODbL, secao 4.3): o
+        seletor de distribuidora desta tela mostra nomes tirados dos dados abertos da
+        ANEEL. Ver dados-ANEEL-LICENCA.txt. #}
+    <p class="rodape rodape-creditos">Irradiação solar: projeto POWER (Prediction Of Worldwide Energy Resources) do NASA Langley Research Center, financiado pela NASA Earth Science Division — <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>, licença CC BY 4.0. Localização: dados © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, licença ODbL. Municípios: códigos e nomes oficiais do IBGE. Fio B e distribuidoras: contém informações dos conjuntos <a href="https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias" target="_blank" rel="noopener">Componentes Tarifárias</a>, <a href="https://dadosabertos.aneel.gov.br/dataset/indqual-municipio" target="_blank" rel="noopener">IndQual Município</a> e <a href="https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec" target="_blank" rel="noopener">Indicadores Coletivos de Continuidade</a>, da ANEEL, disponibilizados sob a licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>.</p>
 
 </div>
+</main>
 
 <script>
     // Ao clicar em "Simular", desativa o botao e avisa que esta calculando,
@@ -238,19 +414,56 @@
 
     // Mensagens de erro mais amigaveis (em portugues), no lugar da mensagem
     // padrao do navegador quando um campo obrigatorio fica vazio ou invalido.
+    // REVISAO GERAL, PARTE 3 (07/10/2026): o campo numerico do navegador le o
+    // ponto SEMPRE como separador decimal - "1.200" vira 1,2, ate em navegador
+    // em portugues (testado no Chromium pt-BR do notebook da aluna: "412,50"
+    // vira 412,5, certo; "1.200" vira 1,2). O texto digitado continua visivel
+    // em campo.value, entao da para reconhecer o ponto de milhar (1 a 3
+    // algarismos e grupos de 3 depois de cada ponto) e pedir para digitar sem
+    // ele. E "1.200,50" o navegador nem entende (badInput): a mensagem diz como
+    // digitar, em vez de "maior que zero".
+    var PONTO_DE_MILHAR = /^\d{1,3}(\.\d{3})+$/;
+    function mensagemDoNumero(campo) {
+        var texto = (campo.value || '').trim();
+        if (PONTO_DE_MILHAR.test(texto)) {
+            return 'Parece que o ponto está separando os milhares (“' + texto + '”). Aqui o ponto é lido como vírgula, e o número viraria '
+                + parseFloat(texto).toLocaleString('pt-BR', { maximumFractionDigits: 3 }) + '. Digite sem o ponto: ' + texto.replace(/\./g, '') + '.';
+        }
+        if (campo.validity && campo.validity.badInput) {
+            return 'Digite só o número, sem ponto de milhar, com vírgula nos centavos. Exemplo: 1250,50.';
+        }
+        return '';
+    }
     function configurarMensagem(id, mensagem) {
         var campo = document.getElementById(id);
         campo.addEventListener('invalid', function () {
-            campo.setCustomValidity(mensagem);
+            campo.setCustomValidity(mensagemDoNumero(campo) || mensagem);
         });
         campo.addEventListener('input', function () {
             campo.setCustomValidity('');
         });
     }
-    configurarMensagem('cidade', 'Informe sua cidade e estado, por exemplo: Guaíra, PR.');
+    configurarMensagem('cidade', 'Digite o nome da sua cidade e escolha na lista, por exemplo: Guaíra - PR.');
     configurarMensagem('consumo', 'Informe um consumo médio maior que zero.');
     configurarMensagem('fatura', 'Informe o valor total da conta, maior que zero.');
     configurarMensagem('consumo_fatura', 'Informe o consumo em kWh que aparece nessa mesma conta.');
+    // Em TODOS os campos numericos (conta, consumo, media, os 12 meses e as
+    // cobrancas): com ponto de milhar o envio fica bloqueado, com a mensagem
+    // acima. Roda depois do configurarMensagem, que limpa a mensagem a cada
+    // tecla - aqui ela e posta de novo enquanto o ponto continuar la.
+    document.querySelectorAll('input[type="number"]').forEach(function (campo) {
+        function conferir() {
+            var texto = (campo.value || '').trim();
+            campo.setCustomValidity(PONTO_DE_MILHAR.test(texto) ? mensagemDoNumero(campo) : '');
+        }
+        campo.addEventListener('input', conferir);
+        campo.addEventListener('change', conferir);
+        campo.addEventListener('invalid', function () {
+            var m = mensagemDoNumero(campo);
+            if (m) { campo.setCustomValidity(m); }
+        });
+        conferir();
+    });
 
     // Impede que o scroll do mouse altere o valor dos campos numericos.
     // Sem isso, rolar a pagina com o cursor sobre o campo muda o valor
@@ -264,18 +477,113 @@
         });
     });
 
-    // Sugestoes de cidade enquanto a pessoa digita, usando a mesma busca
-    // gratuita (Nominatim/OpenStreetMap) que o geocoding.py ja usa no
-    // back-end. Aqui a busca roda direto no navegador, so para mostrar
-    // sugestoes -- quando o formulario e enviado, o back-end busca de novo
-    // para confirmar a localizacao exata.
+    // ------------------------------------------------------------------
+    // CIDADE: escolha numa LISTA LOCAL de municipios (fase 1 pos-TCC,
+    // 29/09/2026, item 24 do backlog).
+    //
+    // Antes, este bloco pedia sugestoes ao Nominatim a cada pausa na
+    // digitacao. A politica de uso do Nominatim proibe isso ("you must not
+    // implement such a service on the client side using the API"). Agora a
+    // busca e feita numa lista local (static/municipios.json, 5.571
+    // municipios com codigo IBGE, nome e UF), sem consultar ninguem de fora.
+    //
+    // O texto que vai para o servidor e o rotulo da lista, "Guaira - PR".
+    // O servidor (geocoding.py) confere de novo e so aceita municipio da
+    // lista - esta checagem aqui existe para avisar a pessoa na hora, e nao
+    // para garantir nada sozinha.
+    // ------------------------------------------------------------------
     (function () {
         var campoCidade = document.getElementById('cidade');
         var lista = document.getElementById('cidade-sugestoes');
-        var idTimeout = null;
+        var aviso = document.getElementById('cidade-aviso');
+        var formulario = document.getElementById('form-simulacao');
+        var textoAvisoPadrao = aviso.textContent;
+        var MAXIMO_SUGESTOES = 8;
+        var UFS = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA',
+                   'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
+
+        var municipios = null;      // a lista, depois de carregada
+        var porRotulo = {};         // rotulo normalizado -> rotulo exato
+        var carregamento = null;    // a promessa do carregamento
+        var falhouCarregar = false;
+        var opcoes = [];            // sugestoes mostradas agora
+        var destaque = -1;          // qual sugestao esta marcada pelo teclado
+
+        // Mesma regra do normalizar() do geocoding.py: sem acento, minusculas,
+        // apostrofo e hifen viram espaco.
+        function normalizar(texto) {
+            return (texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+                .toLowerCase().replace(/['’\-]/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        function rotulo(m) { return m.nome + ' - ' + m.uf; }
+
+        function carregar() {
+            if (!carregamento) {
+                carregamento = fetch("{{ url_for('static', filename='municipios.json') }}")
+                    .then(function (resposta) {
+                        if (!resposta.ok) { throw new Error('HTTP ' + resposta.status); }
+                        return resposta.json();
+                    })
+                    .then(function (dados) {
+                        dados.forEach(function (m) {
+                            m.n = normalizar(m.nome);
+                            m.r = rotulo(m);
+                            porRotulo[normalizar(m.r)] = m.r;
+                        });
+                        municipios = dados;
+                    })
+                    .catch(function (erro) {
+                        console.error('Lista de cidades nao carregou:', erro);
+                        falhouCarregar = true;
+                        aviso.textContent = 'Não consegui carregar a lista de cidades. Digite no formato Cidade - UF, por exemplo: Guaíra - PR.';
+                    });
+            }
+            return carregamento;
+        }
+
+        // Separa um "PR" digitado no fim ("guaira pr", "guaira - pr").
+        function separarUf(termo) {
+            var partes = termo.split(' ');
+            var ultima = partes[partes.length - 1].toUpperCase();
+            if (partes.length >= 2 && UFS.indexOf(ultima) !== -1) {
+                return { nome: partes.slice(0, -1).join(' '), uf: ultima };
+            }
+            return { nome: termo, uf: null };
+        }
+
+        function buscar(texto) {
+            var termo = normalizar(texto).replace(/ brasil$/, '');
+            var partes = separarUf(termo);
+            var achados = [];
+            if (!partes.nome) { return achados; }
+            municipios.forEach(function (m) {
+                if (partes.uf && m.uf !== partes.uf) { return; }
+                var nota;
+                if (m.n === partes.nome) { nota = 0; }
+                else if (m.n.indexOf(partes.nome) === 0) { nota = 1; }
+                else if (m.n.indexOf(' ' + partes.nome) !== -1) { nota = 2; }
+                else if (m.n.indexOf(partes.nome) !== -1) { nota = 3; }
+                else { return; }
+                achados.push({ m: m, nota: nota });
+            });
+            achados.sort(function (a, b) {
+                return a.nota - b.nota || a.m.nome.localeCompare(b.m.nome, 'pt-BR')
+                    || a.m.uf.localeCompare(b.m.uf);
+            });
+            return achados.map(function (a) { return a.m; });
+        }
+
+        function fechar() {
+            lista.hidden = true;
+            campoCidade.setAttribute('aria-expanded', 'false');
+            campoCidade.removeAttribute('aria-activedescendant');
+            destaque = -1;
+        }
 
         function mostrarAviso(texto) {
             lista.innerHTML = '';
+            opcoes = [];
             var li = document.createElement('li');
             li.textContent = texto;
             li.style.opacity = '0.7';
@@ -284,62 +592,225 @@
             lista.hidden = false;
         }
 
-        function buscarCidades(termo) {
-            var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=br&q=' + encodeURIComponent(termo);
-            mostrarAviso('Buscando...');
-            fetch(url, { headers: { 'Accept-Language': 'pt-BR' } })
-                .then(function (resposta) {
-                    if (!resposta.ok) {
-                        throw new Error('HTTP ' + resposta.status);
-                    }
-                    return resposta.json();
-                })
-                .then(mostrarSugestoes)
-                .catch(function (erro) {
-                    // Antes este erro sumia em silencio e a lista so nao
-                    // aparecia, sem a pessoa saber por que. A causa mais
-                    // comum e o limite de uso do Nominatim (1 consulta por
-                    // segundo) depois de muitas buscas seguidas.
-                    console.error('Busca de cidade falhou:', erro);
-                    mostrarAviso('Não consegui buscar agora — digite a cidade completa, por exemplo: Guaíra, PR, Brasil');
-                });
+        function escolher(m) {
+            campoCidade.value = m.r;
+            campoCidade.setCustomValidity('');
+            aviso.textContent = textoAvisoPadrao;
+            aviso.classList.remove('aviso-campo');
+            fechar();
         }
 
-        function mostrarSugestoes(dados) {
-            lista.innerHTML = '';
-            if (!dados || dados.length === 0) {
+        function marcar(indice) {
+            var itens = lista.querySelectorAll('li[role="option"]');
+            itens.forEach(function (li, i) {
+                li.classList.toggle('sugestao-marcada', i === indice);
+                li.setAttribute('aria-selected', i === indice ? 'true' : 'false');
+            });
+            destaque = indice;
+            if (indice >= 0 && itens[indice]) {
+                campoCidade.setAttribute('aria-activedescendant', itens[indice].id);
+                itens[indice].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        function mostrarSugestoes() {
+            var texto = campoCidade.value.trim();
+            if (normalizar(texto).length < 2) { fechar(); return; }
+            if (falhouCarregar) { fechar(); return; }
+            if (!municipios) {
+                mostrarAviso('Carregando a lista de cidades...');
+                carregar().then(mostrarSugestoes);
+                return;
+            }
+            var achados = buscar(texto);
+            if (achados.length === 0) {
                 mostrarAviso('Nenhuma cidade encontrada com esse nome.');
                 return;
             }
-            dados.forEach(function (item) {
+            opcoes = achados.slice(0, MAXIMO_SUGESTOES);
+            lista.innerHTML = '';
+            opcoes.forEach(function (m, i) {
                 var li = document.createElement('li');
-                li.textContent = item.display_name;
-                li.addEventListener('click', function () {
-                    campoCidade.value = item.display_name;
-                    lista.hidden = true;
+                li.id = 'cidade-opcao-' + i;
+                li.setAttribute('role', 'option');
+                li.textContent = m.r;
+                // mousedown, e nao click: o click chega depois de o campo
+                // perder o foco, e a lista ja teria fechado.
+                li.addEventListener('mousedown', function (evento) {
+                    evento.preventDefault();
+                    escolher(m);
                 });
                 lista.appendChild(li);
             });
+            if (achados.length > MAXIMO_SUGESTOES) {
+                var mais = document.createElement('li');
+                mais.textContent = 'e mais ' + (achados.length - MAXIMO_SUGESTOES)
+                    + ' — continue digitando, ou acrescente o estado (ex: Guaíra PR)';
+                mais.style.opacity = '0.7';
+                mais.style.cursor = 'default';
+                lista.appendChild(mais);
+            }
             lista.hidden = false;
+            campoCidade.setAttribute('aria-expanded', 'true');
+            marcar(-1);
         }
 
-        campoCidade.addEventListener('input', function () {
-            var termo = campoCidade.value.trim();
-            clearTimeout(idTimeout);
-            if (termo.length < 3) {
-                lista.hidden = true;
-                return;
+        // Transforma o que foi digitado no rotulo da lista, quando isso nao
+        // deixa duvida. Devolve o rotulo, ou um motivo para recusar.
+        function resolver(texto) {
+            var exato = porRotulo[normalizar(texto)];
+            if (exato) { return { rotulo: exato }; }
+            var termo = separarUf(normalizar(texto).replace(/ brasil$/, ''));
+            var iguais = municipios.filter(function (m) {
+                return m.n === termo.nome && (!termo.uf || m.uf === termo.uf);
+            });
+            if (iguais.length === 1) { return { rotulo: iguais[0].r }; }
+            if (iguais.length > 1) {
+                return { motivo: 'Existem ' + iguais.length + ' cidades chamadas '
+                    + iguais[0].nome + ' (' + iguais.map(function (m) { return m.uf; }).sort().join(', ')
+                    + '). Escolha na lista a do seu estado.' };
             }
-            // espera meio segundo apos parar de digitar, para nao mandar
-            // uma busca a cada letra (respeita o limite de uso do Nominatim)
-            idTimeout = setTimeout(function () { buscarCidades(termo); }, 500);
+            return { motivo: 'Não encontramos essa cidade na lista. Digite o nome e escolha uma das opções que aparecem.' };
+        }
+
+        campoCidade.addEventListener('focus', carregar);
+        campoCidade.addEventListener('input', function () {
+            aviso.textContent = textoAvisoPadrao;
+            aviso.classList.remove('aviso-campo');
+            mostrarSugestoes();
+        });
+
+        campoCidade.addEventListener('keydown', function (evento) {
+            var aberta = !lista.hidden && opcoes.length > 0;
+            if (evento.key === 'ArrowDown' && aberta) {
+                evento.preventDefault();
+                marcar(Math.min(destaque + 1, opcoes.length - 1));
+            } else if (evento.key === 'ArrowUp' && aberta) {
+                evento.preventDefault();
+                marcar(Math.max(destaque - 1, 0));
+            } else if (evento.key === 'Enter' && aberta && destaque >= 0) {
+                evento.preventDefault();          // escolhe, nao envia o formulario
+                escolher(opcoes[destaque]);
+            } else if (evento.key === 'Escape') {
+                fechar();
+            }
         });
 
         document.addEventListener('click', function (evento) {
             if (evento.target !== campoCidade && !lista.contains(evento.target)) {
-                lista.hidden = true;
+                fechar();
             }
         });
+
+        // Ao enviar: a cidade precisa ser uma da lista. Se a lista nao
+        // carregou, deixa seguir - o servidor confere e responde.
+        formulario.addEventListener('submit', function (evento) {
+            if (!municipios) { return; }
+            var r = resolver(campoCidade.value);
+            if (r.rotulo) {
+                campoCidade.value = r.rotulo;
+                return;
+            }
+            evento.preventDefault();
+            var botao = document.getElementById('btn-simular');
+            botao.disabled = false;
+            botao.textContent = 'Simular meu sistema solar';
+            aviso.textContent = r.motivo;
+            aviso.classList.add('aviso-campo');
+            campoCidade.focus();
+            mostrarSugestoes();
+            campoCidade.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    })();
+
+    // =================================================================
+    // FASE 1, PASSO 7 (02/10/2026): o seletor de distribuidora
+    // =================================================================
+    // Bloco PROPOSITALMENTE separado do codigo da busca de cidade acima: ele
+    // so OBSERVA o campo da cidade e nao mexe em nenhuma funcao dela, para
+    // nao arriscar a busca que ja funciona.
+    //
+    // O que faz: quando a cidade escolhida tem mais de uma distribuidora no
+    // arquivo static/distribuidoras_por_municipio.json, mostra a lista delas
+    // (da menor para a maior cobranca) mais a opcao "nao sei". Em qualquer
+    // outro caso - uma so distribuidora, cidade ainda nao escolhida, arquivo
+    // ausente ou falha de leitura - o bloco fica escondido e o formulario
+    // envia o campo vazio, que o motor trata como "nao sei".
+    (function () {
+        var campoCidade = document.getElementById('cidade');
+        var grupo = document.getElementById('grupo-distribuidora');
+        var selecao = document.getElementById('distribuidora');
+        if (!campoCidade || !grupo || !selecao) { return; }
+
+        var porRotulo = null;      // "Guaira - PR" normalizado -> codigo IBGE
+        var mapa = null;           // o conteudo do arquivo de distribuidoras
+        var tentativa = null;      // promessa unica de carregamento
+        var ultimoRotulo = null;
+
+        function normalizar(t) {
+            return (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().replace(/\s+/g, ' ').trim();
+        }
+
+        function carregar() {
+            if (tentativa) { return tentativa; }
+            tentativa = Promise.all([
+                fetch("{{ url_for('static', filename='municipios.json') }}").then(function (r) { return r.json(); }),
+                fetch("{{ url_for('static', filename='distribuidoras_por_municipio.json') }}").then(function (r) { return r.json(); })
+            ]).then(function (partes) {
+                porRotulo = {};
+                partes[0].forEach(function (m) {
+                    porRotulo[normalizar(m.nome + ' - ' + m.uf)] = String(m.ibge);
+                });
+                mapa = partes[1];
+            }).catch(function () {
+                porRotulo = false;   // sem dado: o seletor nunca aparece
+            });
+            return tentativa;
+        }
+
+        function esconder() {
+            grupo.hidden = true;
+            selecao.selectedIndex = 0;
+        }
+
+        function atualizar() {
+            var rotulo = normalizar(campoCidade.value);
+            if (rotulo === ultimoRotulo) { return; }
+            ultimoRotulo = rotulo;
+            if (!rotulo) { esconder(); return; }
+            carregar().then(function () {
+                if (!porRotulo || !mapa) { esconder(); return; }
+                if (normalizar(campoCidade.value) !== rotulo) { return; }  // mudou no meio
+                var ibge = porRotulo[rotulo];
+                var cnpjs = (ibge && mapa.municipios && mapa.municipios[ibge]) || [];
+                var nomes = mapa.nomes || {};
+                var opcoes = cnpjs.filter(function (c) { return nomes[c]; });
+                if (opcoes.length < 2) { esconder(); return; }
+                var escolhidoAntes = selecao.dataset.restaurar || selecao.value;
+                delete selecao.dataset.restaurar;
+                selecao.innerHTML = '';
+                var nenhuma = document.createElement('option');
+                nenhuma.value = '';
+                nenhuma.textContent = 'Não sei — usar a que dá a menor economia';
+                selecao.appendChild(nenhuma);
+                opcoes.forEach(function (cnpj) {
+                    var o = document.createElement('option');
+                    o.value = cnpj;
+                    o.textContent = nomes[cnpj];
+                    selecao.appendChild(o);
+                });
+                if (escolhidoAntes && opcoes.indexOf(escolhidoAntes) !== -1) {
+                    selecao.value = escolhidoAntes;
+                }
+                grupo.hidden = false;
+            });
+        }
+
+        campoCidade.addEventListener('change', atualizar);
+        campoCidade.addEventListener('blur', atualizar);
+        campoCidade.addEventListener('input', atualizar);
+        atualizar();
     })();
 
     // ------------------------------------------------------------------
@@ -378,6 +849,7 @@
         function atualizar() {
             var valores = preenchidos();
             contador.textContent = valores.length;
+            aviso.classList.remove('aviso-campo');
 
             if (valores.length === 12) {
                 var soma = valores.reduce(function (a, b) { return a + b; }, 0);
@@ -387,7 +859,7 @@
                 campoConsumo.setCustomValidity('');
                 aviso.textContent = 'Histórico completo. Consumo médio calculado: '
                     + media.toFixed(2) + ' kWh/mês (total de ' + soma.toFixed(0)
-                    + ' kWh no ano). O campo ao lado foi preenchido automaticamente.';
+                    + ' kWh no ano). O campo “Média de consumo por mês” foi preenchido automaticamente.';
             } else {
                 campoConsumo.readOnly = false;
                 aviso.textContent = 'Preenchidos: ' + valores.length + ' de 12.'
@@ -427,8 +899,9 @@
             if (valores.length === 0 && campoConsumo.value.trim() === '') {
                 evento.preventDefault();
                 destravarBotao();
+                aviso.classList.add('aviso-campo');
                 aviso.textContent = 'Falta dizer quanto você consome: digite o seu'
-                    + ' consumo médio mensal no campo ao lado, OU preencha os 12 meses'
+                    + ' consumo médio mensal no campo “Média de consumo por mês”, OU preencha os 12 meses'
                     + ' do histórico aqui embaixo e nós calculamos a média para você.';
                 document.getElementById('bloco-mensal').open = true;
                 aviso.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -438,10 +911,15 @@
             if (valores.length > 0 && valores.length < 12) {
                 evento.preventDefault();
                 destravarBotao();
-                aviso.textContent = 'Faltam ' + (12 - valores.length)
-                    + ' mês(es) para usar o histórico. Preencha os 12, ou apague'
+                var faltam = 12 - valores.length;
+                aviso.textContent = (faltam === 1 ? 'Falta 1 mês' : 'Faltam ' + faltam + ' meses')
+                    + ' para usar o histórico. Preencha os 12, ou apague'
                     + ' todos e informe apenas o consumo médio.';
+                aviso.classList.add('aviso-campo');
                 document.getElementById('bloco-mensal').open = true;
+                // (revisao geral, parte 3) o cursor vai para o primeiro mes vazio
+                var vazio = Array.prototype.filter.call(camposMes, function (c) { return c.value.trim() === ''; })[0];
+                if (vazio) { vazio.focus(); }
                 aviso.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
@@ -449,7 +927,321 @@
         atualizar();
     })();
 
+    // ------------------------------------------------------------------
+    // ITEM 10 DO BACKLOG (06/10/2026): OS DOIS CAMPOS DE CONSUMO.
+    //
+    // Camada B - avisos enquanto a pessoa digita. NUNCA bloqueiam o envio:
+    // so pedem para conferir. Usam apenas regras que nao dependem de um
+    // numero escolhido por nos (a faixa de tarifa plausivel e o item 9 e
+    // precisa de fonte da ANEEL; "media muito diferente do mes da conta"
+    // nao tem criterio com fonte, e diferenca de estacao e normal):
+    //   1. o MESMO numero no valor da conta (R$) e no consumo dela (kWh);
+    //   2. o MESMO numero no valor da conta (R$) e na media (kWh) digitada;
+    //   3. com os 12 meses preenchidos, o consumo da conta FORA da faixa do
+    //      proprio historico da pessoa (do menor ao maior mes) - o criterio
+    //      vem dos dados dela.
+    //   4. (revisao geral, 07/10/2026) o consumo da conta ABAIXO do minimo da
+    //      ligacao (30/50/100 kWh, art. 291 da REN ANEEL 1.000/2021; sem tipo
+    //      informado, 50 kWh, a bifasica presumida pelo motor). Nesses meses a
+    //      conta cobra o minimo, e o motor passa a dividir o valor pelo minimo
+    //      (simulacao.py) - o aviso diz isso antes de simular.
+    // Camada C - o resumo "Vamos simular com", acima do botao, com os tres
+    // numeros e o papel de cada um, repetindo os avisos.
+    //
+    // So LE os campos; nao muda valor nenhum e nao toca no envio. Roda
+    // depois do bloco do "MODO AVANCADO" de proposito: quando os 12 meses
+    // estao completos, aquele bloco ja escreveu a media no campo.
+    // Bloco independente: se faltar algum elemento, nao faz nada.
+    // ------------------------------------------------------------------
+    (function () {
+        var campoFatura = document.getElementById('fatura');
+        var campoConta = document.getElementById('consumo_fatura');
+        var campoMedia = document.getElementById('consumo');
+        var avisoConta = document.getElementById('aviso-consumo-fatura');
+        var avisoMedia = document.getElementById('aviso-consumo');
+        var resumo = document.getElementById('resumo-envio');
+        var camposMes = document.querySelectorAll('.consumo-mes');
+        var campoLigacao = document.getElementById('ligacao');
+        var MINIMO_KWH = { monofasica: 30, bifasica: 50, trifasica: 100 };
+        // REVISAO GERAL, PARTE 3 (07/10/2026), regra 5: tarifa FORA DO COMUM.
+        // A mais cara do pais, sem impostos, era de ~R$ 1,06/kWh (Enel RJ,
+        // homologacao ANEEL, ciclo de jan/2026 - levantamento comparesolar.com.br,
+        // abr/2026); com o ICMS mais alto e a bandeira vermelha 2 fica perto de
+        // R$ 1,65. R$ 3/kWh e quase o dobro: acima disso, quase sempre e numero
+        // digitado errado (um zero a mais, virgula fora do lugar). NAO bloqueia:
+        // so avisa (a conta pode ter multa ou parcelamento - campo das cobrancas).
+        // O MESMO limite esta no resultado.html (TARIFA_FORA_DO_COMUM).
+        var TARIFA_FORA_DO_COMUM = 3.0;
+        var campoCobrancas = document.getElementById('cobrancas');
+        var NOME_LIGACAO = { monofasica: 'monofásica', bifasica: 'bifásica', trifasica: 'trifásica' };
+        if (!campoFatura || !campoConta || !campoMedia || !avisoConta
+                || !avisoMedia || !resumo) { return; }
+
+        function numero(campo) {
+            var texto = (campo.value || '').trim();
+            if (texto === '') { return null; }
+            var n = parseFloat(texto.replace(',', '.'));
+            return (isNaN(n) || n <= 0) ? null : n;
+        }
+
+        function mesesPreenchidos() {
+            var lista = [];
+            camposMes.forEach(function (campo) {
+                var n = numero(campo);
+                if (n !== null) { lista.push(n); }
+            });
+            return lista;
+        }
+
+        function iguais(a, b) { return Math.abs(a - b) < 1e-9; }
+
+        function reais(n) {
+            return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        function kwh(n) {
+            return n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+        }
+
+        function mostrar(aviso, textos) {
+            aviso.textContent = textos.join(' ');
+            aviso.hidden = (textos.length === 0);
+        }
+
+        function item(partes) {
+            // partes: lista de [texto, tipo] - monta um <li> sem innerHTML
+            // ('' = numero em negrito; 'texto' = texto simples; outra = classe)
+            var li = document.createElement('li');
+            partes.forEach(function (p) {
+                if (p[1] === 'texto') { li.appendChild(document.createTextNode(p[0])); return; }
+                var s = document.createElement(p[1] ? 'span' : 'strong');
+                if (p[1]) { s.className = p[1]; }
+                s.textContent = p[0];
+                li.appendChild(s);
+            });
+            return li;
+        }
+
+        function atualizar() {
+            var fatura = numero(campoFatura);
+            var conta = numero(campoConta);
+            var meses = mesesPreenchidos();
+            var historico = (meses.length === 12);
+            var media = numero(campoMedia);
+
+            // ----- camada B -----
+            var textosConta = [];
+            var textosMedia = [];
+            var curtos = [];
+
+            if (fatura !== null && conta !== null && iguais(fatura, conta)) {
+                textosConta.push('Você digitou o mesmo número no valor da conta (R$) e no consumo dela (kWh). Pode acontecer, mas é raro — confira na conta se não copiou o mesmo número duas vezes.');
+                curtos.push('o valor da conta e o consumo dela têm o mesmo número');
+            }
+            if (historico && conta !== null) {
+                var menor = Math.min.apply(null, meses);
+                var maior = Math.max.apply(null, meses);
+                if (conta < menor || conta > maior) {
+                    textosConta.push('Este consumo (' + kwh(conta) + ' kWh) fica fora do histórico que você preencheu (de '
+                        + kwh(menor) + ' a ' + kwh(maior) + ' kWh). Pode ser um mês fora do padrão, mas confira se a conta e o histórico são da mesma fatura.');
+                    curtos.push('o consumo da conta fica fora do seu histórico de 12 meses');
+                }
+            }
+            if (conta !== null) {
+                var tipo = campoLigacao ? campoLigacao.value : '';
+                var informado = MINIMO_KWH.hasOwnProperty(tipo);
+                var minimo = informado ? MINIMO_KWH[tipo] : MINIMO_KWH.bifasica;
+                if (conta < minimo) {
+                    textosConta.push('Este consumo (' + kwh(conta) + ' kWh) fica abaixo de ' + minimo
+                        + ' kWh, o mínimo que a distribuidora cobra na ligação '
+                        + (informado ? NOME_LIGACAO[tipo] : 'bifásica, que usamos quando o tipo não é informado')
+                        + '. Nesses meses a conta cobra o mínimo, e não o consumo — por isso a tarifa será calculada com '
+                        + minimo + ' kWh.'
+                        + (!informado && conta >= MINIMO_KWH.monofasica
+                            ? ' Se a sua ligação for monofásica (mínimo de 30 kWh), informe o tipo na seção 3.' : '')
+                        + ' Se puder, use a conta de um mês de consumo normal.');
+                    curtos.push('o consumo da conta fica abaixo do mínimo da distribuidora');
+                }
+            }
+            if (!historico && fatura !== null && media !== null && iguais(fatura, media)) {
+                textosMedia.push('É o mesmo número que você pôs no valor da conta, em reais. Aqui vai o consumo médio, em kWh — confira.');
+                curtos.push('a média tem o mesmo número do valor da conta em reais');
+            }
+            if (fatura !== null && conta !== null) {
+                var tipoT = campoLigacao ? campoLigacao.value : '';
+                var minimoT = MINIMO_KWH.hasOwnProperty(tipoT) ? MINIMO_KWH[tipoT] : MINIMO_KWH.bifasica;
+                var cobr = campoCobrancas ? numero(campoCobrancas) : null;
+                var tarifa = (fatura - (cobr || 0)) / Math.max(conta, minimoT);
+                if (tarifa > TARIFA_FORA_DO_COMUM) {
+                    textosConta.push('Por esta conta, cada kWh sairia por R$ ' + reais(tarifa)
+                        + ' — bem acima do preço da energia nas contas de luz residenciais do país. Confira o valor da conta e o consumo: um zero a mais, ou uma vírgula fora do lugar, muda todo o resultado.'
+                        + (cobr === null ? ' Se a conta tiver multa, juros ou parcelamento, informe esse valor na seção 3, em “Cobranças da conta que não são energia”.' : ''));
+                    curtos.push('o preço do kWh pela sua conta (R$ ' + reais(tarifa) + ') está muito acima do normal');
+                }
+            }
+            mostrar(avisoConta, textosConta);
+            mostrar(avisoMedia, textosMedia);
+
+            // ----- camada C -----
+            while (resumo.firstChild) { resumo.removeChild(resumo.firstChild); }
+            if (fatura === null && conta === null && media === null && meses.length === 0) {
+                resumo.hidden = true;
+                return;
+            }
+
+            var titulo = document.createElement('p');
+            titulo.className = 'resumo-titulo';
+            titulo.textContent = 'Vamos simular com:';
+            resumo.appendChild(titulo);
+
+            var lista = document.createElement('ul');
+            var partesConta = [['Conta de luz: ', 'texto']];
+            partesConta.push(fatura !== null ? ['R$ ' + reais(fatura), ''] : ['valor em R$ não preenchido', 'resumo-falta']);
+            partesConta.push([' por ', 'texto']);
+            partesConta.push(conta !== null ? [kwh(conta) + ' kWh', ''] : ['consumo em kWh não preenchido', 'resumo-falta']);
+            partesConta.push([', de um mês só. Serve para calcular o preço do seu kWh.', 'texto']);
+            lista.appendChild(item(partesConta));
+
+            var partesMedia = [['Média: ', 'texto']];
+            if (media !== null) {
+                partesMedia.push([kwh(media) + ' kWh por mês', '']);
+                partesMedia.push([historico ? ', calculada dos 12 meses que você preencheu.' : ', que você digitou.', 'texto']);
+                partesMedia.push([' É ela que define o tamanho do sistema.', 'texto']);
+            } else {
+                partesMedia.push(['falta escolher um dos dois caminhos da seção 2.', 'resumo-falta']);
+            }
+            lista.appendChild(item(partesMedia));
+            resumo.appendChild(lista);
+
+            if (curtos.length > 0) {
+                var confira = document.createElement('p');
+                confira.className = 'aviso-campo';
+                confira.textContent = 'Antes de simular, confira: ' + curtos.join('; ') + '.';
+                resumo.appendChild(confira);
+            }
+
+            var rodape = document.createElement('p');
+            rodape.className = 'resumo-rodape';
+            rodape.textContent = 'Algum número no lugar errado? Corrija lá em cima antes de simular.';
+            resumo.appendChild(rodape);
+            resumo.hidden = false;
+        }
+
+        [campoFatura, campoConta, campoMedia].forEach(function (campo) {
+            campo.addEventListener('input', atualizar);
+            campo.addEventListener('change', atualizar);
+            campo.addEventListener('blur', atualizar);
+        });
+        camposMes.forEach(function (campo) {
+            campo.addEventListener('input', atualizar);
+            campo.addEventListener('change', atualizar);
+            campo.addEventListener('blur', atualizar);
+        });
+        if (campoLigacao) { campoLigacao.addEventListener('change', atualizar); }
+        atualizar();
+        // botao "voltar" do navegador: os valores voltam depois do carregamento
+        window.addEventListener('pageshow', atualizar);
+    })();
+
+    // ------------------------------------------------------------------
+    // SECAO 3 (OPCIONAIS): abre o bloco sozinho se algum campo dentro
+    // dele estiver preenchido (fase 1, passo 8, 02/10/2026).
+    //
+    // Serve para um caso real: quando a pessoa simula e volta com o botao
+    // "voltar" do navegador, o Chrome e o Firefox RESTAURAM o que estava
+    // digitado no formulario - mas o <details> volta fechado. Sem isto, ela
+    // veria um bloco fechado escondendo o valor que ela mesma digitou, e
+    // poderia digitar de novo em outro lugar.
+    //
+    // Bloco independente de proposito, como os outros: se o elemento nao
+    // existir, nao faz nada e nao derruba o resto do JavaScript da pagina.
+    // ------------------------------------------------------------------
+    (function () {
+        var bloco = document.getElementById('bloco-opcionais');
+        if (!bloco) { return; }
+
+        function abrirSePreenchido() {
+            var cobrancas = document.getElementById('cobrancas');
+            var ligacao = document.getElementById('ligacao');
+            var tem = (cobrancas && cobrancas.value.trim() !== '')
+                   || (ligacao && ligacao.value !== '');
+            if (tem) { bloco.open = true; }
+        }
+
+        abrirSePreenchido();
+        // O navegador restaura os valores DEPOIS do carregamento da pagina,
+        // entao a verificacao e refeita no pageshow (inclusive quando a
+        // pagina vem do cache do botao "voltar").
+        window.addEventListener('pageshow', abrirSePreenchido);
+    })();
+
 </script>
 
+<script>
+    // ------------------------------------------------------------------
+    // REVISAO GERAL, PARTE 3 (07/10/2026): OS DADOS NAO SOMEM AO VOLTAR.
+    // Antes, "Voltar e tentar de novo" e "Fazer nova simulacao" (links para
+    // "/") traziam o formulario vazio - justo quando o resultado pede
+    // "volte e preencha...". Agora, ao simular, os campos ficam guardados
+    // NESTE navegador (sessionStorage: some quando a aba fecha; nada vai
+    // para o servidor alem do que o envio do formulario ja manda). Ao abrir
+    // a pagina, cada campo VAZIO recebe o valor guardado; o aviso no topo do
+    // formulario diz isso e oferece limpar tudo.
+    // ------------------------------------------------------------------
+    (function () {
+        var CHAVE = 'quantos-paineis-formulario';
+        var formulario = document.getElementById('form-simulacao');
+        var aviso = document.getElementById('aviso-dados-mantidos');
+        var botaoLimpar = document.getElementById('limpar-formulario');
+        if (!formulario || !aviso) { return; }
+        function campos() {
+            return Array.prototype.filter.call(formulario.querySelectorAll('input[name], select[name]'),
+                function (c) { return c.type !== 'hidden' && c.type !== 'submit'; });
+        }
+        function ler() {
+            try { return JSON.parse(window.sessionStorage.getItem(CHAVE) || 'null'); } catch (e) { return null; }
+        }
+        formulario.addEventListener('submit', function () {
+            var dados = {};
+            campos().forEach(function (c) { if (c.value.trim() !== '') { dados[c.name] = c.value; } });
+            try { window.sessionStorage.setItem(CHAVE, JSON.stringify(dados)); } catch (e) { /* sem armazenamento: segue sem guardar */ }
+        });
+        function avisar(evento, campo) {
+            campo.dispatchEvent(new Event(evento, { bubbles: true }));
+        }
+        function restaurar() {
+            var dados = ler();
+            if (!dados) { return; }
+            var mudou = false;
+            campos().forEach(function (c) {
+                if (!dados.hasOwnProperty(c.name) || c.value.trim() !== '') { return; }
+                if (c.name === 'distribuidora') { c.dataset.restaurar = dados[c.name]; mudou = true; return; }
+                c.value = dados[c.name];
+                mudou = true;
+            });
+            if (!mudou) { return; }
+            var cidade = document.getElementById('cidade');
+            if (cidade) { avisar('change', cidade); }
+            campos().forEach(function (c) { if (c.name !== 'cidade') { avisar('input', c); avisar('change', c); } });
+            var mensal = document.getElementById('bloco-mensal');
+            if (mensal && Array.prototype.some.call(document.querySelectorAll('.consumo-mes'), function (c) { return c.value.trim() !== ''; })) {
+                mensal.open = true;
+            }
+            var opcionais = document.getElementById('bloco-opcionais');
+            if (opcionais && ['ligacao', 'cobrancas'].some(function (n) { return dados[n]; })) { opcionais.open = true; }
+            aviso.hidden = false;
+        }
+        if (botaoLimpar) {
+            botaoLimpar.addEventListener('click', function () {
+                try { window.sessionStorage.removeItem(CHAVE); } catch (e) { /* nada */ }
+                formulario.reset();
+                campos().forEach(function (c) { c.value = ''; avisar('input', c); avisar('change', c); });
+                aviso.hidden = true;
+                var cidade = document.getElementById('cidade');
+                if (cidade) { cidade.focus(); }
+            });
+        }
+        restaurar();
+    })();
+</script>
 </body>
 </html>

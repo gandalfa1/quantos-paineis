@@ -1,0 +1,52 @@
+# .gitignore - o que NAO vai para o repositorio publico
+# Criado em 02/10/2026 (fase 1, passo 8). So passa a valer quando a pasta for
+# publicada com o git (fase 2). Cada linha tem o motivo.
+
+# --- Caches gerados pelo programa --------------------------------------------
+# cache/ guarda as respostas do Nominatim (OpenStreetMap) e da NASA POWER.
+# A politica do Nominatim PROIBE redistribuir os resultados de geocodificacao;
+# publicar este cache seria redistribuir. O servidor monta o proprio cache.
+cache/
+# cache_aneel/ guarda os arquivos ORIGINAIS da ANEEL (~50 MB), baixados pelo
+# atualizar_dados_aneel.py. Quem quiser os originais baixa direto do portal.
+# (Os arquivos GERADOS a partir deles - fio_b_por_distribuidora.csv e
+# static/distribuidoras_por_municipio.json - VAO para o repositorio: a
+# plataforma precisa deles e a licenca ODbL pede que fiquem disponiveis.
+# Ver dados-ANEEL-LICENCA.txt.)
+cache_aneel/
+# Copia de seguranca que o atualizar_dados_aneel.py faz antes de gravar.
+*.bak
+
+# --- Arquivos do Python e do editor -------------------------------------------
+__pycache__/
+*.pyc
+.venv/
+venv/
+.vscode/
+
+# --- Arquivos de trabalho da autora -------------------------------------------
+# Rascunhos dos textos das paginas, prints e anotacoes de decisao. O que vai
+# para o site ja esta nas paginas geradas em static/.
+Claude outputs/
+# Conferencia avulsa feita para o artigo; nao faz parte da plataforma
+# (backlog, item 22).
+ver_periodo_nasa.py
+# Lista de versoes tirada do pip; o que vale para instalar e o requirements.txt.
+versoes.txt
+
+# --- Lixo do sistema operacional ----------------------------------------------
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# --- Tarefa automatica do Fio B (fase 2, item 2.8 C) ---------------------------
+# O arquivo da tarefa mora aqui so porque o acesso do Claude a pasta nao pode
+# criar a pasta .github. Na publicacao (fase 2, item 2.5) ele vai para
+# .github/workflows/atualizar-fio-b.yml, que e o lugar onde o GitHub o le; esta
+# copia de trabalho nao vai junto.
+tarefa_github/
+
+# --- Saida da conferencia das cidades -----------------------------------------
+# Tem coordenadas devolvidas pelo Nominatim; pela regra do projeto, resultado de
+# geocodificacao nao e redistribuido (28/10/2026, na publicacao).
+teste/resultado_conferencia_cidades.txt

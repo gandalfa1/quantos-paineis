@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Limitações — Quantos Painéis</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/paginas.css">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="pular-conteudo no-print" href="#conteudo">Pular para o conteúdo</a>
+<header class="topo-site no-print">
+    <div class="topo-conteudo">
+        <a class="topo-marca" href="/"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><radialGradient id="solTopoGrad" cx="35%" cy="35%" r="70%"><stop offset="0%" stop-color="#FFC24B"/><stop offset="55%" stop-color="#F2600C"/><stop offset="100%" stop-color="#C94E0A"/></radialGradient></defs><g stroke="#F2600C" stroke-width="3" stroke-linecap="round" opacity="0.8"><line x1="32" y1="2" x2="32" y2="10"/><line x1="32" y1="54" x2="32" y2="62"/><line x1="2" y1="32" x2="10" y2="32"/><line x1="54" y1="32" x2="62" y2="32"/><line x1="10.7" y1="10.7" x2="16.2" y2="16.2"/><line x1="47.8" y1="47.8" x2="53.3" y2="53.3"/><line x1="10.7" y1="53.3" x2="16.2" y2="47.8"/><line x1="47.8" y1="16.2" x2="53.3" y2="10.7"/></g><circle cx="32" cy="32" r="16" fill="url(#solTopoGrad)"/></svg><span>Quantos Painéis</span></a>
+        <div class="topo-acoes">
+            <details class="topo-menu-celular">
+                <summary>Páginas</summary>
+                <ul>
+                    <li><a href="/entenda">Como funciona</a></li>
+                    <li><a href="/economia">Economia e retorno</a></li>
+                    <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+                    <li><a href="/precisao">Quão preciso é</a></li>
+                    <li><a href="/metodologia">Metodologia</a></li>
+                    <li><a href="/limitacoes" aria-current="page">Limitações</a></li>
+                    <li><a href="/sobre">Sobre</a></li>
+                    <li><a href="/contato">Contato</a></li>
+                </ul>
+            </details>
+            <a class="btn-simular-topo" href="/"><span class="so-pc">Fazer uma simulação</span><span class="so-cel">Simular</span></a>
+        </div>
+    </div>
+    <nav class="topo-menu" aria-label="Páginas de explicação">
+        <ul>
+            <li><a href="/entenda">Como funciona</a></li>
+            <li><a href="/economia">Economia e retorno</a></li>
+            <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+            <li><a href="/precisao">Quão preciso é</a></li>
+            <li><a href="/metodologia">Metodologia</a></li>
+            <li><a href="/limitacoes" aria-current="page">Limitações</a></li>
+            <li><a href="/sobre">Sobre</a></li>
+            <li><a href="/contato">Contato</a></li>
+        </ul>
+    </nav>
+</header>
+<main id="conteudo">
+<div class="faixa-pagina">
+<div class="faixa-pagina-conteudo">
+<h1 class="pagina-titulo">O que a plataforma não considera</h1>
+<div class="resumo-pagina">
+<p><strong>Em resumo:</strong> toda estimativa simplifica a realidade, e a plataforma também. A diferença é que aqui você fica sabendo <strong>o que ficou de fora, para que lado isso puxa o resultado e, sempre que foi possível medir, quanto</strong>.</p>
+<p>Para cada item, indicamos o efeito:</p>
+<ul>
+<li><span class="efeito melhor">⬆ melhor</span> o resultado real tende a ser <strong>melhor</strong> que o da plataforma (mais geração, mais economia ou retorno mais curto);</li>
+<li><span class="efeito pior">⬇ pior</span> o resultado real tende a ser <strong>pior</strong>;</li>
+<li><span class="efeito dois">⬍ dois lados</span> pode ir <strong>para os dois lados</strong>.</li>
+</ul>
+<p>Os números medidos vêm dos <a href="/precisao#cidades">cinco casos de teste</a> (Bom Jesus da Lapa, Cuiabá, Guaíra, Manaus e Campinas), com a tarifa de teste de R$ 0,75/kWh.</p>
+</div>
+</div>
+</div>
+<div class="page-wrap pagina-corpo">
+<p class="abrir-todas no-print"><button type="button" class="btn-abrir-todas" aria-pressed="false">Abrir todas as seções</button></p>
+
+<section class="card secao" aria-labelledby="sobre-a-sua-casa">
+<details class="secao-sanfona">
+    <summary><h2 id="sobre-a-sua-casa"><span class="divider-dot"></span>Sobre a sua casa</h2></summary>
+<div class="secao-conteudo">
+<p><strong>Painéis deitados (na horizontal).</strong> <span class="efeito melhor">⬆ melhor na vida real</span> A plataforma calcula como se os painéis ficassem deitados. Num telhado inclinado e virado para o norte, eles recebem mais sol: de 0,7% a mais (Manaus) até 9,1% a mais (Campinas). Com o telhado na posição ideal, Guaíra e Campinas precisariam de um painel a menos. A plataforma não pergunta a posição do telhado porque, sem saber a resposta, muita gente chutaria, e uma correção feita sobre um chute seria pior que uma premissa simples e declarada.</p>
+<p><strong>Sombra, sujeira e ventilação.</strong> <span class="efeito pior">⬇ pior na vida real</span> A plataforma considera que 80% da energia do sol chega à casa. Com sombra, sujeira ou painéis mal ventilados, esse número pode ser menor. Veja a página <a href="/precisao"><strong>Quão preciso é o resultado?</strong></a>.</p>
+<p><strong>Área do telhado.</strong> <span class="efeito dois">⬍ para os dois lados</span> A plataforma não confere se os painéis cabem no seu telhado.</p>
+<p><strong>Tipo de ligação.</strong> <span class="efeito dois">⬍ para os dois lados</span> Se você não informar, a plataforma considera ligação <strong>bifásica</strong> e avisa na tela. Se a sua ligação for outra, o valor mínimo da conta muda, e o resultado também:</p>
+<div class="tabela-wrap"><table class="tabela-geracao">
+<thead>
+<tr>
+<th scope="col">Caso</th>
+<th scope="col">Monofásica</th>
+<th scope="col">Bifásica (a premissa)</th>
+<th scope="col">Trifásica</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Guaíra, 300 kWh/mês</th>
+<td>5 painéis, retorno de 54,8 meses</td>
+<td>5 painéis, 54,8 meses</td>
+<td>4 painéis, 52,5 meses</td>
+</tr>
+<tr>
+<th scope="row">Campinas, 180 kWh/mês</th>
+<td>3 painéis, 64,7 meses</td>
+<td>3 painéis, 67,6 meses</td>
+<td>2 painéis, 94,3 meses</td>
+</tr>
+</tbody>
+</table></div>
+<p>Quanto menor o consumo, mais o tipo de ligação pesa. Se puder, informe o seu: ele está escrito na conta.</p>
+<p><strong>A energia que você usa na hora.</strong> <span class="efeito melhor">⬆ melhor na vida real</span> Parte da energia dos painéis é usada no mesmo momento em que é gerada, e essa parte não paga Fio B. A plataforma não sabe a que horas você usa energia e considera que toda a geração passa pela rede. Num estudo com 86 consumidores, essa parte foi de 37% em média. Veja a página <a href="/economia"><strong>A economia e o tempo de retorno</strong></a>.</p>
+<p><strong>Consumo muito baixo.</strong> <span class="efeito pior">⬇ pior na vida real</span> Os inversores do catálogo precisam de pelo menos dois painéis em série. De 76 até cerca de 110 kWh por mês, esse mínimo deixa o sistema maior do que o consumo pede, e o retorno sobe para 10 a 24 anos. Com consumo ainda mais baixo, pode não sobrar nada para abater, e aí a plataforma não indica sistema e explica o motivo.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="sobre-a-sua-conta-e-as-regras">
+<details class="secao-sanfona">
+    <summary><h2 id="sobre-a-sua-conta-e-as-regras"><span class="divider-dot"></span>Sobre a sua conta e as regras</h2></summary>
+<div class="secao-conteudo">
+<p><strong>Iluminação pública e outras cobranças.</strong> <span class="efeito pior">⬇ pior na vida real</span> A plataforma calcula a sua tarifa com o valor da conta. Se a conta tiver iluminação pública (cobrada pela prefeitura), taxa de lixo, multa, juros ou parcelamento, esses valores não são energia, e os painéis não os reduzem. O campo opcional <strong>Cobranças da conta que não são energia</strong>, no bloco “Deixar o resultado mais preciso”, desconta esses valores antes do cálculo. <strong>Se ele ficar em branco</strong>, eles entram como se fossem energia economizada, a economia sai <strong>otimista</strong> e a tela de resultado avisa. Em Manaus, a contribuição residencial era de R$ 47,91 por mês na faixa de 501 a 1.000 kWh (valor proposto para 2022). No caso de Manaus, com o campo em branco, o retorno encurtaria de 40,9 para 35,6 meses.</p>
+<p><strong>Impostos.</strong> <span class="efeito pior">⬇ pior na vida real</span> A sua tarifa tem impostos (ICMS, PIS e Cofins), mas o Fio B da tabela da ANEEL não tem. Descontar um do outro deixa a economia um pouco otimista. Esse efeito não foi medido, porque o ICMS muda de estado para estado.</p>
+<p><strong>Bandeira tarifária.</strong> <span class="efeito dois">⬍ para os dois lados</span> A tarifa sai de uma conta só e carrega a bandeira daquele mês. A plataforma usa essa tarifa para todo o período.</p>
+<p><strong>Municípios com mais de uma distribuidora.</strong> <span class="efeito dois">⬍ para os dois lados</span> Em 481 dos 5.571 municípios, mais de uma empresa atende a cidade — quase sempre uma cooperativa dividindo a área com a concessionária, em Santa Catarina, no Rio Grande do Sul e no Paraná. A plataforma pergunta qual é a sua; <strong>se você não informar</strong>, ela usa a de maior Fio B, que dá a menor economia. A diferença entre as opções do mesmo município é de R$ 0,079/kWh na mediana e chega a R$ 0,38/kWh no caso extremo — o suficiente para mudar o retorno em vários meses. Informar a sua distribuidora resolve: o nome está na conta de luz.</p>
+<p><strong>Municípios sem tarifa publicada.</strong> <span class="efeito dois">⬍ para os dois lados</span> Em 14 municípios, todos atendidos por cooperativas de Santa Catarina, a tarifa vigente ainda não foi republicada pela ANEEL. Nesses casos a plataforma volta ao valor da distribuidora da capital do estado e declara isso na tela.</p>
+<p><strong>Tabela do Fio B com data.</strong> <span class="efeito dois">⬍ para os dois lados</span> Cada distribuidora reajusta a tarifa uma vez por ano, em data própria, e a tabela é um retrato. A tela mostra <strong>até quando</strong> o valor usado vale e avisa quando essa data já passou. A tabela é refeita a partir dos dados abertos da ANEEL por um programa da própria plataforma, que só grava se vier valor vigente para as 27 capitais.</p>
+<p><strong>A regra do Fio B de 2029 em diante.</strong> <span class="efeito pior">⬇ pior na vida real</span> A subida do Fio B até 2028 já entra no tempo de retorno, que é somado mês a mês. A regra de 2029 em diante ainda não foi definida pela ANEEL, e a plataforma usa 100% do Fio B como premissa provisória, embora a cobrança real tenda a ser maior.</p>
+<p><strong>O valor mínimo da conta em todos os meses.</strong> <span class="efeito pior">⬇ pior na vida real</span> A plataforma aplica o valor mínimo da conta em todos os meses, como manda a Resolução da ANEEL. A Lei nº 14.300/2022 fala em aplicá-lo só quando o consumo medido fica abaixo dele. Em Campinas, seguir a leitura da Lei encurtaria o retorno de 67,6 para 64,7 meses.</p>
+<p><strong>Tarifa social (baixa renda).</strong> <span class="efeito dois">⬍ para os dois lados</span> As regras especiais para consumidores de baixa renda não estão no cálculo.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="sobre-os-equipamentos-e-o-preco">
+<details class="secao-sanfona">
+    <summary><h2 id="sobre-os-equipamentos-e-o-preco"><span class="divider-dot"></span>Sobre os equipamentos e o preço</h2></summary>
+<div class="secao-conteudo">
+<p><strong>Catálogo pequeno.</strong> <span class="efeito dois">⬍ para os dois lados</span> A plataforma trabalha com três painéis e inversores monofásicos de 1,5 a 10 kW, de quatro fabricantes. Não há inversores trifásicos. Acima de 12 kWp, não há inversor no catálogo que atenda, e a plataforma não indica sistema. Veja a página <a href="/equipamentos"><strong>Os painéis, os inversores e os preços</strong></a>.</p>
+<p><strong>Sem inversor de 1,0 kW.</strong> <span class="efeito pior">⬇ pior na vida real</span> O menor inversor do catálogo é o de 1,5 kW. Num sistema de dois painéis de 600 Wp (1,2 kWp), o inversor fica maior que os painéis: 1,25 vezes a potência deles, acima do limite de 1,05 recomendado pelo manual do CEPEL-CRESESB. O efeito na geração é pequeno, mas o sistema fica um pouco mais caro que o necessário.</p>
+<p><strong>Arredondamento dos painéis.</strong> <span class="efeito pior">⬇ pior na vida real</span> O número de painéis é sempre arredondado para cima. Isso dá folga de geração, mas custa dinheiro: com um painel a menos, o retorno seria até 5,5 meses mais curto em quatro dos cinco casos de teste.</p>
+<p><strong>Corrente dos painéis no calor.</strong> <span class="efeito pior">⬇ pior na vida real</span> (efeito pequeno) Na verificação de desempenho, a plataforma usa a corrente do painel nas condições de laboratório. No calor, essa corrente sobe um pouco. Se ela fosse corrigida para 70 °C, só os inversores Growatt MIN de 4,2 a 6,0 kW passariam da tolerância e seriam trocados por um inversor de corrente alta da mesma potência. Quando a corrente passa do limite de entrada, o inversor não se danifica, mas perde um pouco de energia: nos testes com o PVsyst, essa perda foi de no máximo 0,56%.</p>
+<p><strong>Preço médio nacional.</strong> <span class="efeito dois">⬍ para os dois lados</span> O preço é a média do mercado brasileiro em janeiro de 2026, e não o preço da sua região nem de uma marca. Os preços mudam com o tempo. Em Campinas (1,8 kWp), usar o preço de um sistema de 2 kWp em vez da reta da plataforma encurtaria o retorno de 67,6 para 63,5 meses.</p>
+<p><strong>Cabos e proteções.</strong> <span class="efeito dois">⬍ para os dois lados</span> Cabos, disjuntores e outras proteções não são dimensionados pela plataforma. Esse é o trabalho do profissional que faz o projeto.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="sobre-o-tempo-de-retorno">
+<details class="secao-sanfona">
+    <summary><h2 id="sobre-o-tempo-de-retorno"><span class="divider-dot"></span>Sobre o tempo de retorno</h2></summary>
+<div class="secao-conteudo">
+<p><span class="efeito dois">⬍ para os dois lados</span> O retorno é somado <strong>mês a mês</strong>, já com a subida do Fio B até 2028 e o desgaste dos painéis. Ele não considera a manutenção, a troca de peças, o reajuste da tarifa acima da inflação nem os juros. Alguns desses fatores deixam o retorno real mais longo, e outros, mais curto. O quadro completo está na página <a href="/economia"><strong>A economia e o tempo de retorno</strong></a>.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="sobre-os-dados-e-os-testes">
+<details class="secao-sanfona">
+    <summary><h2 id="sobre-os-dados-e-os-testes"><span class="divider-dot"></span>Sobre os dados e os testes</h2></summary>
+<div class="secao-conteudo">
+<p><strong>Localização da cidade.</strong> <span class="efeito dois">⬍ para os dois lados</span> As coordenadas vêm do OpenStreetMap, e o ponto nem sempre é o centro da cidade. Em 91 municípios testados, a distância até uma segunda fonte de coordenadas teve mediana de 0,68 km, e só um passou de 20 km: Bom Jesus da Lapa (BA), com 25,2 km. Mesmo nesse caso, os dados de sol da NASA foram os mesmos nos 12 meses, e o resultado não mudou.</p>
+<p><strong>Dados de sol.</strong> <span class="efeito dois">⬍ para os dois lados</span> A plataforma usa a média de 2001 a 2020 da NASA, estimada por satélite. O erro dessa base não foi avaliado neste trabalho, e um ano específico pode ter mais ou menos sol que a média.</p>
+<p><strong>Os testes.</strong> <span class="efeito dois">⬍ para os dois lados</span> A plataforma foi comparada com uma simulação profissional (o PVsyst), e não com sistemas reais medidos. Os testes foram feitos em cinco cidades, o que não forma uma amostra estatística. A tela também ainda não foi testada com usuários leigos.</p>
+</div>
+</details>
+</section>
+</div>
+</main>
+<div class="page-wrap rodape-wrap">
+<footer class="rodape-paginas">
+    <ul>
+        <li><a href="/entenda">Como funciona</a></li>
+        <li><a href="/economia">Economia e retorno</a></li>
+        <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+        <li><a href="/precisao">Quão preciso é</a></li>
+        <li><a href="/metodologia">Metodologia</a></li>
+        <li><a href="/limitacoes">Limitações</a></li>
+        <li><a href="/sobre">Sobre</a></li>
+        <li><a href="/contato">Contato</a></li>
+        <li><a href="/apoie">Apoie o projeto</a></li>
+    </ul>
+    <p>Simulação educativa: não substitui o projeto de um profissional habilitado. Código aberto (AGPL-3.0) no <a href="https://github.com/gandalfa1/dimensionamento-fotovoltaico" target="_blank" rel="noopener">GitHub</a>.</p>
+    <p class="rodape-creditos">Irradiação solar: projeto POWER do NASA Langley Research Center, financiado pela NASA Earth Science Division — <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>, licença CC BY 4.0. Localização: dados © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, licença ODbL. Municípios: códigos e nomes oficiais do IBGE. Fio B e distribuidoras: contém informações dos conjuntos <a href="https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias" target="_blank" rel="noopener">Componentes Tarifárias</a>, <a href="https://dadosabertos.aneel.gov.br/dataset/indqual-municipio" target="_blank" rel="noopener">IndQual Município</a> e <a href="https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec" target="_blank" rel="noopener">Indicadores Coletivos de Continuidade</a>, da ANEEL, disponibilizados sob a licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. Preços: Greener, março de 2026.</p>
+</footer>
+</div>
+<script>
+(function () {
+    var secoes = document.querySelectorAll("details.secao-sanfona");
+    function abrirAlvo() {
+        if (!location.hash) { return; }
+        var alvo = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        if (!alvo) { return; }
+        var d = alvo.closest("details.secao-sanfona");
+        if (d && !d.open) { d.open = true; }
+        alvo.scrollIntoView();
+    }
+    window.addEventListener("hashchange", abrirAlvo);
+    abrirAlvo();
+    var botao = document.querySelector(".btn-abrir-todas");
+    function todasAbertas() { return Array.prototype.every.call(secoes, function (d) { return d.open; }); }
+    function atualizarBotao() {
+        if (!botao) { return; }
+        var abertas = todasAbertas();
+        botao.textContent = abertas ? "Fechar todas as seções" : "Abrir todas as seções";
+        botao.setAttribute("aria-pressed", abertas ? "true" : "false");
+    }
+    if (botao) {
+        botao.addEventListener("click", function () {
+            var abrir = !todasAbertas();
+            secoes.forEach(function (d) { d.open = abrir; });
+            atualizarBotao();
+        });
+        secoes.forEach(function (d) { d.addEventListener("toggle", atualizarBotao); });
+    }
+    window.addEventListener("beforeprint", function () {
+        secoes.forEach(function (d) { if (!d.open) { d.open = true; d.dataset.abertaParaImprimir = "sim"; } });
+    });
+    window.addEventListener("afterprint", function () {
+        document.querySelectorAll("details[data-aberta-para-imprimir]").forEach(function (d) {
+            d.open = false; delete d.dataset.abertaParaImprimir;
+        });
+        atualizarBotao();
+    });
+})();
+</script>
+<script src="/static/tabelas.js" defer></script>
+</body>
+</html>

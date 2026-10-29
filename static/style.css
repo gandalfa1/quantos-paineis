@@ -3,20 +3,83 @@
    Paleta: branco + laranja (tema solar), com toques dourados
    ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+/* Fontes guardadas no próprio site (30/09/2026, fase 1, passo 5). Antes vinham
+   do Google Fonts, e o navegador de quem visita se conectava ao Google. Mesmas
+   famílias e pesos de antes (Sora 600/700/800, Inter 400/500/600/700), conjunto
+   latino, licença SIL Open Font License 1.1 (fonts/OFL-Inter.txt e
+   fonts/OFL-Sora.txt); arquivos do pacote @fontsource 5.3.0. */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/sora-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/sora-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('fonts/sora-latin-800-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/inter-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/inter-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/inter-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/inter-latin-700-normal.woff2') format('woff2');
+}
 
 :root {
-  --color-bg: #FAF7F2;
+  /* DESIGN B "faixa escura" (melhorias do site, 03/10/2026, parte 1), escolhido
+     pela aluna. Fundo cinza-claro frio, texto azul-noite, o laranja #F2600C
+     mantido como cor de destaque. Contraste conferido (WCAG AA = 4,5:1):
+     texto #1C2433 sobre branco 15,6:1; texto apagado #4F5B6E sobre branco
+     6,9:1 e sobre o fundo 6,3:1; laranja-escuro #B5470A (links) sobre branco
+     5,4:1 e sobre o fundo 4,9:1. Antes: #C94E0A sobre #FAF7F2 dava 4,29:1. */
+  --color-bg: #F3F4F6;
   --color-surface: #FFFFFF;
   --color-primary: #F2600C;
-  --color-primary-dark: #C94E0A;
+  --color-primary-dark: #B5470A;
   --color-gold: #FFC24B;
-  --color-text: #2B2620;
-  --color-text-muted: #6E655C;
-  --color-border: #F0DFC8;
+  --color-text: #1C2433;
+  --color-text-muted: #4F5B6E;
+  --color-border: #E1E5EB;
   --color-dica-bg: #FFF6E6;
-  --color-muted-bar: #E4D9C7;
-  --shadow-card: 0 4px 20px rgba(43, 38, 32, 0.06);
+  --color-muted-bar: #C9D0DB;
+  /* o "céu noturno" do topo e do resumo do resultado */
+  --color-noite: #1C2433;
+  --color-noite-2: #141B27;
+  --color-noite-texto: #C9D0DB;
+  --shadow-card: 0 1px 2px rgba(20, 27, 39, 0.05), 0 8px 24px rgba(20, 27, 39, 0.07);
   --radius: 14px;
 }
 
@@ -33,14 +96,8 @@ body {
   line-height: 1.55;
 }
 
-/* faixa "horizonte solar" no topo da página */
-body::before {
-  content: "";
-  display: block;
-  height: 6px;
-  width: 100%;
-  background: linear-gradient(90deg, var(--color-primary-dark), var(--color-primary) 45%, var(--color-gold));
-}
+/* A faixa "horizonte solar" (6 px em degradê) que ficava no alto da página
+   saiu no design B: o topo escuro com o sol faz esse papel. */
 
 .page-wrap {
   max-width: 840px;
@@ -72,21 +129,29 @@ body::before {
   font-size: 0.98rem;
 }
 
-/* ---------- Resumo em destaque (hero) ---------- */
+/* ---------- Resumo em destaque (hero) ----------
+   design B, parte 3 (06/10/2026): o resumo do resultado passou para o
+   "céu noturno", o mesmo azul-noite do topo e da faixa da página inicial,
+   com o brilho laranja no canto. Os NÚMEROS ficam em dourado (#FFC24B sobre
+   #1C2433 = 9,7:1) e os rótulos em cinza-claro (#C9D0DB = 10,0:1). Antes o
+   fundo era um degradê laranja com texto branco, que na parte clara dava
+   3,25:1 (abaixo dos 4,5:1 do WCAG AA). */
 .resumo-hero {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  background:
+    radial-gradient(520px 260px at 0% 0%, rgba(242, 96, 12, 0.32), transparent 65%),
+    var(--color-noite);
   color: #fff;
   border-radius: var(--radius);
-  padding: 24px 28px;
+  padding: 26px 30px;
   margin-bottom: 24px;
-  box-shadow: 0 10px 26px rgba(201, 78, 10, 0.28);
+  box-shadow: 0 12px 30px rgba(20, 27, 39, 0.22);
 }
 
 .resumo-hero .resumo-label {
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  opacity: 0.85;
+  color: var(--color-gold);
   margin: 0 0 6px;
   font-weight: 700;
 }
@@ -97,11 +162,12 @@ body::before {
   font-weight: 800;
   margin: 0;
   line-height: 1.15;
+  color: #fff;
 }
 
 .resumo-hero .resumo-subtitulo {
   font-size: 0.98rem;
-  opacity: 0.92;
+  color: var(--color-noite-texto);
   margin: 4px 0 18px;
 }
 
@@ -110,7 +176,7 @@ body::before {
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .resumo-stat {
@@ -121,7 +187,7 @@ body::before {
 
 .resumo-stat-label {
   font-size: 0.72rem;
-  opacity: 0.85;
+  color: var(--color-noite-texto);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -129,46 +195,69 @@ body::before {
 .resumo-stat-valor {
   font-family: 'Sora', sans-serif;
   font-weight: 700;
-  font-size: 1.08rem;
+  font-size: 1.3rem;
+  color: var(--color-gold);
+}
+
+/* ITENS 18 + 2 (06/10/2026): "cerca de" / "em média" numa linha pequena
+   acima do número arredondado do resumo. */
+.resumo-cerca {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.72rem;
+  color: var(--color-noite-texto);
+}
+
+/* (revisao geral, parte 3, 07/10/2026) a garantia de 25 anos, embaixo do tempo de retorno. */
+.resumo-garantia {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.72rem;
+  color: var(--color-noite-texto);
+  margin-top: 4px;
+}
+
+/* Nota embaixo do quadro "Investimento e retorno": valores exatos x resumo. */
+.nota-exata {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 12px 0 0;
 }
 
 .resumo-hero .resumo-aviso {
   margin: 16px 0 0;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
   font-size: 0.78rem;
-  opacity: 0.88;
+  color: var(--color-noite-texto);
 }
 
 /* ---------- Cartões / seções ---------- */
 .card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border: 1px solid rgba(20, 27, 39, 0.06);
+  border-radius: 16px;
   box-shadow: var(--shadow-card);
-  padding: 28px 28px 30px;
+  padding: 30px 32px 32px;
   margin-bottom: 24px;
 }
 
+/* design B: o título do cartão perdeu a bolinha e o fio bege de baixo
+   (menos "caixa dentro de caixa"); ficou maior e escuro */
 .card h2 {
   font-family: 'Sora', sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin: 0 0 16px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid var(--color-border);
+  margin: 0 0 18px;
+  color: var(--color-text);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.card h2 .divider-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-gold), var(--color-primary));
-  flex-shrink: 0;
-}
+.card h2 .divider-dot { display: none; }
 
 .card h3 {
   font-family: 'Sora', sans-serif;
@@ -204,12 +293,13 @@ input[type="text"],
 input[type="number"],
 select {
   width: 100%;
+  min-height: 48px;
   padding: 11px 14px;
   font-family: 'Inter', sans-serif;
-  font-size: 0.98rem;
+  font-size: 1rem;
   color: var(--color-text);
-  background: #FFFDFB;
-  border: 1.5px solid var(--color-border);
+  background: #FFFFFF;
+  border: 1.5px solid #C3CAD5;
   border-radius: 10px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -218,8 +308,8 @@ input[type="text"]:focus,
 input[type="number"]:focus,
 select:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(242, 96, 12, 0.15);
+  border-color: var(--color-primary-dark);
+  box-shadow: 0 0 0 3px rgba(242, 96, 12, 0.25);
 }
 
 .form-row {
@@ -242,8 +332,8 @@ select:focus {
 
 .caminho {
   border: 1.5px solid var(--color-border);
-  border-radius: 10px;
-  background: #FFFDFB;
+  border-radius: 12px;
+  background: #F8F9FB;
   padding: 16px 16px 14px;
 }
 
@@ -374,7 +464,8 @@ select:focus {
 .hint-fonte {
   font-size: 0.72rem;
   color: var(--color-text-muted);
-  opacity: 0.75;
+  /* (revisao geral, parte 3, 07/10/2026) sem a opacidade de 0,75: com ela o
+     contraste caia para 3,6:1 (o WCAG AA pede 4,5:1 em texto pequeno). */
   margin: 3px 0 0;
 }
 
@@ -382,9 +473,9 @@ select:focus {
 .exemplo-fatura {
   margin: 4px 0 22px;
   border: 1.5px solid var(--color-border);
-  border-radius: 10px;
-  padding: 2px 14px;
-  background: #FFFDFB;
+  border-radius: 12px;
+  padding: 2px 16px;
+  background: #F8F9FB;
 }
 
 .exemplo-fatura summary {
@@ -423,25 +514,29 @@ select:focus {
   margin: 6px auto 10px;
   border-radius: 10px;
   border: 1px solid var(--color-border);
+  background: #fff;
 }
 
 .btn-simular {
   width: 100%;
   padding: 14px 20px;
   margin-top: 6px;
+  min-height: 54px;
   font-family: 'Sora', sans-serif;
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: #fff;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  /* design B: texto escuro sobre o laranja = 5,3:1 (o branco dava 3,25:1) */
+  color: var(--color-noite-2);
+  background: var(--color-primary);
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
-  box-shadow: 0 6px 16px rgba(201, 78, 10, 0.28);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, background 0.12s ease;
+  box-shadow: 0 6px 16px rgba(242, 96, 12, 0.25);
 }
 
-.btn-simular:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(201, 78, 10, 0.34); }
+.btn-simular:hover { background: #FF7A2E; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(242, 96, 12, 0.32); }
+.btn-simular:focus-visible { outline: 3px solid var(--color-noite); outline-offset: 3px; }
 .btn-simular:active { transform: translateY(0); }
 .btn-simular:disabled {
   opacity: 0.75;
@@ -478,15 +573,17 @@ button.btn-secundario {
 }
 
 .tip-btn {
-  width: 19px;
-  height: 19px;
+  /* (revisao geral, parte 3, 07/10/2026) 19 -> 24 px: o WCAG 2.2 (2.5.8) pede
+     area de toque de pelo menos 24 x 24 px. */
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   border: 1.5px solid var(--color-primary);
   background: #fff;
   color: var(--color-primary-dark);
   font-family: 'Sora', sans-serif;
   font-weight: 700;
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   line-height: 1;
   cursor: help;
   display: inline-flex;
@@ -548,8 +645,9 @@ button.btn-secundario {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 9px 0;
-  border-bottom: 1px dashed var(--color-border);
+  padding: 10px 0;
+  /* design B, parte 3: fio contínuo e claro (o tracejado saiu) */
+  border-bottom: 1px solid var(--color-border);
   font-size: 0.96rem;
 }
 
@@ -561,21 +659,24 @@ button.btn-secundario {
   gap: 6px;
 }
 
+/* design B, parte 3: valores em tinta escura (antes laranja-escuro) - o
+   laranja fica só nos destaques */
 .resultado-lista .valor {
   font-weight: 700;
-  color: var(--color-primary-dark);
+  color: var(--color-text);
   white-space: nowrap;
 }
 
 .resultado-lista li.destaque {
   background: var(--color-dica-bg);
+  border-left: 3px solid var(--color-primary);
   border-radius: 8px;
   padding: 12px 14px;
   margin-top: 6px;
   border-bottom: none;
 }
 
-.resultado-lista li.destaque .valor { font-size: 1.05rem; }
+.resultado-lista li.destaque .valor { font-size: 1.1rem; font-family: 'Sora', sans-serif; }
 
 /* ---------- Tabela mês a mês ---------- */
 .tabela-wrap { overflow-x: auto; }
@@ -586,8 +687,10 @@ table.tabela-geracao {
   font-size: 0.92rem;
 }
 
+/* design B, parte 3: cabeçalho azul-noite com texto branco (15,6:1); antes
+   era laranja com texto branco (3,25:1) */
 table.tabela-geracao th {
-  background: var(--color-primary);
+  background: var(--color-noite);
   color: #fff;
   font-family: 'Sora', sans-serif;
   font-weight: 700;
@@ -604,7 +707,24 @@ table.tabela-geracao td {
 }
 
 table.tabela-geracao tr:nth-child(even) td {
-  background: #FFF9F1;
+  background: #F7F8FA;
+}
+
+/* itens 28 e 11 (06/10/2026): tabela do retorno ano a ano. A ultima linha e o
+   ano em que a economia somada alcanca o custo: em negrito, com a borda de
+   baixo mais forte, sem cor nova. Valores em reais alinhados a direita. */
+table.tabela-retorno td:nth-child(n+2),
+table.tabela-retorno th:nth-child(n+2) { text-align: right; }
+table.tabela-retorno tr.linha-retorno td {
+  font-weight: 700;
+  border-bottom: 2px solid var(--color-noite);
+}
+table.tabela-retorno td { white-space: nowrap; }
+table.tabela-retorno .retorno-meses { color: var(--color-text-muted); font-size: 0.85em; }
+@media (max-width: 480px) {
+  table.tabela-retorno { font-size: 0.82rem; }
+  table.tabela-retorno th, table.tabela-retorno td { padding: 8px 6px; }
+  table.tabela-retorno .retorno-meses { display: block; }
 }
 
 /* ---------- Gráficos de barra (feitos só com HTML/CSS) ---------- */
@@ -849,6 +969,50 @@ table.tabela-geracao tr:nth-child(even) td {
   margin: 0 0 8px;
 }
 
+/* ---------- Pular para o conteudo e tabelas largas (revisao geral, parte 3, 07/10/2026) ----------
+   O link fica fora da tela e aparece no primeiro Tab: quem usa teclado nao precisa
+   passar pelos itens do menu. A "dica-rolagem" e escrita pelo static/tabelas.js
+   so acima das tabelas que nao cabem na tela. */
+.pular-conteudo {
+  position: absolute;
+  left: -9999px;
+  top: 8px;
+  z-index: 1000;
+  background: #fff;
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+.pular-conteudo:focus { left: 12px; }
+.dica-rolagem {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin: 6px 0 4px;
+}
+.tabela-wrap:focus-visible,
+.grafico-rolagem:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Uso do formulario (revisao geral, parte 3, 07/10/2026) ---------- */
+.link-botao {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+  cursor: pointer;
+}
+@media (max-width: 600px) {
+  .botoes-imprimir { display: flex; flex-direction: column; gap: 8px; }
+  .botoes-imprimir .btn-secundario { width: 100%; margin: 0; }
+}
+
 /* ---------- Rodapé ---------- */
 .rodape {
   text-align: center;
@@ -904,6 +1068,7 @@ table.tabela-geracao tr:nth-child(even) td {
   .page-header h1 { font-size: 1.35rem; }
   .resultado-lista li { flex-direction: column; align-items: flex-start; gap: 2px; }
   .resumo-hero .resumo-numero-grande { font-size: 1.7rem; }
+  .resumo-hero { padding: 22px 20px; }
   .resumo-stats { grid-template-columns: 1fr; gap: 10px; }
   .comparacao-simples { gap: 12px; }
   .comparacao-col { width: 105px; }
@@ -914,7 +1079,7 @@ table.tabela-geracao tr:nth-child(even) td {
 .no-print { }
 
 @media print {
-  body::before { display: none; }
+  .topo-site { display: none !important; }
   body { background: #fff; }
   * {
     -webkit-print-color-adjust: exact !important;
@@ -929,8 +1094,586 @@ table.tabela-geracao tr:nth-child(even) td {
     box-shadow: none;
   }
   .resumo-hero .resumo-aviso { border-top-color: var(--color-border); }
+  /* design B, parte 3: dourado e cinza-claro somem no papel branco */
+  .resumo-hero .resumo-label,
+  .resumo-hero .resumo-numero-grande,
+  .resumo-hero .resumo-subtitulo,
+  .resumo-hero .resumo-stat-label,
+  .resumo-hero .resumo-stat-valor,
+  .resumo-hero .resumo-cerca,
+  .resumo-hero .resumo-garantia,
+  .resumo-hero .resumo-aviso { color: var(--color-text) !important; }
+  .resumo-stats { border-top-color: var(--color-border); }
+  table.tabela-geracao th { background: #E9ECF1 !important; color: var(--color-text) !important; }
   .tip-btn { display: none; }
   .grafico-barras, .grafico-barras-par { min-width: 0; }
   .grafico-scroll { overflow: visible; }
   .no-print { display: none !important; }
 }
+
+/* =========================================================
+   TOPO COMUM A TODAS AS PÁGINAS (design B, parte 1 — 03/10/2026)
+   Antes, só as 9 páginas de explicação tinham marca e menu no topo; a
+   página inicial e a do resultado não tinham, e o site parecia dois sites.
+   Agora as 11 telas usam o mesmo topo: templates/_topo.html (inicial e
+   resultado) e o gerador das páginas (claude/paginas_base.py) escrevem a
+   MESMA marcação. No computador o menu fica numa segunda linha; no celular
+   ele vira o botão "Páginas" (<details>, sem nenhum script).
+   ========================================================= */
+.topo-site {
+  background: var(--color-noite);
+  color: #fff;
+}
+
+.topo-conteudo {
+  position: relative;
+  /* o topo é mais largo que o conteúdo (840 px) para o menu de 8 páginas
+     caber numa linha só */
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+.topo-marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  text-decoration: none;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 1.08rem;
+}
+
+.topo-marca svg { display: block; flex-shrink: 0; }
+
+.topo-acoes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* botão laranja com texto escuro: 5,3:1 (branco sobre o laranja dava 3,25:1) */
+.btn-simular-topo {
+  display: inline-block;
+  background: var(--color-primary);
+  color: var(--color-noite-2);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 9px 16px;
+  border-radius: 10px;
+}
+
+.btn-simular-topo:hover { background: #FF7A2E; }
+
+.topo-site a:focus-visible,
+.topo-site summary:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.topo-menu {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.topo-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.topo-menu a {
+  display: inline-block;
+  padding: 11px 0 9px;
+  color: var(--color-noite-texto);
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+}
+
+.topo-menu a:hover { color: #fff; }
+
+.topo-menu a[aria-current="page"] {
+  color: #fff;
+  font-weight: 600;
+  border-bottom-color: var(--color-primary);
+}
+
+.so-cel { display: none; }
+
+.topo-menu-celular { display: none; }
+
+.topo-menu-celular summary {
+  list-style: none;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 10px;
+}
+
+.topo-menu-celular summary::-webkit-details-marker { display: none; }
+.topo-menu-celular summary::after { content: " ▾"; }
+.topo-menu-celular[open] summary::after { content: " ▴"; }
+
+.topo-menu-celular ul {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 100%;
+  z-index: 50;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  background: var(--color-noite-2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
+}
+
+.topo-menu-celular a {
+  display: block;
+  padding: 11px 12px;
+  color: #E6EAF0;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.topo-menu-celular a[aria-current="page"] {
+  color: #fff;
+  background: rgba(242, 96, 12, 0.22);
+}
+
+/* abaixo de 920 px o menu de 8 páginas não cabe numa linha: vira o botão
+   "Páginas" */
+@media (max-width: 920px) {
+  .topo-menu { display: none; }
+  .topo-menu-celular { display: block; }
+}
+
+@media (max-width: 720px) {
+  .so-pc { display: none; }
+  .so-cel { display: inline; }
+  .topo-conteudo { padding: 12px 16px; gap: 10px 8px; }
+  .topo-marca { font-size: 1rem; gap: 8px; }
+  .topo-acoes { gap: 8px; }
+  .topo-menu-celular summary { padding: 8px 10px; font-size: 0.88rem; }
+  .btn-simular-topo { padding: 9px 13px; }
+}
+
+/* =========================================================
+   FAIXA ESCURA DA PÁGINA INICIAL E PASSOS NUMERADOS
+   (design B, parte 2 — 03/10/2026)
+   ========================================================= */
+.faixa-inicio {
+  background:
+    radial-gradient(900px 380px at 12% 0%, rgba(242, 96, 12, 0.30), transparent 60%),
+    var(--color-noite);
+  color: #fff;
+  padding: 44px 0 124px;
+}
+
+.faixa-conteudo {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.faixa-inicio h1 {
+  font-family: 'Sora', sans-serif;
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 8px 0 12px;
+  color: #fff;
+}
+
+/* o subtítulo vem DEPOIS do h1 no código (leitor de tela ouve o nome
+   primeiro) e aparece EM CIMA dele na tela, como "chapéu" */
+.faixa-inicio .page-subtitulo {
+  order: -1;
+  margin: 0;
+  color: var(--color-gold);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.faixa-inicio p { margin: 4px 0; color: var(--color-noite-texto); font-size: 1.05rem; }
+.faixa-inicio p.link-entenda { font-size: 0.95rem; }
+.faixa-inicio .link-entenda a { color: var(--color-gold); font-weight: 600; }
+.faixa-inicio a:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 3px; border-radius: 4px; }
+
+.page-wrap.sobe-na-faixa {
+  margin-top: -96px;
+  padding-top: 0;
+}
+
+.intro-conta { margin: 4px 0 6px; font-size: 0.92rem; }
+
+/* passos 1, 2 e 3 do formulário: número num círculo azul-noite */
+.passo-titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 30px 0 8px;
+  font-family: 'Sora', sans-serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.card .passo-titulo { color: var(--color-text); font-size: 1.08rem; margin: 30px 0 8px; }
+
+.passo-num {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  background: var(--color-noite);
+  color: var(--color-gold);
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.passo-texto { margin: 0 0 14px; font-size: 0.95rem; color: var(--color-text); }
+
+.bloco-passo { margin-top: 26px; }
+.bloco-passo > summary { justify-content: flex-start; color: var(--color-text); font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1rem; }
+.bloco-passo > summary .passo-num { margin-right: 4px; }
+.bloco-passo > summary::after { margin-left: auto; }
+
+/* texto só para leitor de tela (o ponto de "1." some da tela, mas o leitor
+   continua lendo "1. Sua conta de luz") */
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 600px) {
+  .faixa-inicio { padding: 30px 0 104px; }
+  .faixa-conteudo { padding: 0 16px; }
+  .faixa-inicio h1 { font-size: 2rem; }
+  .faixa-inicio p { font-size: 1rem; }
+  .page-wrap.sobe-na-faixa { margin-top: -84px; }
+}
+
+@media print {
+  .faixa-inicio { background: #fff !important; color: var(--color-text) !important; padding: 0 0 12px; }
+  .faixa-inicio h1, .faixa-inicio p { color: var(--color-text) !important; }
+  .page-wrap.sobe-na-faixa { margin-top: 0; }
+}
+
+/* =========================================================
+   TEXTO RECOLHIDO ATRÁS DE UM CLIQUE (design B, parte 3 — 06/10/2026)
+   Pedido da aluna: "os textos grandes ficam numa opção que a pessoa clica
+   e lê". <details class="nota-mais"> com um "+" redondo; usado no
+   resultado e na página inicial. Na impressão do resultado eles abrem
+   sozinhos (script no fim do resultado.html).
+   ========================================================= */
+/* DESIGN B, PARTE 3 (06/10/2026), pedido da aluna: as notas longas dos
+   graficos e tabelas ficam recolhidas num <details class="nota-mais">
+   ("Como ler este grafico" etc.), para a tela nao ficar poluida. O texto
+   e o mesmo; so fica atras de um clique. Na impressao elas abrem sozinhas
+   (script no fim da pagina), igual a sanfona tecnica. Os avisos
+   (.aviso-destaque) continuam com o TITULO sempre visivel - eles dizem
+   quando o resultado pode estar otimista; so a explicacao recolhe. */
+.nota-mais { margin: 12px 0 0; }
+.nota-mais > summary {
+    display: inline-flex; align-items: center; gap: 6px;
+    cursor: pointer; list-style: none;
+    font-size: 0.86rem; font-weight: 600; color: var(--color-primary-dark);
+    padding: 4px 0;
+}
+.nota-mais > summary::-webkit-details-marker { display: none; }
+.nota-mais > summary::before {
+    content: "+"; display: inline-grid; place-items: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1.5px solid var(--color-primary); font-weight: 700; line-height: 1;
+}
+.nota-mais[open] > summary::before { content: "−"; }
+.nota-mais > summary:focus-visible { outline: 2px solid var(--color-primary-dark); outline-offset: 3px; border-radius: 4px; }
+.nota-mais .grafico-nota { margin-top: 6px; }
+/* (06/10/2026, 2o pedido da aluna: "todos os textos grandes" atras de um
+   clique) Os AVISOS passaram a mostrar so a frase de titulo, em negrito;
+   a explicacao fica num "Entenda" logo abaixo, dentro do proprio aviso.
+   As notas de fonte (Fio B e regras da ANEEL; preco de referencia;
+   painel e inversor) viraram um rodape recolhido do cartao. */
+.aviso-destaque .nota-mais { margin-top: 4px; }
+.aviso-destaque .nota-mais > summary { padding: 2px 0; }
+.aviso-destaque .nota-mais > div { margin-top: 6px; }
+.aviso-destaque .nota-mais > div p + p { margin-top: 8px; }
+.nota-fontes { margin-top: 20px; padding-top: 8px; border-top: 1px solid var(--color-border); }
+.nota-fontes .nota-fonte { margin: 6px 0 0; padding-top: 0; border-top: none; }
+.nota-fontes .hint-fonte { font-size: 0.8rem; opacity: 1; margin-top: 6px; }
+
+/* =========================================================
+   PÁGINA INICIAL MAIS SIMPLES E ATRATIVA (design B, parte 3 — 06/10/2026)
+   Pedido da aluna: "uma cara mais atrativa" e "um pouco mais simples".
+   - faixa em duas colunas: texto + selos à esquerda, quadro "Você vai
+     descobrir" à direita (mesmo azul-noite com dourado do resultado);
+   - menos "caixa dentro de caixa" no formulário: o aviso da conta e o
+     exemplo da fatura viraram UM bloco de dica; os dois caminhos do
+     consumo ficaram brancos, com o "ou" num círculo.
+   ========================================================= */
+.faixa-grade {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: center;
+}
+
+.faixa-grade .faixa-conteudo { max-width: none; margin: 0; padding: 0; }
+
+.faixa-inicio h1 { font-size: 3rem; }
+
+.selos {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 10px;
+  padding: 0;
+}
+
+.selos li {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.selos li::before { content: "✓ "; color: var(--color-gold); }
+
+.faixa-quadro {
+  background: var(--color-noite-2);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
+}
+
+.faixa-quadro-titulo {
+  margin: 0 0 10px !important;
+  font-size: 0.78rem !important;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-gold) !important;
+}
+
+.faixa-quadro ul { list-style: none; margin: 0; padding: 0; }
+
+.faixa-quadro li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  color: #fff;
+  font-size: 0.96rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.faixa-quadro li:first-child { border-top: none; }
+
+.faixa-icone {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--color-gold);
+  background: rgba(255, 194, 75, 0.12);
+}
+
+/* o cartão do formulário fica na largura de antes (840 px), centrado */
+.page-wrap.sobe-na-faixa { margin-top: -84px; }
+
+/* o aviso da conta + o exemplo da fatura: um bloco de dica só */
+.dica-conta {
+  margin: 8px 0 6px;
+  padding: 14px 16px 4px;
+  background: var(--color-dica-bg);
+  border-radius: 12px;
+}
+
+.dica-conta .intro-conta { margin: 0 0 6px; color: var(--color-text); }
+
+.dica-conta .exemplo-fatura {
+  margin: 0 0 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.dica-conta .exemplo-fatura > summary { padding: 8px 0; }
+
+.dica-conta .exemplo-fatura-img { background: #fff; }
+
+/* os dois caminhos do consumo: brancos, com o "ou" num círculo */
+.caminho { background: #fff; }
+
+.caminho-ou span {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  font-weight: 600;
+}
+
+@media (max-width: 860px) {
+  .faixa-grade { grid-template-columns: 1fr; gap: 0; }
+  .faixa-quadro { display: none; }
+}
+
+@media (max-width: 600px) {
+  .faixa-grade { padding: 0 16px; }
+  .faixa-inicio h1 { font-size: 2.1rem; }
+  .page-wrap.sobe-na-faixa { margin-top: -84px; }
+}
+
+@media print {
+  .faixa-quadro, .selos { display: none; }
+}
+
+/* (06/10/2026) a aluna achou a faixa escura da inicial grande demais depois
+   das duas colunas: mesma cor, MENOS altura (menos espaço em cima e embaixo,
+   título menor, brilho laranja mais fraco, quadro mais compacto). */
+.faixa-inicio {
+  background:
+    radial-gradient(900px 340px at 12% 0%, rgba(242, 96, 12, 0.20), transparent 60%),
+    var(--color-noite);
+  padding: 26px 0 92px;
+}
+.faixa-inicio h1 { font-size: 2.4rem; margin: 6px 0 8px; }
+.faixa-inicio p { font-size: 1rem; }
+.selos { margin: 10px 0 6px; }
+.faixa-quadro { padding: 14px 18px; }
+.faixa-quadro li { padding: 6px 0; font-size: 0.92rem; }
+.faixa-icone { flex-basis: 30px; width: 30px; height: 30px; }
+.page-wrap.sobe-na-faixa { margin-top: -70px; }
+
+@media (max-width: 600px) {
+  .faixa-inicio { padding: 20px 0 84px; }
+  .faixa-inicio h1 { font-size: 1.9rem; }
+  .page-wrap.sobe-na-faixa { margin-top: -70px; }
+}
+
+/* DECISÃO DA ALUNA (06/10/2026): faixa da inicial NEUTRA (cinza-azulado claro
+   #E8ECF1), quadro "Você vai descobrir" branco com ícones laranja. Foi testada
+   contra a escura e a branca; ela escolheu esta. O topo com o menu continua
+   azul-noite (é o mesmo nas 11 telas) e o resumo do resultado continua escuro.
+   Contraste sobre #E8ECF1: texto #1C2433 13,1:1; apagado #4F5B6E 5,8:1;
+   laranja-escuro #B5470A 4,57:1 (o chapéu e o link). */
+.faixa-inicio { background: #E8ECF1; color: var(--color-text); }
+.faixa-inicio h1 { color: var(--color-text); }
+.faixa-inicio .page-subtitulo { color: var(--color-primary-dark); }
+.faixa-inicio p { color: var(--color-text-muted); }
+.faixa-inicio .link-entenda a { color: var(--color-primary-dark); }
+.selos li { color: var(--color-text); background: #FFFFFF; border-color: #D3D9E2; }
+.selos li::before { color: var(--color-primary-dark); }
+.faixa-quadro { background: #FFFFFF; border-color: #D3D9E2; box-shadow: var(--shadow-card); }
+.faixa-quadro-titulo { color: var(--color-primary-dark) !important; }
+.faixa-quadro li { color: var(--color-text); border-top-color: var(--color-border); }
+.faixa-icone { color: var(--color-primary-dark); background: var(--color-dica-bg); }
+.faixa-inicio a:focus-visible { outline-color: var(--color-primary-dark); }
+
+/* =========================================================
+   ITEM 10 DO BACKLOG (06/10/2026) — OS DOIS CAMPOS DE CONSUMO
+   A. A unidade fica DENTRO da caixa: "R$" na frente do valor da conta,
+      "kWh" no fim do consumo da conta e "kWh/mês" no fim da média. Antes
+      eram três caixas brancas iguais, e trocar uma pela outra não dava erro
+      nenhum (aconteceu duas vezes com a aluna em 15/09). A unidade é
+      aria-hidden; o leitor de tela ouve a unidade no rótulo.
+      As setinhas do campo numérico somem SÓ nestes três campos, porque no
+      computador elas apareciam por cima da unidade.
+   B. .aviso-campo: aviso embaixo do campo, nunca bloqueio.
+   C. .resumo-envio: "Vamos simular com", logo acima do botão.
+   Contraste: unidade #4F5B6E sobre branco 6,9:1; texto #1C2433 sobre o
+   creme #FFF6E6 14,5:1 e sobre #F7F8FA 14,6:1; apagado #4F5B6E sobre #F7F8FA 6,5:1.
+   ========================================================= */
+.campo-unidade { position: relative; }
+.campo-unidade .unidade {
+  position: absolute; top: 0; bottom: 0;
+  display: flex; align-items: center;
+  font-weight: 600; font-size: 0.95rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.campo-unidade .unidade-antes { left: 14px; }
+.campo-unidade .unidade-depois { right: 14px; }
+.campo-unidade.com-prefixo input[type="number"] { padding-left: 46px; }
+.campo-unidade.com-sufixo input[type="number"] { padding-right: 58px; }
+.campo-unidade.sufixo-longo input[type="number"] { padding-right: 86px; }
+.campo-unidade input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+.campo-unidade input[type="number"]::-webkit-outer-spin-button,
+.campo-unidade input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.aviso-campo {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--color-text);
+  background: var(--color-dica-bg);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 6px;
+}
+.aviso-campo[hidden] { display: none; }
+
+.resumo-envio {
+  margin: 24px 0 16px;
+  padding: 14px 18px;
+  font-size: 0.92rem;
+  color: var(--color-text);
+  background: #F7F8FA;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+}
+.resumo-envio[hidden] { display: none; }
+.resumo-envio .resumo-titulo { margin: 0 0 6px; font-weight: 700; }
+.resumo-envio ul { margin: 0; padding-left: 20px; }
+.resumo-envio li { margin: 4px 0; }
+.resumo-envio .resumo-falta { color: var(--color-text-muted); font-style: italic; }
+.resumo-envio .aviso-campo { margin-top: 10px; }
+.resumo-envio .resumo-rodape { margin: 10px 0 0; font-size: 0.84rem; color: var(--color-text-muted); }

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metodologia — Quantos Painéis</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/paginas.css">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="pular-conteudo no-print" href="#conteudo">Pular para o conteúdo</a>
+<header class="topo-site no-print">
+    <div class="topo-conteudo">
+        <a class="topo-marca" href="/"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><defs><radialGradient id="solTopoGrad" cx="35%" cy="35%" r="70%"><stop offset="0%" stop-color="#FFC24B"/><stop offset="55%" stop-color="#F2600C"/><stop offset="100%" stop-color="#C94E0A"/></radialGradient></defs><g stroke="#F2600C" stroke-width="3" stroke-linecap="round" opacity="0.8"><line x1="32" y1="2" x2="32" y2="10"/><line x1="32" y1="54" x2="32" y2="62"/><line x1="2" y1="32" x2="10" y2="32"/><line x1="54" y1="32" x2="62" y2="32"/><line x1="10.7" y1="10.7" x2="16.2" y2="16.2"/><line x1="47.8" y1="47.8" x2="53.3" y2="53.3"/><line x1="10.7" y1="53.3" x2="16.2" y2="47.8"/><line x1="47.8" y1="16.2" x2="53.3" y2="10.7"/></g><circle cx="32" cy="32" r="16" fill="url(#solTopoGrad)"/></svg><span>Quantos Painéis</span></a>
+        <div class="topo-acoes">
+            <details class="topo-menu-celular">
+                <summary>Páginas</summary>
+                <ul>
+                    <li><a href="/entenda">Como funciona</a></li>
+                    <li><a href="/economia">Economia e retorno</a></li>
+                    <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+                    <li><a href="/precisao">Quão preciso é</a></li>
+                    <li><a href="/metodologia" aria-current="page">Metodologia</a></li>
+                    <li><a href="/limitacoes">Limitações</a></li>
+                    <li><a href="/sobre">Sobre</a></li>
+                    <li><a href="/contato">Contato</a></li>
+                </ul>
+            </details>
+            <a class="btn-simular-topo" href="/"><span class="so-pc">Fazer uma simulação</span><span class="so-cel">Simular</span></a>
+        </div>
+    </div>
+    <nav class="topo-menu" aria-label="Páginas de explicação">
+        <ul>
+            <li><a href="/entenda">Como funciona</a></li>
+            <li><a href="/economia">Economia e retorno</a></li>
+            <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+            <li><a href="/precisao">Quão preciso é</a></li>
+            <li><a href="/metodologia" aria-current="page">Metodologia</a></li>
+            <li><a href="/limitacoes">Limitações</a></li>
+            <li><a href="/sobre">Sobre</a></li>
+            <li><a href="/contato">Contato</a></li>
+        </ul>
+    </nav>
+</header>
+<main id="conteudo">
+<div class="faixa-pagina">
+<div class="faixa-pagina-conteudo">
+<h1 class="pagina-titulo">Como a plataforma calcula</h1>
+<div class="resumo-pagina">
+<p><strong>Em resumo:</strong> você informa o seu consumo, uma conta de luz e a sua cidade. Com isso, a plataforma:</p>
+<ol>
+<li>busca a média de sol de cada mês da sua cidade (NASA);</li>
+<li>calcula quantos painéis cobrem a parte da conta que a energia solar consegue abater;</li>
+<li>escolhe um inversor compatível com esses painéis;</li>
+<li>estima a geração de cada mês, a economia e o tempo de retorno do investimento.</li>
+</ol>
+<p>Em cinco cidades, uma por região do país, o cálculo foi comparado com o <strong>PVsyst</strong>, um programa profissional de simulação. A plataforma estimou de <strong>3,98% a 6,89% menos energia</strong> que o PVsyst, e foi para menos em todos os casos.</p>
+<p>A plataforma é uma simulação educativa. <strong>Ela não substitui o projeto de um profissional habilitado.</strong></p>
+</div>
+</div>
+</div>
+<div class="page-wrap pagina-corpo">
+<p class="abrir-todas no-print"><button type="button" class="btn-abrir-todas" aria-pressed="false">Abrir todas as seções</button></p>
+
+<section class="card secao" aria-labelledby="1-o-que-voce-informa">
+<details class="secao-sanfona">
+    <summary><h2 id="1-o-que-voce-informa"><span class="divider-dot"></span>1. O que você informa</h2></summary>
+<div class="secao-conteudo">
+<ul>
+<li><strong>Consumo médio por mês</strong>, em kWh. Se preferir, você pode dar os <strong>12 meses</strong> do histórico da sua conta: aí a plataforma calcula a média e usa cada mês separadamente.</li>
+<li><strong>Valor (R$) e consumo (kWh) de uma mesma conta de luz.</strong> É com esses dois números que a plataforma chega à sua tarifa.</li>
+<li><strong>Cidade</strong>, escolhida numa lista com os 5.571 municípios do Brasil.</li>
+<li><strong>Distribuidora</strong>, só quando o município tem mais de uma. Se você não informar, a plataforma usa a de maior Fio B, que dá a menor economia.</li>
+<li><strong>Tipo de ligação</strong> (monofásica, bifásica ou trifásica). Esse campo é opcional. Se você não informar, a plataforma considera a ligação <strong>bifásica</strong> e avisa isso na tela do resultado.</li>
+<li><strong>Cobranças da conta que não são energia</strong> (iluminação pública, taxa de lixo, multa, juros, parcelamento). Opcional; se você não informar, a tela do resultado avisa que a economia pode sair otimista.</li>
+</ul>
+<p>Você não precisa dar nome, e-mail nem fazer cadastro.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="2-de-onde-vem-os-dados">
+<details class="secao-sanfona">
+    <summary><h2 id="2-de-onde-vem-os-dados"><span class="divider-dot"></span>2. De onde vêm os dados</h2></summary>
+<div class="secao-conteudo">
+<div class="tabela-wrap"><table class="tabela-geracao">
+<thead>
+<tr>
+<th scope="col">Dado</th>
+<th scope="col">Fonte</th>
+<th scope="col">Detalhes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Lista de municípios</th>
+<td>Códigos e nomes oficiais do <strong>IBGE</strong></td>
+<td>A lista foi montada a partir do conjunto aberto <em>municipios-brasileiros</em> (licença MIT) e conferida com a API de Localidades do IBGE em 30/09/2026. Os 5.571 municípios batem com o IBGE.</td>
+</tr>
+<tr>
+<th scope="row">Localização da cidade</th>
+<td><strong>Nominatim</strong>, com dados do <strong>OpenStreetMap</strong></td>
+<td>A busca é feita pelo município e pelo estado. O ponto só é aceito se o estado e o nome baterem e se o lugar for o próprio município (e não, por exemplo, um povoado com o mesmo nome em outra cidade). Depois de encontrado, o ponto fica guardado no servidor.</td>
+</tr>
+<tr>
+<th scope="row">Sol (irradiação)</th>
+<td><strong>NASA POWER</strong></td>
+<td>É a irradiação global no plano horizontal, em média para cada mês, de janeiro de 2001 a dezembro de 2020 (parâmetro ALLSKY_SFC_SW_DWN). Vem do serviço Climatology API, versão v2.10.0 (a versão que a NASA informou na consulta de 30/09/2026), com a fonte de dados SYN1DEG, estimada por satélite. A resposta fica guardada no servidor e é consultada de novo depois de um ano.</td>
+</tr>
+<tr>
+<th scope="row">Fio B</th>
+<td><strong>ANEEL</strong>, Portal de Dados Abertos, conjunto "Componentes Tarifárias"</td>
+<td>É o valor da TUSD Fio B da classe residencial B1 convencional, sem impostos. A plataforma usa o valor da distribuidora que atende o <strong>seu município</strong>, e a tela mostra qual é e até quando o valor vale. O conjunto é publicado sob licença ODbL.</td>
+</tr>
+<tr>
+<th scope="row">Qual distribuidora atende cada município</th>
+<td><strong>ANEEL</strong>, Portal de Dados Abertos: <em>IndQual Município</em> e <em>Indicadores Coletivos de Continuidade (DEC e FEC)</em></td>
+<td>O primeiro conjunto liga o código IBGE do município ao conjunto de unidades consumidoras; o segundo liga cada conjunto à distribuidora, com CNPJ. O encontro com a tabela do Fio B é feito por CNPJ. Os dois conjuntos são publicados sob licença ODbL.</td>
+</tr>
+<tr>
+<th scope="row">Preço do sistema</th>
+<td><strong>Greener</strong>, <em>Estudo Estratégico</em> (março de 2026)</td>
+<td>São os preços médios de janeiro de 2026 para cada tamanho de sistema.</td>
+</tr>
+<tr>
+<th scope="row">Painéis e inversores</th>
+<td>Folhas de dados dos fabricantes</td>
+<td>Painéis: Jinko Solar (600 Wp) e Trina Solar (550 e 670 Wp). Inversores monofásicos: Growatt MIC e MIN (de 1,5 a 10 kW) e Deye G05 (de 4,2 a 7,5 kW, para os painéis de corrente alta).</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="3-o-calculo-passo-a-passo">
+<details class="secao-sanfona">
+    <summary><h2 id="3-o-calculo-passo-a-passo"><span class="divider-dot"></span>3. O cálculo, passo a passo</h2></summary>
+<div class="secao-conteudo">
+<p>Os números entre parênteses são as equações do artigo que descreve a plataforma. Eles servem para quem quiser conferir.</p>
+<ol>
+<li><strong>Sol do ano:</strong> a plataforma faz a média das 12 médias mensais, dando a cada mês o peso dos dias que ele tem. O resultado são as <strong>horas de sol pleno</strong> (HSP), ou seja, quantas horas por dia seriam necessárias, com sol de 1.000 W/m², para juntar a mesma energia. (Eq. 1)</li>
+<li><strong>Tarifa:</strong> é o valor da conta, menos as cobranças que não são energia (se você informou), dividido pelo consumo registrado nessa mesma conta. Se esse consumo ficou abaixo do mínimo da distribuidora (30, 50 ou 100 kWh, conforme o tipo de ligação), a divisão é pelo mínimo, porque nesses meses é o mínimo que a conta cobra (Resolução ANEEL nº 1.000/2021, arts. 290 e 291). No artigo do TCC a divisão era sempre pelo consumo da conta; a regra do mínimo veio depois da entrega. (Eq. 2)</li>
+<li><strong>Quanto cada kWh gerado economiza:</strong> é a tarifa menos a parte do Fio B que continua sendo cobrada. Essa parte é definida pela Lei nº 14.300/2022 (art. 27): 60% do Fio B em 2026, 75% em 2027 e 90% em 2028. Por isso a economia de cada kWh muda com o ano: no tempo de retorno (passo 12), cada mês usa o percentual do seu ano. De 2029 em diante a plataforma usa 100%, que é uma premissa provisória, porque a regra definitiva da Lei (art. 17) ainda não foi definida pela ANEEL. (Eq. 3)</li>
+<li><strong>Quanto da conta dá para abater:</strong> a distribuidora sempre cobra um mínimo por mês, chamado custo de disponibilidade. Ele equivale a 30, 50 ou 100 kWh, conforme a ligação seja monofásica, bifásica ou trifásica (Resolução ANEEL nº 1.000/2021, art. 291). Com painéis, a conta não pode ficar abaixo desse mínimo, mas a parte do Fio B que continua sendo cobrada conta para atingi-lo (art. 655-I). Por isso, quanto maiores o consumo e o Fio B, mais do consumo pode ser abatido, às vezes ele inteiro. Quando o mínimo segura uma parte, a plataforma dimensiona o sistema só para o que dá para abater, porque painel a mais não traz economia. Se não sobrar nada para abater, ela não indica sistema e explica o motivo. (Eq. 4)</li>
+<li><strong>Potência dos painéis:</strong> é a energia por dia dividida pelas horas de sol e por <strong>0,80</strong>. Esse 0,80 é a <strong>taxa de desempenho</strong>, a fração da energia do sol que chega à sua casa depois das perdas (calor, sujeira, cabos, inversor). O valor é o limite superior da faixa de 70% a 80% do <em>Manual de Engenharia para Sistemas Fotovoltaicos</em> do CEPEL-CRESESB. (Eq. 5)</li>
+<li><strong>Número de painéis:</strong> é essa potência dividida pela potência de um painel, com arredondamento <strong>para cima</strong>. (Eq. 6)</li>
+<li><strong>Inversor:</strong> é o menor modelo do catálogo (1,5; 2,0; 2,5; 3,0; 4,2; 5,0; 6,0; 7,0; 7,5; 8,0; 9,0 ou 10 kW) que tenha pelo menos 80% da potência dos painéis. Acima de 12 kWp não existe inversor monofásico no catálogo que atenda, e a plataforma não indica sistema. (Eq. 7)</li>
+<li>
+<p><strong>Verificação elétrica:</strong> a compatibilidade entre painéis e inversor é um requisito de projeto tratado pela ABNT NBR 16690:2019. A plataforma faz essa verificação com os limites das folhas de dados, usando critérios adaptados do Manual do CEPEL-CRESESB e de Baars (2022). Os painéis são testados com as células a 0 °C (inverno) e a 70 °C (verão), em quatro verificações:</p>
+<ul>
+<li><strong>corrente de curto-circuito</strong> — é de segurança e não tem tolerância;</li>
+<li><strong>corrente de operação</strong> — é de desempenho e aceita até 10% acima do limite do inversor;</li>
+<li><strong>tensão no frio</strong> — é de segurança e define o <strong>máximo</strong> de painéis em série;</li>
+<li><strong>tensão no calor</strong> — é de desempenho e define o <strong>mínimo</strong> de painéis em série.</li>
+</ul>
+<p>Se o número de painéis ficar abaixo do mínimo, ele sobe até o mínimo. Entre os painéis aprovados, a plataforma escolhe o de <strong>menor corrente</strong>. É por isso que é a plataforma que escolhe o painel, e não você: um painel recusado na verificação elétrica não deveria ser oferecido como opção. (Eq. 12)</p>
+</li>
+<li>
+<p><strong>Geração de cada mês:</strong> potência dos painéis × horas de sol do mês × 0,80 × dias do mês. A plataforma considera <strong>sempre os painéis deitados (na horizontal)</strong>, porque não pergunta a posição do telhado. Num telhado inclinado e virado para o norte, a geração tende a ser maior (veja a página <a href="/limitacoes"><strong>Limitações</strong></a>). (Eq. 8)</p>
+</li>
+<li><strong>Economia:</strong> a plataforma pega o menor valor entre a geração do ano e o consumo que dá para abater, e multiplica pelo quanto cada kWh economiza. A conta é feita no ano, e não mês a mês, porque a energia que sobra num mês vira crédito que vale por 60 meses (Lei nº 14.300/2022, art. 13). (Eq. 9)</li>
+<li><strong>Preço:</strong> os preços médios da Greener, ligados por retas entre 2, 4, 8, 12 e 30 kWp. (Eq. 10)</li>
+<li><strong>Tempo de retorno:</strong> a plataforma soma a economia <strong>mês a mês</strong>, a partir do mês da simulação, até ela alcançar o preço do sistema. Cada mês usa o percentual do Fio B do seu ano (passo 3), e a geração perde 0,5% por ano com o desgaste dos painéis (Pinho e Galdino, 2014). A tarifa fica constante, e a conta não inclui juros, manutenção nem troca de peças. Tempos acima de 25 anos não são mostrados, porque 25 anos é o prazo da garantia de desempenho dos painéis. No artigo do TCC, o retorno era a conta simples, o preço dividido pela economia de um mês (Eq. 11); o cálculo mês a mês veio depois da entrega.</li>
+</ol>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="4-a-comparacao-com-o-pvsyst">
+<details class="secao-sanfona">
+    <summary><h2 id="4-a-comparacao-com-o-pvsyst"><span class="divider-dot"></span>4. A comparação com o PVsyst</h2></summary>
+<div class="secao-conteudo">
+<p>O PVsyst (versão 8.1.5) é um programa de projeto que calcula a geração <strong>hora a hora</strong>. Os cinco casos são uma cidade em cada região do país, escolhidas para cobrir uma faixa ampla de sol e de temperatura (<a href="/precisao#cidades">veja por que essas cidades</a>). Nele, cada caso foi simulado com o mesmo sistema indicado pela plataforma, com os mesmos painéis e inversores e o mesmo sol da NASA POWER. Nas duas ferramentas os painéis ficaram na <strong>horizontal</strong>.</p>
+<div class="tabela-wrap"><table class="tabela-geracao">
+<thead>
+<tr>
+<th scope="col">Cidade</th>
+<th scope="col">Consumo (kWh/mês)</th>
+<th scope="col">Sistema</th>
+<th scope="col">Plataforma (kWh/ano)</th>
+<th scope="col">PVsyst (kWh/ano)</th>
+<th scope="col">Diferença</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Bom Jesus da Lapa (BA)</th>
+<td>300</td>
+<td>4 × 600 Wp; Growatt MIC 2000TL-X</td>
+<td>4.236</td>
+<td>4.411,8</td>
+<td>3,98% a menos</td>
+</tr>
+<tr>
+<th scope="row">Cuiabá (MT)</th>
+<td>300</td>
+<td>4 × 600 Wp; Growatt MIC 2000TL-X</td>
+<td>3.691</td>
+<td>3.872,6</td>
+<td>4,69% a menos</td>
+</tr>
+<tr>
+<th scope="row">Guaíra (PR)</th>
+<td>300</td>
+<td>5 × 600 Wp; Growatt MIC 2500TL-X</td>
+<td>4.323</td>
+<td>4.574,1</td>
+<td>5,49% a menos</td>
+</tr>
+<tr>
+<th scope="row">Manaus (AM)</th>
+<td>550</td>
+<td>9 × 600 Wp; Growatt MIN 5000TL-X</td>
+<td>7.369</td>
+<td>7.834,6</td>
+<td>5,94% a menos</td>
+</tr>
+<tr>
+<th scope="row">Campinas (SP)</th>
+<td>180</td>
+<td>3 × 600 Wp; Growatt MIC 1500TL-X</td>
+<td>2.702</td>
+<td>2.901,8</td>
+<td>6,89% a menos</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Critério de aceitação:</strong> diferença de até 10% na geração do ano. Os cinco casos ficaram dentro dele.</li>
+<li><strong>A plataforma estima menos.</strong> Isso aconteceu nos cinco casos e em todos os 12 meses de cada um. O motivo são as perdas: a plataforma usa uma taxa fixa de 0,80, e o PVsyst calculou de 83,35% a 85,93%, que é o valor de um sistema sem sombra, sem sujeira e sem desgaste. Em relação à simulação, portanto, a estimativa fica do lado seguro. <strong>Mas, num telhado real, a geração pode ser menor que a do PVsyst.</strong></li>
+<li><strong>Verificação elétrica:</strong> os limites de painéis em série deram iguais aos do PVsyst nos inversores conferidos (MIC 1500TL-X, MIC 2000TL-X e MIN 5000TL-X). A perda por limite de corrente ficou em até 0,04%. Numa simulação extra de Campinas, feita para isolar esse efeito, ela chegou a 0,56%.</li>
+<li><strong>Tempo de retorno:</strong> com 60% do Fio B, foi de 3,2 a 5,6 anos nos cinco casos. Um estudo publicado (Costa et al., 2025) calculou 4,57 anos para uma casa com 4,2 kWp. Na mesma casa, três calculadoras gratuitas deram de 3 anos e 3 meses a 4 anos e 1 mês. Esses tempos caem dentro da nossa faixa, mas a comparação vale só como ordem de grandeza, porque os cenários são diferentes. Com a subida do Fio B, que a plataforma passou a somar mês a mês depois do TCC, o retorno dos cinco casos fica de 3,4 a 5,6 anos para uma simulação feita em outubro de 2026.</li>
+<li><strong>Conferência das equações:</strong> um programa refaz as contas a partir das equações escritas no artigo (e, para o retorno mês a mês, da descrição que está no código). Ele rodou a plataforma 31.488 vezes, em toda a faixa de consumo residencial, inclusive com contas de mês abaixo do mínimo, sem nenhuma divergência. Também foram colocados de propósito 14 erros no cálculo, 3 deles no retorno mês a mês e 1 na tarifa, e o programa detectou os 14.</li>
+<li><strong>O que ficou fixo nos cinco casos:</strong> ligação bifásica, 60% do Fio B (2026) e tarifa de teste de R$ 0,75/kWh.</li>
+<li><strong>Limites desta comparação:</strong></li>
+<li>a referência é uma simulação, e não uma medição de sistema real;</li>
+<li>cinco casos não formam uma amostra estatística;</li>
+<li>o erro da própria NASA POWER não foi avaliado.</li>
+</ul>
+<p><strong>E o site de hoje?</strong> Depois da comparação (feita com a versão do código de 23/09/2026), mudaram a escolha da cidade, a forma de guardar os dados e as explicações da tela, e três partes da conta: o Fio B passou a ser o da distribuidora do município (02/10/2026), o tempo de retorno passou a ser somado mês a mês (06/10/2026) e a conta de um mês abaixo do mínimo passou a ser dividida pelo mínimo (07/10/2026). Nada disso muda o jeito de calcular a geração: em 07/10/2026 os cinco casos foram refeitos com o site atual, com os dados reais da NASA e do OpenStreetMap, e painéis, inversor e geração continuaram idênticos aos da comparação.</p>
+</div>
+</details>
+</section>
+
+<section class="card secao" aria-labelledby="5-onde-conferir">
+<details class="secao-sanfona">
+    <summary><h2 id="5-onde-conferir"><span class="divider-dot"></span>5. Onde conferir</h2></summary>
+<div class="secao-conteudo">
+<ul>
+<li><strong>Código-fonte, relatórios do PVsyst e telas dos cinco casos:</strong> no repositório do GitHub, na versão descrita no artigo: https://github.com/gandalfa1/dimensionamento-fotovoltaico/tree/v1.0-tcc</li>
+<li><strong>Tabelas tiradas dos dados abertos da ANEEL</strong> (o Fio B de cada distribuidora e as distribuidoras de cada município): no mesmo repositório, https://github.com/gandalfa1/dimensionamento-fotovoltaico, sob a licença ODbL, junto com o programa que as refaz a partir dos dados originais (atualizar_dados_aneel.py) e o arquivo dados-ANEEL-LICENCA.txt, que explica a origem de cada uma.</li>
+<li><strong>Artigo:</strong> <em>Dimensionamento fotovoltaico residencial na web</em>, Trabalho de Conclusão de Curso de Engenharia Elétrica (Uninter, 2026), de Brenda Morel Bueno Ferreira.</li>
+<li><strong>O que a plataforma não considera</strong> e quanto isso pesa: veja a página <a href="/limitacoes"><strong>Limitações</strong></a>.</li>
+</ul>
+<h3>Referências</h3>
+<ul>
+<li>ABNT. NBR 16690: instalações elétricas de arranjos fotovoltaicos: requisitos de projeto. 2019.</li>
+<li>ANEEL. Resolução Normativa nº 1.000, de 7 de dezembro de 2021.</li>
+<li>ANEEL. Componentes tarifárias. Portal de Dados Abertos, 2026. Licença ODbL.</li>
+<li>ANEEL. Indicadores coletivos de continuidade (DEC e FEC). Portal de Dados Abertos, 2026. Licença ODbL.</li>
+<li>ANEEL. IndQual Município. Portal de Dados Abertos, 2026. Licença ODbL.</li>
+<li>BAARS, A. Inverters for high-current modules: the great IDC max misconception. Sunny: SMA Corporate Blog, 2022.</li>
+<li>BRASIL. Lei nº 14.300, de 6 de janeiro de 2022.</li>
+<li>COSTA, F. F. A. et al. Avaliação do payback em sistemas fotovoltaicos on-grid para consumidores residenciais grupo B1 sob a Lei 14300/2022. Revista Brasileira de Energia Solar, v. 16, n. 2, 2025.</li>
+<li>GREENER. Estudo estratégico: mercado fotovoltaico, referente ao ano de 2025. Março de 2026.</li>
+<li>NASA. POWER: Prediction Of Worldwide Energy Resources. Climatology API, v2.10.0.</li>
+<li>OpenStreetMap / Nominatim. © OpenStreetMap contributors, licença ODbL.</li>
+<li>PINHO, J. T.; GALDINO, M. A. (org.). Manual de engenharia para sistemas fotovoltaicos. CEPEL-CRESESB, 2014.</li>
+<li>PVSYST SA. PVsyst 8.1.</li>
+</ul>
+</div>
+</details>
+</section>
+</div>
+</main>
+<div class="page-wrap rodape-wrap">
+<footer class="rodape-paginas">
+    <ul>
+        <li><a href="/entenda">Como funciona</a></li>
+        <li><a href="/economia">Economia e retorno</a></li>
+        <li><a href="/equipamentos">Painéis, inversores e preços</a></li>
+        <li><a href="/precisao">Quão preciso é</a></li>
+        <li><a href="/metodologia">Metodologia</a></li>
+        <li><a href="/limitacoes">Limitações</a></li>
+        <li><a href="/sobre">Sobre</a></li>
+        <li><a href="/contato">Contato</a></li>
+        <li><a href="/apoie">Apoie o projeto</a></li>
+    </ul>
+    <p>Simulação educativa: não substitui o projeto de um profissional habilitado. Código aberto (AGPL-3.0) no <a href="https://github.com/gandalfa1/dimensionamento-fotovoltaico" target="_blank" rel="noopener">GitHub</a>.</p>
+    <p class="rodape-creditos">Irradiação solar: projeto POWER do NASA Langley Research Center, financiado pela NASA Earth Science Division — <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>, licença CC BY 4.0. Localização: dados © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, licença ODbL. Municípios: códigos e nomes oficiais do IBGE. Fio B e distribuidoras: contém informações dos conjuntos <a href="https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias" target="_blank" rel="noopener">Componentes Tarifárias</a>, <a href="https://dadosabertos.aneel.gov.br/dataset/indqual-municipio" target="_blank" rel="noopener">IndQual Município</a> e <a href="https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec" target="_blank" rel="noopener">Indicadores Coletivos de Continuidade</a>, da ANEEL, disponibilizados sob a licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. Preços: Greener, março de 2026.</p>
+</footer>
+</div>
+<script>
+(function () {
+    var secoes = document.querySelectorAll("details.secao-sanfona");
+    function abrirAlvo() {
+        if (!location.hash) { return; }
+        var alvo = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        if (!alvo) { return; }
+        var d = alvo.closest("details.secao-sanfona");
+        if (d && !d.open) { d.open = true; }
+        alvo.scrollIntoView();
+    }
+    window.addEventListener("hashchange", abrirAlvo);
+    abrirAlvo();
+    var botao = document.querySelector(".btn-abrir-todas");
+    function todasAbertas() { return Array.prototype.every.call(secoes, function (d) { return d.open; }); }
+    function atualizarBotao() {
+        if (!botao) { return; }
+        var abertas = todasAbertas();
+        botao.textContent = abertas ? "Fechar todas as seções" : "Abrir todas as seções";
+        botao.setAttribute("aria-pressed", abertas ? "true" : "false");
+    }
+    if (botao) {
+        botao.addEventListener("click", function () {
+            var abrir = !todasAbertas();
+            secoes.forEach(function (d) { d.open = abrir; });
+            atualizarBotao();
+        });
+        secoes.forEach(function (d) { d.addEventListener("toggle", atualizarBotao); });
+    }
+    window.addEventListener("beforeprint", function () {
+        secoes.forEach(function (d) { if (!d.open) { d.open = true; d.dataset.abertaParaImprimir = "sim"; } });
+    });
+    window.addEventListener("afterprint", function () {
+        document.querySelectorAll("details[data-aberta-para-imprimir]").forEach(function (d) {
+            d.open = false; delete d.dataset.abertaParaImprimir;
+        });
+        atualizarBotao();
+    });
+})();
+</script>
+<script src="/static/tabelas.js" defer></script>
+</body>
+</html>

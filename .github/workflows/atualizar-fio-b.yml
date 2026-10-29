@@ -1,0 +1,128 @@
+# Tarefa automatica do Fio B - fase 2, item 2.8 (C). Criada em 02/10/2026.
+#
+# O QUE FAZ: duas vezes por semana, um computador do GitHub roda o
+# atualizar_dados_aneel.py (as tres travas dele continuam valendo), confere o
+# resultado com o teste/conferir_dados_aneel.py e com o
+# teste/conferir_equacoes_3_3.py e, SO SE ALGUM DADO MUDOU E TUDO PASSOU,
+# grava a versao nova dos dois arquivos no repositorio. O Render republica o
+# site sozinho a cada versao nova.
+#
+# POR QUE ASSIM (pedido da aluna, 01 e 02/10/2026: "depois de tal dia, Fio B
+# vai valer tal"): a ANEEL so aprova o valor novo perto da data - medido em
+# 166 reajustes de 2025-2026, a resolucao sai em mediana 3 dias antes do
+# inicio da vigencia (maximo 13). Ninguem sabe o valor com antecedencia; o
+# que da para automatizar e ir buscar logo depois que ele sai.
+#
+# QUANDO DA ERRADO: se a ANEEL nao responder, se uma trava disparar ou se uma
+# conferencia reprovar, NADA e gravado, a execucao fica vermelha na aba
+# "Actions" e o GitHub manda e-mail para quem criou esta tarefa. O site
+# continua com os dados anteriores, e a tela ja avisa quando uma vigencia
+# venceu.
+#
+# RODAR NA HORA (sem esperar o dia): aba "Actions" -> "Atualizar Fio B
+# (ANEEL)" -> botao "Run workflow".
+#
+# ATENCAO: o GitHub desliga tarefas agendadas de repositorio publico depois de
+# 60 dias sem nenhuma atividade no repositorio. Se isso acontecer, a aba
+# "Actions" mostra um botao para ligar de novo.
+
+name: Atualizar Fio B (ANEEL)
+
+on:
+  schedule:
+    # Segundas e quintas, 09:23 UTC = 06:23 em Brasilia. O conjunto da ANEEL
+    # e atualizado semanalmente, em dia nao informado; rodar duas vezes por
+    # semana deixa a plataforma no maximo ~4 dias atras do portal. O minuto
+    # 23 evita a hora cheia, quando o GitHub atrasa as tarefas agendadas.
+    - cron: "23 9 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # necessario para gravar a versao nova dos dois arquivos
+
+concurrency:
+  group: atualizar-fio-b
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash     # com pipefail: um erro antes do "| tee" para a execucao
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Baixar o repositorio
+        uses: actions/checkout@v7
+
+      - name: Preparar o Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Instalar as bibliotecas
+        run: python -m pip install requests pyarrow
+
+      - name: Buscar os dados na ANEEL (com as 3 travas)
+        run: python atualizar_dados_aneel.py | tee "$RUNNER_TEMP/saida_atualizacao.txt"
+
+      - name: Conferir os arquivos (teste/conferir_dados_aneel.py)
+        run: |
+          git show HEAD:fio_b_por_distribuidora.csv > "$RUNNER_TEMP/fio_b_anterior.csv"
+          git show HEAD:static/distribuidoras_por_municipio.json > "$RUNNER_TEMP/mapa_anterior.json"
+          python teste/conferir_dados_aneel.py \
+            --anterior-csv "$RUNNER_TEMP/fio_b_anterior.csv" \
+            --anterior-json "$RUNNER_TEMP/mapa_anterior.json" \
+            | tee "$RUNNER_TEMP/saida_conferencia.txt"
+
+      - name: Conferir as equacoes do motor (teste/conferir_equacoes_3_3.py)
+        # Esse programa nao termina com codigo de erro quando reprova (foi
+        # escrito para ser lido por uma pessoa); por isso a tarefa confere a
+        # linha final, que tem de ser exatamente "RESULTADO: OK".
+        run: |
+          python teste/conferir_equacoes_3_3.py > "$RUNNER_TEMP/saida_equacoes.txt"
+          tail -n 20 "$RUNNER_TEMP/saida_equacoes.txt"
+          grep -qx "RESULTADO: OK" "$RUNNER_TEMP/saida_equacoes.txt"
+
+      - name: Gravar a versao nova, se algum dado mudou
+        run: |
+          ARQUIVOS="fio_b_por_distribuidora.csv static/distribuidoras_por_municipio.json"
+          if git diff --quiet -- $ARQUIVOS; then
+            echo "Nada mudou na ANEEL desde a ultima versao. Nada foi gravado."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- $ARQUIVOS
+          {
+            echo "Fio B: atualizacao automatica pelos dados abertos da ANEEL ($(date -u +%Y-%m-%d))"
+            echo
+            echo "Feita pela tarefa .github/workflows/atualizar-fio-b.yml, depois das"
+            echo "3 travas do atualizar_dados_aneel.py e das conferencias"
+            echo "teste/conferir_dados_aneel.py e teste/conferir_equacoes_3_3.py."
+            echo
+            sed -n '/=== PARTE 4/,/=== PARTE 5/p' "$RUNNER_TEMP/saida_conferencia.txt" | sed '$d'
+            sed -n '/=== PARTE 5/,/^=====/p' "$RUNNER_TEMP/saida_conferencia.txt" | sed '$d'
+          } > "$RUNNER_TEMP/mensagem.txt"
+          git commit -F "$RUNNER_TEMP/mensagem.txt"
+          git push
+
+      - name: Resumo desta execucao
+        if: always()
+        run: |
+          {
+            echo "## Atualizacao do Fio B - $(date -u +%Y-%m-%d)"
+            for ARQ in saida_atualizacao saida_conferencia; do
+              if [ -f "$RUNNER_TEMP/$ARQ.txt" ]; then
+                echo
+                echo "### $ARQ"
+                echo '```'
+                tr '\r' '\n' < "$RUNNER_TEMP/$ARQ.txt" | grep -v ' de .* MB *$' || true
+                echo '```'
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
