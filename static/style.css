@@ -1677,3 +1677,17 @@ table.tabela-retorno .retorno-meses { color: var(--color-text-muted); font-size:
 .resumo-envio .resumo-falta { color: var(--color-text-muted); font-style: italic; }
 .resumo-envio .aviso-campo { margin-top: 10px; }
 .resumo-envio .resumo-rodape { margin: 10px 0 0; font-size: 0.84rem; color: var(--color-text-muted); }
+
+/* APOIE MAIS VISÍVEL (30/10/2026, pedido da aluna: "mais visível, sem chamar
+   atenção nem roubar espaço"). No menu do topo, "Apoie o projeto" é o último
+   item, encostado à direita, em dourado (a cor do sol do logo); no celular,
+   fecha a lista "Páginas", depois de uma linha fina. No resultado, uma frase
+   pequena DEPOIS das perguntas frequentes, fora da impressão. Dourado #FFC24B
+   sobre o fundo do topo #1C2433: 10,6:1. */
+.topo-menu li.menu-apoie { margin-left: auto; }
+.topo-menu a.link-apoie, .topo-menu-celular a.link-apoie { color: var(--color-gold); }
+.topo-menu a.link-apoie:hover { color: #FFD57E; }
+.icone-apoie { vertical-align: -1px; }
+.topo-menu-celular li.menu-apoie { border-top: 1px solid rgba(255, 255, 255, 0.12); margin-top: 6px; padding-top: 6px; }
+.apoio-discreto { font-size: 0.92rem; color: var(--color-text-muted); border-top: 1px solid var(--color-border); padding-top: 16px; margin-top: 24px; }
+.apoio-discreto a { color: var(--color-primary-dark); font-weight: 600; }
