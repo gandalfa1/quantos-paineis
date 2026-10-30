@@ -41,6 +41,7 @@ O repositório guarda duas versões, e cada uma tem um papel diferente.
 | `teste/` | Os programas de conferência e os resultados deles |
 | `resultados/plataforma/` | A tela de resultado dos cinco casos de validação do TCC, em PDF |
 | `resultados/pvsyst/` | Os relatórios das simulações no PVsyst 8.1.5, com todos os parâmetros |
+| `resultados/pvsyst_artigo_rbens/` | Os relatórios dos dez casos de validação do artigo enviado à Revista Brasileira de Energia Solar, simulados no PVsyst 8.1.7 em 16/10/2026 |
 
 ## Como rodar no computador
 
