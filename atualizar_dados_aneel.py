@@ -144,10 +144,10 @@ TEMPO_LIMITE_S = 120
 
 # Identificacao da aplicacao, como pedem as boas praticas de uso de API
 # publica. Igual ao User-Agent do geocoding.py: nome definitivo desde
-# 03/10/2026 (fase 2, item 2.1); a forma de contato definitiva entra no fim
-# da fase 2 (item 2.6).
+# 03/10/2026 (fase 2, item 2.1); contato definitivo (pagina /contato do
+# dominio proprio) desde 30/10/2026 (fase 2, item 2.6).
 CABECALHO = {"User-Agent": "quantos-paineis/1.1 "
-                           "(+https://github.com/gandalfa1/dimensionamento-fotovoltaico)"}
+                           "(+https://quantospaineis.com.br/contato)"}
 
 ARQUIVO_FIO_B = os.path.join(PASTA, "fio_b_por_distribuidora.csv")
 ARQUIVO_MAPA = os.path.join(PASTA, "static", "distribuidoras_por_municipio.json")

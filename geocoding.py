@@ -136,12 +136,12 @@ URL_NOMINATIM = "https://nominatim.openstreetmap.org/search"
 
 # Identificacao da aplicacao, exigida pela politica do Nominatim ("stock
 # User-Agents as set by http libraries will not do"). A politica pede
-# identificacao, nao e-mail: o contato e o endereco do repositorio.
+# identificacao, nao e-mail.
 # 03/10/2026 (fase 2, item 2.1): nome definitivo da plataforma, "Quantos
-# Paineis" (antes "dimensionamento-fotovoltaico", provisorio). A forma de
-# contato definitiva (e-mail da plataforma) entra no fim da fase 2 (item 2.6).
+# Paineis". 30/10/2026 (fase 2, item 2.6): o contato passa a ser a pagina
+# /contato do dominio proprio, que traz o e-mail da plataforma.
 USER_AGENT = ("quantos-paineis/1.1 "
-              "(+https://github.com/gandalfa1/dimensionamento-fotovoltaico)")
+              "(+https://quantospaineis.com.br/contato)")
 
 INTERVALO_MINIMO_S = 1.1   # politica: maximo de 1 consulta por segundo
 TEMPO_LIMITE_S = 20        # sem isso, um Nominatim lento travava a pagina
