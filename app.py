@@ -340,6 +340,54 @@ def endereco_antigo_das_paginas():
 
 
 # =====================================================================
+# FASE 4, PASSO 0a (03/11/2026) - ROBOS DE BUSCA E SITE ACORDADO
+# =====================================================================
+# O PROBLEMA, MEDIDO EM 03/11: o site nao tinha robots.txt (o endereco dava
+# 404, que para o Google quer dizer "pode tudo"). Mas, enquanto o site dorme
+# (plano gratis do Render, depois de ~15 min sem visita), quem responde o
+# /robots.txt e o PROPRIO Render, com "User-agent: *  Disallow: /" (proibe
+# todos os robos), e esse pedido nao acorda o site (render.com/docs/free,
+# lido em 03/11). Como o site passa a maior parte do dia dormindo, o Google
+# podia ficar sem entrar.
+#
+# A SOLUCAO, decidida pela aluna em 03/11: manter o site acordado com um
+# servico de fora (cron-job.org) que visita /saude de 10 em 10 minutos, e o
+# site passar a servir o proprio robots.txt e um mapa das paginas. Robos de
+# IA LIBERADOS (decisao da aluna, 03/11). Endereco oficial SEM www.
+#
+# ESTE BLOCO NAO PASSA PELO CALCULO: nao chama simular() nem nada do
+# calculo.py, e nao fala com o banco. O /saude NAO entra no contador de
+# acessos (o contador so conta "/" e as paginas da lista PAGINAS), entao a
+# visita de 10 em 10 minutos nao grava nada no Neon nem o acorda.
+ENDERECO_OFICIAL = "https://quantospaineis.com.br"
+
+
+@app.route("/saude")
+def saude():
+    return "ok", 200, {"Content-Type": "text/plain; charset=utf-8",
+                       "Cache-Control": "no-store"}
+
+
+@app.route("/robots.txt")
+def robots():
+    texto = ("User-agent: *\n"
+             "Allow: /\n"
+             "\n"
+             "Sitemap: " + ENDERECO_OFICIAL + "/sitemap.xml\n")
+    return texto, 200, {"Content-Type": "text/plain; charset=utf-8"}
+
+
+@app.route("/sitemap.xml")
+def mapa_do_site():
+    enderecos = [ENDERECO_OFICIAL + "/"] + [ENDERECO_OFICIAL + "/" + nome for nome in PAGINAS]
+    linhas = ['<?xml version="1.0" encoding="UTF-8"?>',
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    linhas += ["  <url><loc>" + endereco + "</loc></url>" for endereco in enderecos]
+    linhas.append("</urlset>")
+    return "\n".join(linhas) + "\n", 200, {"Content-Type": "application/xml; charset=utf-8"}
+
+
+# =====================================================================
 # FASE 2, ITEM 2.3 (03/10/2026) - CONTADOR DE ACESSOS
 # =====================================================================
 # Conta, por dia, paginas abertas, simulacoes por ESTADO (com e sem
