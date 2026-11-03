@@ -375,7 +375,26 @@ def buscar_fio_b(hoje):
             }
             if chave not in vigentes or novo["inicio_vigencia"] > vigentes[chave]["inicio_vigencia"]:
                 vigentes[chave] = novo
-    return vigentes
+
+    # FASE 4, PASSO 0b (03/11/2026) - FIO B ZERO FICA DE FORA DO ARQUIVO.
+    # Em 02/11/2026 a ANEEL publicou o Fio B de 23 cooperativas pequenas
+    # (vigencia a partir de 30/09/2026); duas vieram com valor 0,0 (CERGAPA e
+    # CERSAD DISTRIBUI). A conferencia (teste/conferir_dados_aneel.py) reprova
+    # Fio B nao positivo - e certo desconfiar -, e por isso NADA foi gravado,
+    # prendendo 5 reajustes verdadeiros (Belem, Goiania, Brasilia, EDP SP,
+    # CPFL-Piratininga). Decisao da aluna (03/11): deixar esses de fora.
+    # O SITE NAO MUDA COM ISTO: o motor ja descartava Fio B zero ou negativo
+    # ao ler o arquivo (calculo.py, _carregar_fio_b_por_distribuidora: "valor
+    # <= 0" e ignorado) e caia no valor do estado. O filtro e feito DEPOIS de
+    # escolher a tarifa mais recente de cada distribuidora, como o motor via:
+    # se a mais recente vier zero, a distribuidora sai (nao volta uma tarifa
+    # mais antiga). Os nomes ficam registrados na saida, para quem le o
+    # resumo da tarefa. A conferencia continua rigida como era.
+    ignoradas = sorted(d["distribuidora"] for d in vigentes.values() if not d["fio_b"] > 0)
+    if ignoradas:
+        print("    Fio B zero ou negativo na ANEEL, deixado de fora do arquivo "
+              "(o motor ja ignorava): " + ", ".join(ignoradas))
+    return {c: d for c, d in vigentes.items() if d["fio_b"] > 0}
 
 
 # ---------------------------------------------------------------------
