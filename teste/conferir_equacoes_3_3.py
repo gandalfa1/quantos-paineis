@@ -123,7 +123,7 @@ DIAS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 TD = 0.80                     # taxa de desempenho (Equacoes 5 e 8)
 FDI = 0.80                    # fator de dimensionamento do inversor (Eq. 7)
 P_MOD = 0.600                 # kWp, modulo Jinko de 600 Wp (secao 3.2)
-DEGRAUS = [1.5, 2.0, 2.5, 3.0, 4.2, 5.0, 6.0, 7.0, 7.5, 8.0, 9.0, 10.0]
+DEGRAUS = [1.0, 1.5, 2.0, 2.5, 3.0, 4.2, 5.0, 6.0, 7.0, 7.5, 8.0, 9.0, 10.0]  # 1,0 kW: fase 4, 03/11/2026
 C_DISP = {"monofasica": 30.0, "bifasica": 50.0, "trifasica": 100.0}
 P_FIO_B_2026 = 0.60           # Lei 14.300/2022, art. 27, IV
 SISTEMA = [(2, 3.44), (4, 2.66), (8, 2.21), (12, 2.04), (30, 1.91)]   # R$/Wp
@@ -562,7 +562,7 @@ def erros_plantados():
             "calculo", "potencia_inversor_comercial",
             lambda kw: (lambda abaixo: {"potencia_kw": abaixo, "potencia_calculada_kw": kw,
                                         "fora_da_grade": False})(
-                max([g for g in calculo.GRADE_INVERSORES_KW if g <= kw] or [1.5]))
+                max([g for g in calculo.GRADE_INVERSORES_KW if g <= kw] or [calculo.GRADE_INVERSORES_KW[0]]))
             if kw <= 10 else orig["potencia_inversor_comercial"](kw)),
     }
     detectadas = 0

@@ -1443,10 +1443,17 @@ def potencia_inversor(potencia_instalada_kwp, fdi=0.80):
 # POR QUE A LISTA INMETRO e nao o catalogo completo do fabricante: a
 # Portaria Inmetro n. 140/2022 sujeita os inversores ao registro, e a
 # plataforma indica modelos com registro. Os degraus vieram de uma lista
-# de distribuidor (rev. 03/2025). LIMITACAO CONHECIDA: o degrau de 1,0 kW
-# (MIC 1000TL-X) tem registro ativo e nao esta na grade; com ele, o
-# sistema de 2 modulos teria inversor menor (secao 3.3 do artigo). Nada
-# mais muda: custo e geracao nao dependem do inversor.
+# de distribuidor (rev. 03/2025).
+#
+# DEGRAU DE 1,0 kW (fase 4, item A1, 03/11/2026). A grade comecava em 1,5
+# kW, e o sistema de 2 modulos (1,20 kWp) recebia inversor de 1,5 kW:
+# 1,25 vezes a potencia dos modulos, acima do limite de 1,05 do Manual de
+# Engenharia FV (CEPEL-CRESESB, 2014, p. 332). O MIC 1000TL-X tem registro
+# Inmetro ATIVO (002636/2024, desde 05/03/2024) e entrou na grade. Com
+# ele, os 2 modulos passam a ter 1,0 kW (0,83 vez a potencia dos modulos).
+# Nada mais muda: o custo (curva da Greener, por kWp) e a geracao (PR
+# fixa) nao dependem do inversor. A versao do artigo (a) da RBENS, que
+# descreve a grade antiga como limitacao, esta na tag v1.2-artigo-rbens.
 #
 # POR QUE SEMPRE PARA CIMA: decisao da aluna - "antes sobrar do que
 # faltar". Um inversor menor que o necessario corta geracao (clipping);
@@ -1468,7 +1475,7 @@ def potencia_inversor(potencia_instalada_kwp, fdi=0.80):
 #     ao INMETRO;
 # (b) a grade depende da MARCA. Adotou-se a Growatt por ser a marca usada
 #     na validacao com o PVsyst.
-GRADE_INVERSORES_KW = [1.5, 2.0, 2.5, 3.0, 4.2, 5.0, 6.0,
+GRADE_INVERSORES_KW = [1.0, 1.5, 2.0, 2.5, 3.0, 4.2, 5.0, 6.0,
                        7.0, 7.5, 8.0, 9.0, 10.0]
 
 FABRICANTE_REFERENCIA_INVERSOR = "Growatt (modelos com certificacao INMETRO)"
@@ -1707,6 +1714,17 @@ for _modulo in CATALOGO_MODULOS.values():
 CATALOGO_INVERSORES = {
     # --- Growatt MIC 750~3300TL-X --------------------------------------
     # datasheet do fabricante (ginverter.com). 1 MPPT, 1 string por MPPT.
+    # MIC 1000TL-X (fase 4, 03/11/2026): mesma coluna de limites do MIC
+    # 1500TL-X na folha da familia (500 V; MPPT de 50 a 500 V; partida em
+    # 50 V; 13 A de entrada e 16 A de curto); potencia FV recomendada ate
+    # 1.400 Wp. Registro Inmetro 002636/2024, ATIVO.
+    "MIC1000TL-X": {
+        "potencia_kw": 1.0, "familia": "Growatt MIC", "classe_corrente": "baixa",
+        "mppts": 1, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 13.0, "corrente_max_curto_a": 16.0,
+        "tensao_max_v": 500.0, "mppt_min_v": 50.0, "mppt_max_v": 500.0,
+        "tensao_partida_v": 50.0,
+    },
     "MIC1500TL-X": {
         "potencia_kw": 1.5, "familia": "Growatt MIC", "classe_corrente": "baixa",
         "mppts": 1, "strings_por_mppt": 1,
