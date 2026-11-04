@@ -1009,8 +1009,11 @@ table.tabela-retorno .retorno-meses { color: var(--color-text-muted); font-size:
   cursor: pointer;
 }
 @media (max-width: 600px) {
-  .botoes-imprimir { display: flex; flex-direction: column; gap: 8px; }
-  .botoes-imprimir .btn-secundario { width: 100%; margin: 0; }
+  /* (04/11/2026, revisao "como um leigo") tres botoes empilhados ocupavam meia tela antes
+     do resultado: compartilhar em cima, os dois de imprimir lado a lado, menores. */
+  .botoes-imprimir { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .botoes-imprimir .btn-secundario { width: 100%; margin: 0; padding: 9px 8px; font-size: 0.85rem; }
+  .botoes-imprimir .btn-secundario:first-child { grid-column: 1 / -1; }
 }
 
 /* ---------- Rodapé ---------- */

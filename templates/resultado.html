@@ -108,11 +108,12 @@
             font-size: 0.8rem; color: var(--color-text-muted); line-height: 1.5;
         }
         #aviso-opcionais {
-            background: #F7F8FA; border-left-width: 2px;
+            background: #F7F8FA; border-left-width: 2px; margin-bottom: 20px;
             font-size: 0.84rem; color: var(--color-text-muted); line-height: 1.5;
         }
         #aviso-opcionais strong { color: var(--color-text); }
         #aviso-opcionais p + p { margin-top: 6px; }
+        .sub-dobra { font-size: 0.95rem; margin: 18px 0 6px; }
         .rodape-creditos a { color: inherit; }
         .rodape-creditos { font-size: 0.75rem; margin-top: 4px; }  /* sem opacidade: contraste (revisao geral, parte 3) */
         /* Fase 1, passo 5 (30/09/2026): links das paginas de explicacao no rodape. */
@@ -140,6 +141,12 @@
             body.imprimir-resumo .fora-do-resumo,
             body.imprimir-resumo details:not(.secao-economia) { display: none !important; }
             body.imprimir-resumo .so-resumo { display: block; }
+            /* (04/11/2026) o quadro dos 25 anos levou o resumo para 3 folhas: no papel do resumo
+               saem o aviso dos dados opcionais e as barras da poupanca (a frase fica), e o
+               quadro pode quebrar entre as folhas. */
+            body.imprimir-resumo #aviso-opcionais,
+            body.imprimir-resumo .card-25 .comparacao { display: none !important; }
+            body.imprimir-resumo .card-25 { break-inside: auto !important; }
             /* mais compacto no papel, para o resumo caber em 2 folhas A4 */
             body.imprimir-resumo .page-wrap { padding: 0; }
             body.imprimir-resumo .page-header { margin-bottom: 10px; }
@@ -288,6 +295,40 @@
         <button type="button" class="btn-secundario" onclick="imprimirResultado(false)">Imprimir completo</button>
     </div>
     <p class="no-print aviso-compartilhar" id="aviso-compartilhar" role="status" aria-live="polite"></p>
+    {#- (04/11/2026, revisao "como um leigo"): o aviso dos dados opcionais saiu do quadro
+        de economia (ele fala do formulario, nao do dinheiro) e veio para ca, curto. -#}
+    {% set falta_cobrancas = not resultado.cobrancas_nao_energia_reais %}
+    {% set falta_ligacao = resultado.tipo_ligacao and not resultado.tipo_ligacao_informado %}
+    {#- FASE 4, N1 (03/11/2026): terceiro dado opcional, o horario de uso. -#}
+    {% set falta_horario = resultado.simultaneidade_informada is defined and not resultado.simultaneidade_informada %}
+    {% set n_faltas = (1 if falta_cobrancas else 0) + (1 if falta_ligacao else 0) + (1 if falta_horario else 0) %}
+    {% if n_faltas > 0 %}
+    <div class="aviso-destaque" id="aviso-opcionais">
+        <p><strong>Quer um resultado mais preciso?</strong> {% if n_faltas == 3 %}Três perguntas opcionais ajudam{% elif n_faltas == 2 %}Duas perguntas opcionais ajudam{% else %}Uma pergunta opcional ajuda{% endif %}. {% if n_faltas == 1 %}Ela fica{% else %}Elas ficam{% endif %} no fim do formulário, em “Deixar o resultado mais preciso”.</p>
+        <details class="nota-mais">
+        <summary>{% if n_faltas == 1 %}Qual e por quê{% else %}Quais e por quê{% endif %}</summary>
+        <div>
+        {% if falta_cobrancas %}
+        <p><strong>Cobranças da conta que não são energia.</strong> Iluminação pública, taxa de
+        lixo, multa e juros não são energia, e os painéis não reduzem essa parte. Sem
+        descontá-la, o tempo de retorno aparece mais curto do que será.</p>
+        {% endif %}
+        {% if falta_ligacao %}
+        <p><strong>Tipo de ligação da sua casa.</strong> Esta estimativa considera
+        ligação bifásica, adotada quando o tipo não é informado. O tipo de ligação
+        define o valor mínimo da conta, que pode limitar a economia de quem consome
+        pouco. Ele está escrito na sua fatura.</p>
+        {% endif %}
+        {% if falta_horario %}
+        <p><strong>Em que horário a casa mais usa energia.</strong> Sem essa resposta,
+        a conta supõe que nada da energia dos painéis é usado na hora, o lado mais
+        conservador. A parte usada na hora economiza a tarifa inteira; por isso, quem
+        usa energia durante o dia tende a economizar mais do que o mostrado aqui.</p>
+        {% endif %}
+        </div>
+        </details>
+    </div>
+    {% endif %}
 
     <div class="card">
         <h2><span class="divider-dot"></span>Dimensionamento do sistema</h2>
@@ -336,18 +377,6 @@
                 <span class="valor">{{ br(resultado.numero_paineis * medida_painel[0] * medida_painel[1], 1) }} m²</span>
             </li>
             {%- endif %}
-            {% if resultado.arranjo_modulos_por_string %}
-            <li>
-                <span>
-                    Como os painéis são ligados
-                    <span class="tip">
-                        <button type="button" class="tip-btn" aria-label="O que é uma fileira de painéis?">i</button>
-                        <span class="tip-bubble">Os painéis são ligados em série, um atrás do outro, formando uma fileira (em inglês, <em>string</em>): as tensões se somam e a corrente é a de um painel só. Quando a fileira ficaria longa demais, os painéis são divididos em mais de uma, cada uma numa entrada própria do inversor.</span>
-                    </span>
-                </span>
-                <span class="valor">{% if resultado.arranjo_strings == 1 %}todos em série, numa só fileira{% else %}{{ resultado.arranjo_strings }} fileiras ({{ resultado.arranjo_modulos_por_string | join(" + ") }}){% endif %}</span>
-            </li>
-            {% endif %}
             <li>
                 <span>
                     Potência do inversor
@@ -364,16 +393,6 @@
                 <span class="valor">{{ resultado.inversor_modelo }} (família {{ resultado.inversor_familia }})</span>
             </li>
             {% endif %}
-            <li>
-                <span>
-                    HSP médio anual da região
-                    <span class="tip">
-                        <button type="button" class="tip-btn" aria-label="O que é HSP?">i</button>
-                        <span class="tip-bubble">HSP (Horas de Sol Pleno) é a energia que o sol entrega num dia, contada em horas de sol forte, de 1.000 W/m². Quanto maior esse número, mais energia os painéis geram por dia na sua região.</span>
-                    </span>
-                </span>
-                <span class="valor">{{ br(resultado.hsp_medio_anual) }} h/dia</span>
-            </li>
         </ul>
 
         {#- Pendencia 5 (reservada desde o T4). O texto usa o modelo que o
@@ -381,7 +400,31 @@
             frase continua verdadeira, porque o que segue a Growatt e a
             GRADE de potencias (GRADE_INVERSORES_KW), nao o modelo. -#}
         <details class="nota-mais nota-fontes">
-            <summary>Sobre o painel e o inversor indicados</summary>
+            <summary>Mais detalhes do sistema</summary>
+            <ul class="resultado-lista">
+                {% if resultado.arranjo_modulos_por_string %}
+                <li>
+                    <span>
+                        Como os painéis são ligados
+                        <span class="tip">
+                            <button type="button" class="tip-btn" aria-label="O que é uma fileira de painéis?">i</button>
+                            <span class="tip-bubble">Os painéis são ligados em série, um atrás do outro, formando uma fileira (em inglês, <em>string</em>): as tensões se somam e a corrente é a de um painel só. Quando a fileira ficaria longa demais, os painéis são divididos em mais de uma, cada uma numa entrada própria do inversor.</span>
+                        </span>
+                    </span>
+                    <span class="valor">{% if resultado.arranjo_strings == 1 %}todos em série, numa só fileira{% else %}{{ resultado.arranjo_strings }} fileiras ({{ resultado.arranjo_modulos_por_string | join(" + ") }}){% endif %}</span>
+                </li>
+                {% endif %}
+                <li>
+                    <span>
+                        HSP médio anual da região
+                        <span class="tip">
+                            <button type="button" class="tip-btn" aria-label="O que é HSP?">i</button>
+                            <span class="tip-bubble">HSP (Horas de Sol Pleno) é a energia que o sol entrega num dia, contada em horas de sol forte, de 1.000 W/m². Quanto maior esse número, mais energia os painéis geram por dia na sua região.</span>
+                        </span>
+                    </span>
+                    <span class="valor">{{ br(resultado.hsp_medio_anual) }} h/dia</span>
+                </li>
+            </ul>
             <p class="hint-fonte">São uma referência técnica, com dados das folhas de fabricante: modelos equivalentes de outras marcas também servem, desde que respeitem os mesmos limites de corrente e tensão. As potências de inversor seguem a grade de referência {{ textos_do_motor.get(resultado.fabricante_referencia_inversor, resultado.fabricante_referencia_inversor) }}; outras marcas vendem degraus de potência diferentes.</p>
         </details>
 
@@ -498,7 +541,9 @@
             <p class="grafico-nota">Cada par de barras compara o que os painéis geram com o que a sua casa consome, em kWh; o número embaixo é a diferença. O que sobra vira crédito guardado, que cobre os meses em que falta{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %} (até a conta chegar ao valor mínimo da distribuidora){% endif %}. A geração vem de dados de irradiação da sua região estimados por satélite (NASA POWER).{% if resultado.modo_consumo == 'media' %} As barras de consumo têm todas a mesma altura porque você informou a média do mês; para ver a variação da sua casa, volte e preencha o histórico de 12 meses.{% else %} O consumo vem do histórico de 12 meses que você informou, então é o da sua casa.{% endif %}</p>
         </details>
 
-        <div class="tabela-wrap fora-do-resumo" style="margin-top: 20px;">
+        <details class="nota-mais fora-do-resumo">
+        <summary>Ver os números de cada mês</summary>
+        <div class="tabela-wrap" style="margin-top: 12px;">
             <table class="tabela-geracao">
                 <tr>
                     <th>Mês</th>
@@ -528,6 +573,7 @@
         <details class="nota-mais">
             <summary>O que mostra a coluna “Abatido da conta”</summary>
             <p class="grafico-nota">Quanto de fato sai da sua fatura em cada mês de um ano típico, já usando o crédito guardado dos meses de mais sol (no primeiro ano o saldo ainda está se formando, e os primeiros meses fracos podem abater menos).{% if not resultado.arranjo_subiu_pelo_minimo_eletrico %} Diferença negativa não quer dizer que o sistema ficou pequeno: o crédito dos meses de mais sol cobre os de menos sol.{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %} No seu caso, a conta não pode ficar abaixo do valor mínimo da distribuidora (o custo de disponibilidade, equivalente a {{ resultado.piso_disponibilidade_kwh | round | int }} kWh na ligação {% if resultado.tipo_ligacao_informado %}{{ nomes_ligacao.get(resultado.tipo_ligacao, resultado.tipo_ligacao) }}{% else %}bifásica, considerada quando o tipo não é informado{% endif %}), e isso impede de abater {{ br(resultado.piso_anual_kwh, 0) }} kWh do consumo no ano. Por isso o sistema foi dimensionado só para a parte que pode ser abatida: painel a mais seria dinheiro sem retorno.{% endif %}{% endif %}</p>
+        </details>
         </details>
         <ul class="resultado-lista">
             <li><span>Seu consumo no ano</span><span class="valor">{{ br(resultado.consumo_anual_kwh, 0) }} kWh</span></li>
@@ -589,73 +635,12 @@
             </span>
         </h2>
         <ul class="resultado-lista">
-            <li>
-                <span>
-                    Tarifa calculada
-                    <span class="tip">
-                        <button type="button" class="tip-btn" aria-label="De onde vem esse valor?">i</button>
-                        {#- PASSO 6 (01/10/2026): quando a pessoa informa as
-                            cobrancas que nao sao energia, o balao conta a
-                            conta inteira, com os dois valores. Em branco, o
-                            texto e exatamente o de antes. #}
-                        <span class="tip-bubble">Calculada dividindo {% if resultado.cobrancas_nao_energia_reais %}a parte de energia da sua conta (R$ {{ br(resultado.fatura_informada) }} menos R$ {{ br(resultado.cobrancas_nao_energia_reais) }} de cobranças que não são energia, o que dá R$ {{ br(resultado.valor_de_energia_reais) }}){% else %}o valor da fatura que você informou{% endif %} pelo consumo do mesmo período{% if resultado.tarifa_pelo_minimo %} — com uma exceção: o consumo dessa conta ({{ kwh_digitado(resultado.consumo_da_fatura_kwh) }} kWh) ficou abaixo do mínimo da distribuidora, e nesses meses a conta cobra o mínimo, então a divisão foi por {{ resultado.consumo_faturado_kwh | round | int }} kWh (veja o aviso logo abaixo){% endif %}. Reflete a tarifa real da sua distribuidora, já com impostos e bandeira tarifária incluídos — em vez de uma média genérica.</span>
-                    </span>
-                </span>
-                <span class="valor">R$ {{ br(resultado.tarifa_calculada) }}/kWh</span>
-            </li>
-            {%- if resultado.cobrancas_nao_energia_reais %}
-            <li>
-                <span>
-                    Cobranças descontadas, por não serem energia
-                    <span class="tip">
-                        <button type="button" class="tip-btn" aria-label="Por que esse valor foi descontado?">i</button>
-                        <span class="tip-bubble">Você informou que R$ {{ br(resultado.cobrancas_nao_energia_reais) }} da sua conta não são energia. Os painéis não reduzem essas cobranças — a de iluminação pública, por exemplo, é definida por lei do seu município, e a distribuidora apenas arrecada na fatura (art. 476 da Resolução ANEEL nº 1.000/2021). Por isso esse valor saiu da conta antes do cálculo da tarifa: sem o desconto, a economia apareceria maior do que será.</span>
-                    </span>
-                </span>
-                <span class="valor">− R$ {{ br(resultado.cobrancas_nao_energia_reais) }}</span>
-            </li>
-            {%- endif %}
-            <li>
-                <span>
-                    Energia que de fato abate sua conta
-                    <span class="tip">
-                        <button type="button" class="tip-btn" aria-label="Por que não é toda a energia gerada?">i</button>
-                        <span class="tip-bubble">{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %}São duas as razões para este número ser menor que a energia gerada. Primeira{% else %}Este número pode ser menor que a energia gerada. O motivo{% endif %}: {% if resultado.arranjo_subiu_pelo_minimo_eletrico %}o menor sistema que funciona eletricamente já gera mais do que a sua conta consegue abater (veja a explicação no quadro de dimensionamento){% else %}como não existe "meio painel", o sistema é arredondado para cima e costuma gerar um pouco mais do que a parte da sua conta que pode ser abatida{% endif %} — essa sobra vira crédito em kWh, que só tem valor se houver consumo para abater e expira em 60 meses (Lei nº 14.300/2022).{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %} Segunda: a conta não pode ficar abaixo do valor mínimo cobrado pela distribuidora, e no seu caso isso impede de abater a parte mostrada na linha seguinte.{% endif %} A economia considera apenas a energia que de fato sai da sua fatura.</span>
-                    </span>
-                </span>
-                <span class="valor">{{ br(resultado.energia_compensavel_anual_kwh, 0) }} kWh/ano</span>
-            </li>
-            {% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %}
-            <li>
-                <span>
-                    Consumo que o mínimo da distribuidora não deixa abater
-                    <span class="tip">
-                        <button type="button" class="tip-btn" aria-label="Que mínimo é esse?">i</button>
-                        <span class="tip-bubble">Toda conta de luz tem um valor mínimo, o <strong>custo de disponibilidade</strong>, que remunera a rede que continua à sua disposição. Ele equivale a 30 kWh na ligação monofásica, 50 kWh na bifásica e 100 kWh na trifásica (art. 291 da Resolução ANEEL nº 1.000/2021){% if resultado.tipo_ligacao %}; este cálculo usou <strong>{{ resultado.piso_disponibilidade_kwh | round | int }} kWh/mês</strong>, da ligação {{ nomes_ligacao.get(resultado.tipo_ligacao, resultado.tipo_ligacao) }}{% endif %}. Para quem tem painéis, a parcela Fio B cobrada sobre a energia compensada já conta para atingir esse mínimo (art. 655-I da mesma resolução). Quando ela não basta — o que acontece em consumo baixo —, a conta para no mínimo, e esta parte do consumo deixa de ser abatida.</span>
-                    </span>
-                </span>
-                <span class="valor">{{ br(resultado.piso_anual_kwh, 0) }} kWh/ano</span>
-            </li>
-            {% endif %}
-            {% if resultado.excedente_anual_kwh > 0 %}
-            <li>
-                <span>
-                    Excedente de geração (não vira economia)
-                    <span class="tip">
-                        <button type="button" class="tip-btn" aria-label="O que acontece com essa energia?">i</button>
-                        <span class="tip-bubble">Energia que o sistema gera a mais do que a casa consome ao longo de um ano inteiro. Ela é injetada na rede e vira crédito, mas como não há consumo para abater, tende a expirar sem se transformar em dinheiro. Está aqui para você saber que ela existe{% if resultado.arranjo_subiu_pelo_minimo_eletrico %} — neste caso não há como evitá-la, porque um sistema menor não funcionaria eletricamente.{% else %}. Ela vem do arredondamento para cima: com um painel a menos, o sistema já não cobriria todo o consumo que dá para abater. E serve de folga para quando o sistema gerar menos que o previsto (sombra, sujeira, desgaste). Um sistema um pouco menor pode se pagar um pouco antes, mas deixa parte da conta sem abater — é uma escolha para conversar com o instalador.{% endif %}</span>
-                    </span>
-                </span>
-                <span class="valor">{{ br(resultado.excedente_anual_kwh, 0) }} kWh/ano (+{{ br(resultado.excedente_percentual, 1) }}%)</span>
-            </li>
-            {% endif %}
-            <li><span>Economia por mês em {{ resultado.retorno_por_ano[0].ano }}</span><span class="valor">R$ {{ br(resultado.economia_mensal_media) }}</span></li>
-            <li class="destaque"><span>Economia em 12 meses, nas regras de {{ resultado.retorno_por_ano[0].ano }}</span><span class="valor">R$ {{ br(resultado.economia_anual) }}</span></li>
+            <li class="destaque"><span>Economia por mês em {{ resultado.retorno_por_ano[0].ano }}</span><span class="valor">R$ {{ br(resultado.economia_mensal_media, 0) }}</span></li>
+            <li><span>Economia em 12 meses, pelas regras de {{ resultado.retorno_por_ano[0].ano }}</span><span class="valor">R$ {{ br(resultado.economia_anual, 0) }}</span></li>
         </ul>
         {%- if resultado.economia_diminui %}
-        <p class="nota-exata">Nos próximos anos a economia por mês vai diminuir: até 2029 a lei aumenta a parte do Fio B cobrada sobre a energia compensada, e os painéis perdem um pouco de rendimento a cada ano. O quadro <strong>Investimento e retorno</strong>, mais abaixo, mostra a economia de cada ano.</p>
+        <p class="nota-exata">A economia por mês cai um pouco até 2029, porque a lei aumenta a cada ano a parte da tarifa que continua sendo cobrada de quem tem painéis.</p>
         {%- endif %}
-
         {#- FASE 1, PASSO 8 (02/10/2026) - OS DOIS CAMPOS OPCIONAIS NUM AVISO
             SO. Ate aqui este bloco avisava apenas o tipo de ligacao. Com a
             secao 3 do formulario nascendo FECHADA, deixar as cobrancas que nao
@@ -695,40 +680,6 @@
             </details>
         </div>
         {%- endif -%}
-        {% set falta_cobrancas = not resultado.cobrancas_nao_energia_reais %}
-        {% set falta_ligacao = resultado.tipo_ligacao and not resultado.tipo_ligacao_informado %}
-        {#- FASE 4, N1 (03/11/2026): terceiro dado opcional, o horario de uso. -#}
-        {% set falta_horario = resultado.simultaneidade_informada is defined and not resultado.simultaneidade_informada %}
-        {% set n_faltas = (1 if falta_cobrancas else 0) + (1 if falta_ligacao else 0) + (1 if falta_horario else 0) %}
-        {% if n_faltas > 0 %}
-        <div class="aviso-destaque" id="aviso-opcionais">
-            <p><strong>{% if n_faltas == 3 %}Três dados deixariam{% elif n_faltas == 2 %}Dois dados deixariam{% else %}Um dado deixaria{% endif %} este resultado mais preciso.</strong>
-            {% if n_faltas == 3 %}Os três são opcionais e ficam{% elif n_faltas == 2 %}Os dois são opcionais e ficam{% else %}Ele é opcional e fica{% endif %}
-            na seção 3 do formulário, em “Deixar o resultado mais preciso”.</p>
-            <details class="nota-mais">
-            <summary>Por que isso muda o resultado</summary>
-            <div>
-            {% if falta_cobrancas %}
-            <p><strong>Cobranças da conta que não são energia.</strong> Iluminação pública, taxa de
-            lixo, multa e juros não são energia, e os painéis não reduzem essa parte. Sem
-            descontá-la, o tempo de retorno aparece mais curto do que será.</p>
-            {% endif %}
-            {% if falta_ligacao %}
-            <p><strong>Tipo de ligação da sua casa.</strong> Esta estimativa considera
-            ligação bifásica, adotada quando o tipo não é informado. O tipo de ligação
-            define o valor mínimo da conta, que pode limitar a economia de quem consome
-            pouco. Ele está escrito na sua fatura.</p>
-            {% endif %}
-            {% if falta_horario %}
-            <p><strong>Em que horário a casa mais usa energia.</strong> Sem essa resposta,
-            a conta supõe que nada da energia dos painéis é usado na hora, o lado mais
-            conservador. A parte usada na hora economiza a tarifa inteira; por isso, quem
-            usa energia durante o dia tende a economizar mais do que o mostrado aqui.</p>
-            {% endif %}
-            </div>
-            </details>
-        </div>
-        {% endif %}
 
         {% if fatura_informada is defined and fatura_informada > 0 %}
         {% set escala_fatura = resultado.fatura_sem_solar_por_mes_reais.values() | list | max %}
@@ -867,7 +818,69 @@
         {% endif %}
 
         <details class="nota-mais nota-fontes">
-        <summary>De onde vêm o Fio B e as regras usadas</summary>
+        <summary>Detalhes da economia: tarifa, Fio B e regras usadas</summary>
+        <ul class="resultado-lista">
+            <li>
+                <span>
+                    Tarifa calculada
+                    <span class="tip">
+                        <button type="button" class="tip-btn" aria-label="De onde vem esse valor?">i</button>
+                        {#- PASSO 6 (01/10/2026): quando a pessoa informa as
+                            cobrancas que nao sao energia, o balao conta a
+                            conta inteira, com os dois valores. Em branco, o
+                            texto e exatamente o de antes. #}
+                        <span class="tip-bubble">Calculada dividindo {% if resultado.cobrancas_nao_energia_reais %}a parte de energia da sua conta (R$ {{ br(resultado.fatura_informada) }} menos R$ {{ br(resultado.cobrancas_nao_energia_reais) }} de cobranças que não são energia, o que dá R$ {{ br(resultado.valor_de_energia_reais) }}){% else %}o valor da fatura que você informou{% endif %} pelo consumo do mesmo período{% if resultado.tarifa_pelo_minimo %} — com uma exceção: o consumo dessa conta ({{ kwh_digitado(resultado.consumo_da_fatura_kwh) }} kWh) ficou abaixo do mínimo da distribuidora, e nesses meses a conta cobra o mínimo, então a divisão foi por {{ resultado.consumo_faturado_kwh | round | int }} kWh (veja o aviso logo abaixo){% endif %}. Reflete a tarifa real da sua distribuidora, já com impostos e bandeira tarifária incluídos — em vez de uma média genérica.</span>
+                    </span>
+                </span>
+                <span class="valor">R$ {{ br(resultado.tarifa_calculada) }}/kWh</span>
+            </li>
+            {%- if resultado.cobrancas_nao_energia_reais %}
+            <li>
+                <span>
+                    Cobranças descontadas, por não serem energia
+                    <span class="tip">
+                        <button type="button" class="tip-btn" aria-label="Por que esse valor foi descontado?">i</button>
+                        <span class="tip-bubble">Você informou que R$ {{ br(resultado.cobrancas_nao_energia_reais) }} da sua conta não são energia. Os painéis não reduzem essas cobranças — a de iluminação pública, por exemplo, é definida por lei do seu município, e a distribuidora apenas arrecada na fatura (art. 476 da Resolução ANEEL nº 1.000/2021). Por isso esse valor saiu da conta antes do cálculo da tarifa: sem o desconto, a economia apareceria maior do que será.</span>
+                    </span>
+                </span>
+                <span class="valor">− R$ {{ br(resultado.cobrancas_nao_energia_reais) }}</span>
+            </li>
+            {%- endif %}
+            <li>
+                <span>
+                    Energia que de fato abate sua conta
+                    <span class="tip">
+                        <button type="button" class="tip-btn" aria-label="Por que não é toda a energia gerada?">i</button>
+                        <span class="tip-bubble">{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %}São duas as razões para este número ser menor que a energia gerada. Primeira{% else %}Este número pode ser menor que a energia gerada. O motivo{% endif %}: {% if resultado.arranjo_subiu_pelo_minimo_eletrico %}o menor sistema que funciona eletricamente já gera mais do que a sua conta consegue abater (veja a explicação no quadro de dimensionamento){% else %}como não existe "meio painel", o sistema é arredondado para cima e costuma gerar um pouco mais do que a parte da sua conta que pode ser abatida{% endif %} — essa sobra vira crédito em kWh, que só tem valor se houver consumo para abater e expira em 60 meses (Lei nº 14.300/2022).{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %} Segunda: a conta não pode ficar abaixo do valor mínimo cobrado pela distribuidora, e no seu caso isso impede de abater a parte mostrada na linha seguinte.{% endif %} A economia considera apenas a energia que de fato sai da sua fatura.</span>
+                    </span>
+                </span>
+                <span class="valor">{{ br(resultado.energia_compensavel_anual_kwh, 0) }} kWh/ano</span>
+            </li>
+            {% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %}
+            <li>
+                <span>
+                    Consumo que o mínimo da distribuidora não deixa abater
+                    <span class="tip">
+                        <button type="button" class="tip-btn" aria-label="Que mínimo é esse?">i</button>
+                        <span class="tip-bubble">Toda conta de luz tem um valor mínimo, o <strong>custo de disponibilidade</strong>, que remunera a rede que continua à sua disposição. Ele equivale a 30 kWh na ligação monofásica, 50 kWh na bifásica e 100 kWh na trifásica (art. 291 da Resolução ANEEL nº 1.000/2021){% if resultado.tipo_ligacao %}; este cálculo usou <strong>{{ resultado.piso_disponibilidade_kwh | round | int }} kWh/mês</strong>, da ligação {{ nomes_ligacao.get(resultado.tipo_ligacao, resultado.tipo_ligacao) }}{% endif %}. Para quem tem painéis, a parcela Fio B cobrada sobre a energia compensada já conta para atingir esse mínimo (art. 655-I da mesma resolução). Quando ela não basta — o que acontece em consumo baixo —, a conta para no mínimo, e esta parte do consumo deixa de ser abatida.</span>
+                    </span>
+                </span>
+                <span class="valor">{{ br(resultado.piso_anual_kwh, 0) }} kWh/ano</span>
+            </li>
+            {% endif %}
+            {% if resultado.excedente_anual_kwh > 0 %}
+            <li>
+                <span>
+                    Excedente de geração (não vira economia)
+                    <span class="tip">
+                        <button type="button" class="tip-btn" aria-label="O que acontece com essa energia?">i</button>
+                        <span class="tip-bubble">Energia que o sistema gera a mais do que a casa consome ao longo de um ano inteiro. Ela é injetada na rede e vira crédito, mas como não há consumo para abater, tende a expirar sem se transformar em dinheiro. Está aqui para você saber que ela existe{% if resultado.arranjo_subiu_pelo_minimo_eletrico %} — neste caso não há como evitá-la, porque um sistema menor não funcionaria eletricamente.{% else %}. Ela vem do arredondamento para cima: com um painel a menos, o sistema já não cobriria todo o consumo que dá para abater. E serve de folga para quando o sistema gerar menos que o previsto (sombra, sujeira, desgaste). Um sistema um pouco menor pode se pagar um pouco antes, mas deixa parte da conta sem abater — é uma escolha para conversar com o instalador.{% endif %}</span>
+                    </span>
+                </span>
+                <span class="valor">{{ br(resultado.excedente_anual_kwh, 0) }} kWh/ano (+{{ br(resultado.excedente_percentual, 1) }}%)</span>
+            </li>
+            {% endif %}
+        </ul>
         <p class="nota-fonte">
             Base regulatória do cálculo: considera
             {{ br(resultado.percentual_fio_b * 100, 0) }}% de cobrança do Fio B sobre a
@@ -1006,36 +1019,16 @@
             </span>
         </h2>
         <ul class="resultado-lista">
-            <li>
-                <span>
-                    Equipamentos
-                    <span class="tip">
-                        <button type="button" class="tip-btn" aria-label="O que entra em equipamentos?">i</button>
-                        <span class="tip-bubble">Painéis, inversor, estrutura de fixação no telhado, cabeamento e proteção elétrica — o chamado kit fotovoltaico, tudo o que é material.</span>
-                    </span>
-                </span>
-                <span class="valor">R$ {{ br(resultado.custo_equipamentos) }}</span>
-            </li>
-            <li>
-                <span>
-                    Instalação, projeto e homologação
-                    <span class="tip">
-                        <button type="button" class="tip-btn" aria-label="O que está incluído aqui?">i</button>
-                        <span class="tip-bubble">Mão de obra de instalação, projeto elétrico com ART (a Anotação de Responsabilidade Técnica do engenheiro), e todo o processo junto à distribuidora até o sistema ser aprovado e ligado. Costuma custar quase o mesmo que o material — e, em sistemas pequenos, até mais, porque boa parte desse trabalho não diminui com o tamanho do sistema.</span>
-                    </span>
-                </span>
-                <span class="valor">R$ {{ br(resultado.custo_servico_instalacao) }}</span>
-            </li>
-            <li class="destaque"><span>Custo total do sistema</span><span class="valor">R$ {{ br(resultado.custo_total_sistema) }}</span></li>
+            <li class="destaque"><span>Custo total do sistema</span><span class="valor">R$ {{ br(resultado.custo_total_sistema, 0) }}</span></li>
             <li class="destaque">
                 <span>
-                    Tempo de retorno (payback)
+                    Tempo de retorno
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="O que é payback?">i</button>
                         <span class="tip-bubble">Tempo necessário para que a economia acumulada com o sistema, menos a manutenção, iguale o valor total investido — a partir daí, a economia de cada mês é ganho seu.</span>
                     </span>
                 </span>
-                <span class="valor">{{ br(resultado.payback_meses, 1) }} meses (~{{ br(resultado.payback_meses / 12, 1) }} anos)</span>
+                <span class="valor">{% if texto_retorno != "menos de meio ano" %}cerca de {% endif %}{{ texto_retorno }} (em {{ resultado.retorno_por_ano[-1].ano }})</span>
             </li>
         </ul>
         {#- ITENS 28 E 11 (06/10/2026): o retorno passou a ser MES A MES no motor
@@ -1044,7 +1037,9 @@
             cada ano ao lado: a tabela abaixo e lida pronta do motor
             (retorno_por_ano) - nenhuma conta financeira aqui (regra do T2b). A
             ultima linha e o ano em que o acumulado passa o custo. -#}
-        <div class="tabela-wrap" style="margin-top: 16px;">
+        <details class="nota-mais">
+        <summary>Ver a conta ano a ano e como ela é feita</summary>
+        <div class="tabela-wrap" style="margin-top: 12px;">
             <table class="tabela-geracao tabela-retorno">
                 <tr>
                     <th>Ano</th>
@@ -1064,16 +1059,15 @@
                 {% endfor %}
             </table>
         </div>
-        <p class="nota-exata">Conta exata da plataforma, com centavos, para conferir — não é um preço. O sistema se paga quando a economia somada, menos a manutenção, alcança o custo, o que acontece em {{ resultado.retorno_por_ano[-1].ano }}. No resumo do topo os valores aparecem arredondados, porque um orçamento real pode vir acima ou abaixo da média nacional.</p>
-        <details class="nota-mais">
-            <summary>Como o retorno é calculado</summary>
-            <div>
+        <p class="nota-exata">Conta exata da plataforma, com centavos, para conferir — não é um preço. O sistema se paga quando a economia somada, menos a manutenção, alcança o custo: {{ br(resultado.payback_meses, 1) }} meses depois da instalação, em {{ resultado.retorno_por_ano[-1].ano }}.</p>
+            <div class="fora-do-resumo">
+            <h3 class="sub-dobra">Como o retorno é calculado</h3>
             <p>A economia, menos a manutenção, é somada mês a mês, a partir de {{ ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"][resultado.retorno_inicio_mes - 1] }} de {{ resultado.retorno_inicio_ano }}, até alcançar o custo do sistema. Ela muda de um ano para o outro por dois motivos:</p>
             <ul>
                 {% if resultado.percentual_fio_b_informado %}
                 <li><strong>Fio B:</strong> nesta simulação o percentual do Fio B foi informado diretamente e vale para todos os anos.</li>
                 {% else %}
-                <li><strong>Fio B:</strong> a Lei nº 14.300/2022 (art. 27) aumenta todo ano a parte do Fio B cobrada: 60% em 2026, 75% em 2027 e 90% em 2028. De 2029 em diante, a regra (art. 17) ainda não foi definida pela ANEEL; usamos 100%, como premissa provisória.</li>
+                <li><strong>Fio B:</strong> a Lei nº 14.300/2022 (art. 27) aumenta todo ano a parte do Fio B cobrada: 60% em 2026, 75% em 2027 e 90% em 2028. De 2029 em diante, a regra (art. 17) ainda não foi definida pela ANEEL; a conta principal usa 100%, e o quadro “No longo prazo” mostra também o pior caso.</li>
                 {% endif %}
                 <li><strong>Desgaste dos painéis:</strong> cerca de 0,5% de rendimento a menos por ano (Manual de Engenharia para Sistemas Fotovoltaicos, CEPEL/CRESESB, 2014). No começo quase não pesa, porque o sistema costuma gerar um pouco mais do que a conta deixa abater.</li>
             </ul>
@@ -1104,6 +1098,28 @@
 
         <details class="nota-mais nota-fontes">
         <summary>De onde vem o preço</summary>
+        <ul class="resultado-lista">
+            <li>
+                <span>
+                    Equipamentos
+                    <span class="tip">
+                        <button type="button" class="tip-btn" aria-label="O que entra em equipamentos?">i</button>
+                        <span class="tip-bubble">Painéis, inversor, estrutura de fixação no telhado, cabeamento e proteção elétrica — o chamado kit fotovoltaico, tudo o que é material.</span>
+                    </span>
+                </span>
+                <span class="valor">R$ {{ br(resultado.custo_equipamentos) }}</span>
+            </li>
+            <li>
+                <span>
+                    Instalação, projeto e homologação
+                    <span class="tip">
+                        <button type="button" class="tip-btn" aria-label="O que está incluído aqui?">i</button>
+                        <span class="tip-bubble">Mão de obra de instalação, projeto elétrico com ART (a Anotação de Responsabilidade Técnica do engenheiro), e todo o processo junto à distribuidora até o sistema ser aprovado e ligado. Costuma custar quase o mesmo que o material — e, em sistemas pequenos, até mais, porque boa parte desse trabalho não diminui com o tamanho do sistema.</span>
+                    </span>
+                </span>
+                <span class="valor">R$ {{ br(resultado.custo_servico_instalacao) }}</span>
+            </li>
+        </ul>
         <p class="nota-fonte">
             Preços de referência: {{ textos_do_motor.get(resultado.referencia_precos, resultado.referencia_precos) }}. Valor médio nacional de
             sistemas fotovoltaicos residenciais instalados, equivalente a
@@ -1132,7 +1148,7 @@
             <tr class="sub"><td>Troca do inversor, depois de {{ resultado.troca_inversor_apos_anos }} anos</td><td class="v">R$ {{ br(resultado.troca_inversor_reais, 0) }}</td></tr>
         </table>
         {% if lpp %}
-        <p class="alt"><strong>Por que dois resultados?</strong> Em 2029 muda a regra de quanto a conta de luz cobra de quem tem painéis, e ainda não se sabe como ela vai ficar. As contas desta página supõem que a cobrança continue só no Fio B, como em 2028. No pior caso que a lei permite, a economia em 25 anos cairia para cerca de <strong>R$ {{ centenas(lpp.economia) }}</strong>{% if lpp.payback_meses > 300 %} e o sistema não se pagaria em 25 anos{% elif pior_muda %}, o sistema se pagaria em cerca de {{ meio_ano(lpp.payback_meses) }}{% if lpp.tir is not none %} e renderia cerca de {{ br(lpp.tir * 100, 1 if lpp.tir < 0.1 else 0) }}% ao ano{% endif %}{% else %}; o tempo de retorno não muda, porque o sistema se paga antes de 2029{% endif %}.</p>
+        <p class="alt"><strong>E se a regra de 2029 pesar mais?</strong> Esta conta supõe a regra mais leve. No pior caso que a lei permite, a economia em 25 anos cairia para cerca de <strong>R$ {{ centenas(lpp.economia) }}</strong>{% if lpp.payback_meses > 300 %} e o sistema não se pagaria em 25 anos{% elif pior_muda %}, o sistema se pagaria em cerca de {{ meio_ano(lpp.payback_meses) }}{% if lpp.tir is not none %} e renderia cerca de {{ br(lpp.tir * 100, 1 if lpp.tir < 0.1 else 0) }}% ao ano{% endif %}{% else %}; o tempo de retorno não muda, porque o sistema se paga antes de 2029{% endif %}.</p>
         <details class="nota-mais">
             <summary>Entenda a mudança de 2029</summary>
             <div>
