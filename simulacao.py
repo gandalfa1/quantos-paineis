@@ -74,6 +74,9 @@ from calculo import (
     # importado: a conta simples segue indo para a tela como referencia.
     retorno_mes_a_mes,
     DEGRADACAO_ANUAL_MODULOS,
+    # Fase 4, N1 (03/11/2026): energia usada na hora (pergunta opcional).
+    simultaneidade_do_perfil,
+    economia_do_ano_com_simultaneidade,
     # NOTA T15: "potencia_inversor" e "potencia_inversor_comercial" deixaram
     # de ser chamadas DIRETAMENTE aqui. Elas continuam sendo a unica
     # definicao do encaixe na grade comercial (T4) - agora sao chamadas por
@@ -257,7 +260,8 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
             piso_disponibilidade_kwh=None,
             tipo_ligacao=None,
             consumo_por_mes_kwh=None, consumo_da_fatura_kwh=None,
-            cobrancas_nao_energia_reais=None, distribuidora_cnpj=None):
+            cobrancas_nao_energia_reais=None, distribuidora_cnpj=None,
+            perfil_simultaneidade=None):
     """
     Funcao principal do protótipo: recebe os dados do usuario (o que vai
     vir do formulario do site) e devolve um dicionario com todos os
@@ -267,6 +271,12 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
     cobrancas_nao_energia_reais (opcional, passo 6, 01/10/2026): quanto do
     valor da conta informada NAO e energia. Ver o bloco da Equacao 6 mais
     abaixo. Em branco (None ou 0), o calculo e exatamente o de antes.
+
+    perfil_simultaneidade (opcional, fase 4, N1, 03/11/2026): em que horario a
+    casa mais usa energia - "noite", "igual" ou "dia". Vira a fracao da
+    geracao usada na hora (calculo.simultaneidade_do_perfil). Muda SO a
+    economia, a fatura mes a mes e o retorno; o dimensionamento e o mesmo. Em
+    branco ("nao sei"), o calculo e exatamente o de antes.
     """
 
     # 0) perfil de consumo do ano
@@ -790,6 +800,24 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         parcela_fio_b_por_kwh,
     )
     economia_anual = economia_anual_estimada(energia_compensavel, economia_kwh)
+
+    # 5a) FASE 4, N1 (03/11/2026): ENERGIA USADA NA HORA. Quando a pessoa diz
+    # em que horario a casa mais usa energia, uma fracao da geracao deixa de
+    # ir para a rede: ela economiza a tarifa inteira, sem o Fio B, e reduz o
+    # consumo puxado da rede (sobre o qual valem o minimo e o teto do art.
+    # 655-I). As fracoes e as fontes estao em calculo.py, junto de
+    # SIMULTANEIDADE_POR_PERFIL. Sem resposta, a fracao e 0 e este bloco nao
+    # muda nada: economia e energia compensavel sao as de cima, bit a bit.
+    simultaneidade = simultaneidade_do_perfil(perfil_simultaneidade)
+    fracao_na_hora = simultaneidade["fracao"]
+    energia_usada_na_hora_anual = 0.0
+    if fracao_na_hora:
+        conta_na_hora = economia_do_ano_com_simultaneidade(
+            geracao_por_mes, consumo_por_mes_kwh, piso_disponibilidade_kwh,
+            tarifa, parcela_fio_b_por_kwh, fracao_na_hora)
+        economia_anual = conta_na_hora["economia"]
+        energia_compensavel = conta_na_hora["compensada_kwh"]
+        energia_usada_na_hora_anual = conta_na_hora["usada_na_hora_kwh"]
     economia_media_mensal = economia_anual / 12
 
     # Excedente estrutural de geracao: a parte que o sistema gera a mais do
@@ -812,6 +840,7 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         tarifa=tarifa,
         valor_economizado_kwh=economia_kwh,
         piso_disponibilidade_kwh=piso_disponibilidade_kwh,
+        simultaneidade=fracao_na_hora,
     )
     fatura_por_mes = serie_faturas["fatura_por_mes"]
     fatura_sem_solar_por_mes = serie_faturas["fatura_sem_solar_por_mes"]
@@ -850,7 +879,8 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
     retorno = retorno_mes_a_mes(
         custo_total, geracao_anual, consumo_por_mes_kwh,
         piso_disponibilidade_kwh, tarifa, fio_b,
-        percentual_fixo=None if ano_fio_b is not None else percentual_fio_b)
+        percentual_fixo=None if ano_fio_b is not None else percentual_fio_b,
+        simultaneidade=fracao_na_hora, geracao_por_mes_kwh=geracao_por_mes)
     payback = retorno["payback_meses"]
 
     # 6b) GUARDA DE VIABILIDADE, PARTE 2 (correcao T18, Achado E)
@@ -1032,6 +1062,15 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         "excedente_anual_kwh": excedente_anual_kwh,
         "excedente_percentual": excedente_percentual,
         "valor_economizado_por_kwh": economia_kwh,
+        # --- fase 4, N1 (03/11/2026): energia usada na hora ---
+        # simultaneidade_informada False = a pessoa nao respondeu e a conta e
+        # a de 0% (a de antes); a tela diz isso. Com resposta,
+        # energia_compensavel_anual_kwh passa a ser so a parte que vai e volta
+        # pela rede, e energia_usada_na_hora_anual_kwh a parte usada na hora.
+        "simultaneidade_perfil": simultaneidade["perfil"],
+        "simultaneidade_fracao": fracao_na_hora,
+        "simultaneidade_informada": simultaneidade["informado"],
+        "energia_usada_na_hora_anual_kwh": energia_usada_na_hora_anual,
         # --- novos campos da correcao T3a (Fio B pelo ano corrente) ---
         # ano_referencia_fio_b vem None quando o percentual foi informado
         # na chamada; a tela so deve exibir o ano quando ele existir.

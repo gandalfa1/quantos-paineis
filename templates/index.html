@@ -289,7 +289,7 @@
                         <p class="hint">A mais comum é a <strong>iluminação pública</strong> — na conta ela vem numa linha própria, terminando em “municipal” ou “distrital” (item <strong>⑤</strong> do exemplo). Não achou nenhuma? Deixe em branco.</p>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 0;">
+                    <div class="form-group">
                         <label for="ligacao">
                             Tipo de ligação da sua casa
                             <span class="tip">
@@ -304,6 +304,29 @@
                             <option value="trifasica">Trifásica</option>
                         </select>
                         <p class="hint">Está escrito na sua fatura, geralmente na parte de cima, perto do endereço — é o item <strong>④</strong> do exemplo. Se não encontrar, pode deixar como está: usamos a ligação bifásica e avisamos isso no resultado.</p>
+                    </div>
+
+                    {#- FASE 4, N1 (03/11/2026): em que horario a casa mais usa
+                        energia. Opcional, como o tipo de ligacao. Vazio = 0% de
+                        energia usada na hora (a conta de antes). Cada opcao vira
+                        uma fracao pelo lado baixo das medicoes publicadas - as
+                        fontes estao no calculo.py (SIMULTANEIDADE_POR_PERFIL) e
+                        na pagina Metodologia. Muda so a economia e o retorno. -#}
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="horario">
+                            Em que horário a sua casa mais usa energia?
+                            <span class="tip">
+                                <button type="button" class="tip-btn" aria-label="Por que o horário importa?">i</button>
+                                <span class="tip-bubble">Enquanto há sol, a energia dos painéis vai direto para os aparelhos ligados naquela hora (geladeira, ar-condicionado, chuveiro). Essa parte nem passa pela rede e economiza a <strong>tarifa inteira</strong>. A que sobra vai para a rede e volta como crédito, e sobre ela a distribuidora ainda cobra uma parte da tarifa, o Fio B (Lei nº 14.300/2022). Por isso quem usa mais energia de dia economiza um pouco mais. O número de painéis não muda. As porcentagens que usamos vêm de medições em casas com painéis, sempre pelo lado mais baixo.</span>
+                            </span>
+                        </label>
+                        <select id="horario" name="horario">
+                            <option value="" selected>Não sei</option>
+                            <option value="noite">Quase tudo à noite</option>
+                            <option value="igual">Igual de dia e de noite</option>
+                            <option value="dia">Bastante de dia</option>
+                        </select>
+                        <p class="hint">“Dia” é enquanto há sol. <strong>Quase tudo à noite:</strong> não fica ninguém em casa durante o dia. <strong>Bastante de dia:</strong> tem gente em casa o dia todo, ar-condicionado ou piscina ligados à tarde. Na dúvida, deixe “Não sei”: calculamos como se nada fosse usado na hora, e a sua economia tende a ser um pouco maior do que a mostrada.</p>
                     </div>
                 </div>
             </details>
@@ -1162,8 +1185,10 @@
         function abrirSePreenchido() {
             var cobrancas = document.getElementById('cobrancas');
             var ligacao = document.getElementById('ligacao');
+            var horario = document.getElementById('horario');
             var tem = (cobrancas && cobrancas.value.trim() !== '')
-                   || (ligacao && ligacao.value !== '');
+                   || (ligacao && ligacao.value !== '')
+                   || (horario && horario.value !== '');
             if (tem) { bloco.open = true; }
         }
 

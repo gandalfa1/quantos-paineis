@@ -673,10 +673,13 @@
         {%- endif -%}
         {% set falta_cobrancas = not resultado.cobrancas_nao_energia_reais %}
         {% set falta_ligacao = resultado.tipo_ligacao and not resultado.tipo_ligacao_informado %}
-        {% if falta_cobrancas or falta_ligacao %}
+        {#- FASE 4, N1 (03/11/2026): terceiro dado opcional, o horario de uso. -#}
+        {% set falta_horario = resultado.simultaneidade_informada is defined and not resultado.simultaneidade_informada %}
+        {% set n_faltas = (1 if falta_cobrancas else 0) + (1 if falta_ligacao else 0) + (1 if falta_horario else 0) %}
+        {% if n_faltas > 0 %}
         <div class="aviso-destaque" id="aviso-opcionais">
-            <p><strong>{% if falta_cobrancas and falta_ligacao %}Dois dados deixariam{% else %}Um dado deixaria{% endif %} este resultado mais preciso.</strong>
-            {% if falta_cobrancas and falta_ligacao %}Os dois são opcionais e ficam{% else %}Ele é opcional e fica{% endif %}
+            <p><strong>{% if n_faltas == 3 %}Três dados deixariam{% elif n_faltas == 2 %}Dois dados deixariam{% else %}Um dado deixaria{% endif %} este resultado mais preciso.</strong>
+            {% if n_faltas == 3 %}Os três são opcionais e ficam{% elif n_faltas == 2 %}Os dois são opcionais e ficam{% else %}Ele é opcional e fica{% endif %}
             na seção 3 do formulário, em “Deixar o resultado mais preciso”.</p>
             <details class="nota-mais">
             <summary>Por que isso muda o resultado</summary>
@@ -691,6 +694,12 @@
             ligação bifásica, adotada quando o tipo não é informado. O tipo de ligação
             define o valor mínimo da conta, que pode limitar a economia de quem consome
             pouco. Ele está escrito na sua fatura.</p>
+            {% endif %}
+            {% if falta_horario %}
+            <p><strong>Em que horário a casa mais usa energia.</strong> Sem essa resposta,
+            a conta supõe que nada da energia dos painéis é usado na hora, o lado mais
+            conservador. A parte usada na hora economiza a tarifa inteira; por isso, quem
+            usa energia durante o dia tende a economizar mais do que o mostrado aqui.</p>
             {% endif %}
             </div>
             </details>
@@ -842,6 +851,24 @@
             e, como valor mínimo da conta, o custo de disponibilidade de {{ resultado.piso_disponibilidade_kwh | round | int }} kWh/mês
             da ligação {{ nomes_ligacao.get(resultado.tipo_ligacao, resultado.tipo_ligacao) }} (arts. 291 e 655-I da Resolução ANEEL nº 1.000/2021){% endif %}.
         </p>
+        {#- FASE 4, N1 (03/11/2026): a premissa da energia usada na hora, sempre
+            escrita, respondida ou nao. So le o que o simulacao.py devolve. -#}
+        {% if resultado.simultaneidade_fracao is defined %}
+        <p class="nota-fonte">
+            Energia usada na hora:
+            {%- if resultado.simultaneidade_informada %}
+            você disse que a casa usa energia
+            {% if resultado.simultaneidade_perfil == "noite" %}quase toda à noite{% elif resultado.simultaneidade_perfil == "igual" %}igual de dia e de noite{% else %}bastante durante o dia{% endif %},
+            então consideramos que {{ br(resultado.simultaneidade_fracao * 100, 0) }}% da energia gerada é usada no mesmo
+            instante (cerca de {{ br(resultado.energia_usada_na_hora_anual_kwh, 0) }} kWh no ano). Essa parte economiza a
+            tarifa inteira, sem o Fio B (ANEEL, Relatório de AIR nº 0004/2018, item 60). O percentual fica no lado baixo
+            das medições em casas com painéis (ANEEL e CPFL, 2018; EPE, 2023; Dilli e Brito, 2025).
+            {%- else %}
+            não informada. Consideramos que nada é usado na hora (0%), que é o lado mais conservador: em casas com
+            painéis, as medições encontram em média de 34% a 39%, e a economia real tende a ser um pouco maior.
+            {%- endif %}
+        </p>
+        {% endif %}
 
         {#- FASE 1, PASSO 3 (30/09/2026) - ITEM 23 DO BACKLOG: mostrar o Fio B
             que entrou na conta. Auditabilidade, nao enfeite. So ESCREVE o que

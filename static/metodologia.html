@@ -76,6 +76,7 @@
 <li><strong>Distribuidora</strong>, só quando o município tem mais de uma. Se você não informar, a plataforma usa a de maior Fio B, que dá a menor economia.</li>
 <li><strong>Tipo de ligação</strong> (monofásica, bifásica ou trifásica). Esse campo é opcional. Se você não informar, a plataforma considera a ligação <strong>bifásica</strong> e avisa isso na tela do resultado.</li>
 <li><strong>Cobranças da conta que não são energia</strong> (iluminação pública, taxa de lixo, multa, juros, parcelamento). Opcional; se você não informar, a tela do resultado avisa que a economia pode sair otimista.</li>
+<li><strong>Horário em que a casa mais usa energia</strong> (quase tudo à noite, igual de dia e de noite, ou bastante de dia). Opcional; se você não informar, a plataforma considera que nada é usado na hora, o lado mais conservador.</li>
 </ul>
 <p>Você não precisa dar nome, e-mail nem fazer cadastro.</p>
 </div>
@@ -163,6 +164,7 @@
 <p><strong>Geração de cada mês:</strong> potência dos painéis × horas de sol do mês × 0,80 × dias do mês. A plataforma considera <strong>sempre os painéis deitados (na horizontal)</strong>, porque não pergunta a posição do telhado. Num telhado inclinado e virado para o norte, a geração tende a ser maior (veja a página <a href="/limitacoes"><strong>Limitações</strong></a>). (Eq. 8)</p>
 </li>
 <li><strong>Economia:</strong> a plataforma pega o menor valor entre a geração do ano e o consumo que dá para abater, e multiplica pelo quanto cada kWh economiza. A conta é feita no ano, e não mês a mês, porque a energia que sobra num mês vira crédito que vale por 60 meses (Lei nº 14.300/2022, art. 13). (Eq. 9)</li>
+<li><strong>Energia usada na hora:</strong> quando você responde em que horário a casa mais usa energia, uma parte da geração (10%, 30% ou 39%) é tratada como usada no mesmo instante. Essa parte economiza a tarifa inteira, sem o Fio B (ANEEL, Relatório de AIR nº 0004/2018), e diminui o consumo puxado da rede, sobre o qual valem o mínimo da conta e o limite do que dá para abater. O resto da geração vai para a rede e segue a conta do passo anterior. Os percentuais ficam no lado baixo das medições publicadas (ANEEL, 2018; EPE, 2023; Dilli e Brito, 2025), e a resposta não muda o número de painéis. Sem resposta, vale 0%, e a conta é exatamente a da Eq. 9. Este passo veio depois da entrega do TCC.</li>
 <li><strong>Preço:</strong> os preços médios da Greener, ligados por retas entre 2, 4, 8, 12 e 30 kWp. (Eq. 10)</li>
 <li><strong>Tempo de retorno:</strong> a plataforma soma a economia <strong>mês a mês</strong>, a partir do mês da simulação, até ela alcançar o preço do sistema. Cada mês usa o percentual do Fio B do seu ano (passo 3), e a geração perde 0,5% por ano com o desgaste dos painéis (Pinho e Galdino, 2014). A tarifa fica constante, e a conta não inclui juros, manutenção nem troca de peças. Tempos acima de 25 anos não são mostrados, porque 25 anos é o prazo da garantia de desempenho dos painéis. No artigo do TCC, o retorno era a conta simples, o preço dividido pela economia de um mês (Eq. 11); o cálculo mês a mês veio depois da entrega.</li>
 </ol>
@@ -259,6 +261,7 @@
 <h3>Referências</h3>
 <ul>
 <li>ABNT. NBR 16690: instalações elétricas de arranjos fotovoltaicos: requisitos de projeto. 2019.</li>
+<li>ANEEL. Relatório de Análise de Impacto Regulatório nº 0004/2018-SRD/SCG/SMA/ANEEL: revisão das regras aplicáveis à micro e minigeração distribuída. Brasília, 6 dez. 2018.</li>
 <li>ANEEL. Resolução Normativa nº 1.000, de 7 de dezembro de 2021.</li>
 <li>ANEEL. Componentes tarifárias. Portal de Dados Abertos, 2026. Licença ODbL.</li>
 <li>ANEEL. Indicadores coletivos de continuidade (DEC e FEC). Portal de Dados Abertos, 2026. Licença ODbL.</li>
@@ -266,6 +269,8 @@
 <li>BAARS, A. Inverters for high-current modules: the great IDC max misconception. Sunny: SMA Corporate Blog, 2022.</li>
 <li>BRASIL. Lei nº 14.300, de 6 de janeiro de 2022.</li>
 <li>COSTA, F. F. A. et al. Avaliação do payback em sistemas fotovoltaicos on-grid para consumidores residenciais grupo B1 sob a Lei 14300/2022. Revista Brasileira de Energia Solar, v. 16, n. 2, 2025.</li>
+<li>DILLI, M. A.; BRITO, B. H. Análise do fator de simultaneidade em sistemas fotovoltaicos para prossumidores com diferentes padrões de consumo. Revista Sítio Novo, Palmas, v. 9, e1578, 2025.</li>
+<li>EPE. Nota Técnica DEA-SEE 009/2023: aprimoramento na metodologia de estimação da geração de micro e minigeradores fotovoltaicos distribuídos. 2023.</li>
 <li>GREENER. Estudo estratégico: mercado fotovoltaico, referente ao ano de 2025. Março de 2026.</li>
 <li>NASA. POWER: Prediction Of Worldwide Energy Resources. Climatology API, v2.10.0.</li>
 <li>OpenStreetMap / Nominatim. © OpenStreetMap contributors, licença ODbL.</li>

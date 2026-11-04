@@ -1099,12 +1099,141 @@ def economia_anual_estimada(energia_compensavel_anual_kwh, valor_economizado_kwh
 
 
 # ---------------------------------------------------------------------
+# ENERGIA USADA NA HORA (fase 4, item N1, 03-04/11/2026) - "fator de
+# simultaneidade"
+# ---------------------------------------------------------------------
+# O QUE MUDA. Ate aqui o motor supunha que TODA a energia gerada ia para a
+# rede e voltava como credito, pagando a parcela do Fio B (Lei 14.300/2022,
+# art. 27). Na pratica, parte dela e usada pela casa no mesmo instante em que
+# e gerada (geladeira, ar-condicionado, chuveiro de dia): essa parte nem passa
+# pelo medidor, e por isso economiza a tarifa INTEIRA, sem Fio B. A ANEEL diz
+# isso com todas as letras: a energia gerada simultaneamente ao consumo "se
+# traduz como uma simples reducao do consumo" e e valorada por todas as
+# componentes da tarifa (Relatorio de AIR n. 0004/2018-SRD/SCG/SMA/ANEEL, de
+# 06/12/2018, fl. 20, item 60).
+#
+# A PERGUNTA DA TELA E OPCIONAL. Em branco ("nao sei") vale 0%, que e
+# exatamente a conta de antes deste item - o lado conservador. Quem responde
+# escolhe uma rotina em palavras, e cada rotina vira uma fracao da GERACAO
+# usada na hora, sempre pelo lado baixo das medicoes publicadas (decisao da
+# aluna, 03/11/2026: "otimismo nao pode entrar"):
+#   "noite"  10% - grupo "noturno" de Dilli e Brito (2025): media 20%, minimo
+#                  medido 8%; programa Bonus Fotovoltaico da Celesc (1.250
+#                  casas, Renewable Energy v. 187, 2022): abaixo de 20%.
+#   "igual"  30% - grupo "integral" de Dilli e Brito (2025): minimo 29%, media
+#                  39%; EPE, NT DEA-SEE 009/2023 (596 casas): media 34%.
+#   "dia"    39% - media MEDIDA pela ANEEL no P&D Telhados Solares
+#                  Unicamp-CPFL (231 sistemas, 1 ano): 38,92% (AIR 0004/2018,
+#                  Tab. 6, fl. 30); grupo "diurno" de Dilli e Brito (2025):
+#                  minimo 44%, media 60%.
+# DILLI, M. A.; BRITO, B. H. Analise do fator de simultaneidade em sistemas
+# fotovoltaicos para prossumidores com diferentes padroes de consumo. Revista
+# Sitio Novo, Palmas, v. 9, e1578, 2025. DOI 10.47236/2594-7036.2025.v9.1578
+# (86 sistemas no Tocantins, perfil declarado pelo dono, como na nossa tela).
+# Teto de coerencia: a CEMIG mediu 47% a 55% do consumo residencial entre 6h e
+# 18h (Metodologia MicroGD, 2024): ninguem usa na hora mais do que consome
+# enquanto ha sol, e as tres fracoes ficam abaixo disso.
+#
+# O QUE NAO MUDA: o numero de paineis, a potencia e o inversor. A fracao entra
+# so na economia, na fatura mes a mes e no retorno. Medido em 03/11/2026
+# (claude/n1_medicao/medir_fs.py no Project): com 39%, em ~5% dos casos o
+# ultimo painel quase nao rende no 1o ano, mas rende em 25 anos (minimo de
+# ~R$ 800, mediana ~R$ 7 mil), porque a cobranca do Fio B sobe ate 2029. E uma
+# resposta aproximada nao deve encolher o sistema: quem errar para mais ficaria
+# com sistema pequeno de forma permanente.
+#
+# A REGRA DO MINIMO CONTINUA VALENDO MES A MES (art. 655-I da REN ANEEL
+# 1.000/2021): a energia usada na hora reduz o consumo puxado da rede, e e
+# sobre ESSE consumo que valem o minimo e o teto compensavel. Quando ela
+# derruba o consumo da rede para baixo do minimo, o minimo absorve o ganho -
+# a conta nunca fica abaixo dele. (A 1a versao da medicao esqueceu isso e
+# inflava os casos de consumo baixo; ver o registro da fase 4.)
+SIMULTANEIDADE_POR_PERFIL = {
+    "nao_sei": 0.0,
+    "noite": 0.10,
+    "igual": 0.30,
+    "dia": 0.39,
+}
+PERFIL_SIMULTANEIDADE_PADRAO = "nao_sei"
+
+
+def simultaneidade_do_perfil(perfil=None):
+    """
+    Traduz a resposta da tela ("noite", "igual", "dia" ou vazio) na fracao da
+    geracao usada na hora. Vazio ou desconhecido vira "nao_sei" (0%).
+
+    Devolve: perfil (o que foi usado), fracao e informado (False quando a
+    pessoa nao respondeu - a tela precisa dizer que a conta e a de 0%).
+    """
+    chave = (perfil or "").strip().lower()
+    if chave not in SIMULTANEIDADE_POR_PERFIL:
+        chave = PERFIL_SIMULTANEIDADE_PADRAO
+    return {
+        "perfil": chave,
+        "fracao": SIMULTANEIDADE_POR_PERFIL[chave],
+        "informado": chave != PERFIL_SIMULTANEIDADE_PADRAO,
+    }
+
+
+def economia_do_ano_com_simultaneidade(geracao_por_mes_kwh, consumo_por_mes_kwh,
+                                       piso_disponibilidade_kwh, tarifa,
+                                       parcela_fio_b_por_kwh, fracao):
+    """
+    Economia de 1 ano quando uma fracao da geracao e usada na hora.
+
+    geracao_por_mes_kwh e consumo_por_mes_kwh: listas (ou dicionarios com os
+    mesmos meses, na mesma ordem) de 12 valores.
+
+    Para cada mes m:
+      U_m  = min(fracao x G_m ; C_m)           usada na hora (tarifa inteira)
+      Cr_m = C_m - U_m                         consumo puxado da rede
+      teto_m = compensavel_do_mes(Cr_m, ...)   art. 655-I sobre o consumo da rede
+    No ano (o credito de 60 meses deixa o excedente de um mes abater outro, o
+    mesmo corte ANUAL da Equacao 8a):
+      E = min( soma(G_m - U_m) ; soma(teto_m) )   compensada (paga o Fio B)
+      e_m = E x teto_m / soma(teto_m)
+    Conta de cada mes, sem e com painel (arts. 290 e 655-I):
+      sem_m = max(C_m x T ; P x T)
+      com_m = max(P x T ; (Cr_m - e_m) x T + e_m x f)
+    economia = soma(sem_m - com_m)
+
+    Com fracao 0 o resultado e o da Equacao 8a x Equacao 7 (o motor de antes);
+    o simulacao.py nem chama esta funcao nesse caso, para o resultado de quem
+    nao responde a pergunta continuar identico bit a bit.
+    """
+    g = list(geracao_por_mes_kwh.values()) if isinstance(geracao_por_mes_kwh, dict) \
+        else list(geracao_por_mes_kwh)
+    c = list(consumo_por_mes_kwh.values()) if isinstance(consumo_por_mes_kwh, dict) \
+        else list(consumo_por_mes_kwh)
+    f = parcela_fio_b_por_kwh
+    minimo = piso_disponibilidade_kwh * tarifa
+    usada = [min(fracao * gm, max(cm, 0.0)) for gm, cm in zip(g, c)]
+    rede = [max(cm, 0.0) - um for cm, um in zip(c, usada)]
+    tetos = [compensavel_do_mes(rm, piso_disponibilidade_kwh, tarifa, f) for rm in rede]
+    soma_teto = sum(tetos)
+    injetada = sum(gm - um for gm, um in zip(g, usada))
+    compensada = max(min(injetada, soma_teto), 0.0)
+    sem, com = 0.0, 0.0
+    for cm, rm, tm in zip(c, rede, tetos):
+        em = compensada * tm / soma_teto if soma_teto > 0 else 0.0
+        sem += max(cm * tarifa, minimo)
+        com += max(minimo, (rm - em) * tarifa + em * f)
+    return {
+        "economia": sem - com,
+        "usada_na_hora_kwh": sum(usada),
+        "compensada_kwh": compensada,
+        "consumo_da_rede_kwh": sum(rede),
+    }
+
+
+# ---------------------------------------------------------------------
 # Equacao 8c (NOVA - correcao T2b) - Fatura mes a mes com saldo de creditos
 # (so para a tela; nao altera economia nem payback; nao numerada no artigo)
 # ---------------------------------------------------------------------
 def faturas_mensais_com_creditos(geracao_por_mes_kwh, consumo_por_mes_kwh, tarifa,
                                  valor_economizado_kwh,
-                                 piso_disponibilidade_kwh=0.0, max_ciclos=6):
+                                 piso_disponibilidade_kwh=0.0, max_ciclos=6,
+                                 simultaneidade=0.0):
     """
     Estima quanto a pessoa pagaria de luz em cada mes do ano, simulando o
     SALDO DE CREDITOS do Sistema de Compensacao de Energia Eletrica.
@@ -1173,15 +1302,29 @@ def faturas_mensais_com_creditos(geracao_por_mes_kwh, consumo_por_mes_kwh, tarif
 
         for mes in meses:
             consumo_mes = consumo_por_mes_kwh[mes]
+            geracao_mes = geracao_por_mes_kwh[mes]
+            # FASE 4, N1 (03/11/2026): a parte da geracao usada NA HORA sai
+            # do consumo puxado da rede e da energia injetada - e sobre o
+            # consumo da rede que valem o minimo e o teto compensavel. Com
+            # simultaneidade 0 (quem nao responde), nada aqui muda: o ramo
+            # abaixo nem e executado.
+            if simultaneidade:
+                usada_na_hora = min(simultaneidade * geracao_mes, max(consumo_mes, 0.0))
+                consumo_da_rede = max(consumo_mes, 0.0) - usada_na_hora
+                geracao_injetada = geracao_mes - usada_na_hora
+            else:
+                consumo_da_rede = consumo_mes
+                geracao_injetada = geracao_mes
             # CORRECAO T20: o quanto o mes pode compensar segue o art. 655-I
             # (a conta com compensacao nao fica abaixo do minimo em reais).
             consumo_compensavel = compensavel_do_mes(
-                consumo_mes, piso_disponibilidade_kwh, tarifa,
+                consumo_da_rede, piso_disponibilidade_kwh, tarifa,
                 tarifa - valor_economizado_kwh)
 
             # O que esta disponivel no mes: o que os paineis geraram AGORA
-            # mais o credito guardado dos meses anteriores.
-            disponivel = geracao_por_mes_kwh[mes] + saldo_creditos
+            # (menos o que a casa usou na hora) mais o credito guardado dos
+            # meses anteriores.
+            disponivel = geracao_injetada + saldo_creditos
             compensado = min(disponivel, consumo_compensavel)
             saldo_creditos = disponivel - compensado
 
@@ -1191,7 +1334,7 @@ def faturas_mensais_com_creditos(geracao_por_mes_kwh, consumo_por_mes_kwh, tarif
             # a conta com a compensacao.
             minimo_reais = piso_disponibilidade_kwh * tarifa
             fatura_sem_solar = max(consumo_mes * tarifa, minimo_reais)
-            fatura = max(consumo_mes * tarifa - (compensado * valor_economizado_kwh),
+            fatura = max(consumo_da_rede * tarifa - (compensado * valor_economizado_kwh),
                          minimo_reais)
 
             faturas_sem_solar[mes] = fatura_sem_solar
@@ -1341,7 +1484,8 @@ def retorno_mes_a_mes(custo_total, geracao_anual_kwh, consumo_por_mes_kwh,
                       piso_disponibilidade_kwh, tarifa, valor_fio_b,
                       inicio=None, percentual_fixo=None,
                       degradacao_anual=DEGRADACAO_ANUAL_MODULOS,
-                      meses_max=PAYBACK_MAXIMO_MESES):
+                      meses_max=PAYBACK_MAXIMO_MESES,
+                      simultaneidade=0.0, geracao_por_mes_kwh=None):
     """
     Retorno do investimento mes a mes, com a escalada do Fio B da Lei
     14.300/2022 e a degradacao dos modulos (ver o bloco acima).
@@ -1365,7 +1509,20 @@ def retorno_mes_a_mes(custo_total, geracao_anual_kwh, consumo_por_mes_kwh,
     Nunca levanta excecao por economia zero ou negativa: o retorno sai
     infinito e quem decide o que dizer e o simulacao.py (mesma regra de
     payback_meses).
+
+    simultaneidade (fase 4, N1): fracao da geracao usada na hora. Com ela
+    maior que zero, a economia de cada mes sai de
+    economia_do_ano_com_simultaneidade() (que precisa da geracao mes a mes,
+    geracao_por_mes_kwh, degradada do mesmo jeito que a geracao do ano). Com
+    zero, a conta e a de antes, linha por linha.
     """
+    if simultaneidade and not geracao_por_mes_kwh:
+        raise ValueError("retorno_mes_a_mes: com simultaneidade, a geracao mes a mes "
+                         "e obrigatoria (a regra do minimo e aplicada por mes)")
+    geracao_mensal = (list(geracao_por_mes_kwh.values())
+                      if isinstance(geracao_por_mes_kwh, dict)
+                      else list(geracao_por_mes_kwh or []))
+    economia_com_simultaneidade = {}   # (p, k) -> economia do ano
     if inicio is None:
         hoje = data_de_hoje()
         inicio = (hoje.year, hoje.month)
@@ -1398,7 +1555,15 @@ def retorno_mes_a_mes(custo_total, geracao_anual_kwh, consumo_por_mes_kwh,
                 consumo_anual, piso_disponibilidade_kwh, consumos, tarifa, f)
         k = t // 12
         geracao = geracao_anual_kwh * (1 - degradacao_anual) ** k
-        economia = max(min(geracao, teto_por_percentual[p]), 0.0) * (tarifa - f) / 12
+        if simultaneidade:
+            if (p, k) not in economia_com_simultaneidade:
+                fator = (1 - degradacao_anual) ** k
+                economia_com_simultaneidade[(p, k)] = economia_do_ano_com_simultaneidade(
+                    [gm * fator for gm in geracao_mensal], consumos,
+                    piso_disponibilidade_kwh, tarifa, f, simultaneidade)["economia"]
+            economia = economia_com_simultaneidade[(p, k)] / 12
+        else:
+            economia = max(min(geracao, teto_por_percentual[p]), 0.0) * (tarifa - f) / 12
         if payback == math.inf and economia > 0 and acumulado + economia >= custo_total:
             payback = t + (custo_total - acumulado) / economia
         acumulado += economia

@@ -202,6 +202,13 @@ def rota_simular():
     # aquele resultado nasceu de uma premissa e nao de um dado da pessoa.
     tipo_ligacao = (request.form.get("ligacao") or "").strip()
 
+    # Em que horario a casa mais usa energia (fase 4, N1, 03/11/2026). Campo
+    # OPCIONAL, como o tipo de ligacao: vazio ou "nao sei" vira 0% de energia
+    # usada na hora, que e exatamente a conta de antes. Qualquer valor fora da
+    # lista tambem vira "nao sei" (calculo.simultaneidade_do_perfil). Muda so
+    # a economia e o retorno; o dimensionamento continua o mesmo.
+    horario_uso = (request.form.get("horario") or "").strip()
+
     # Cobrancas da conta que NAO sao energia (passo 6, 01/10/2026). Campo
     # OPCIONAL: iluminacao publica, taxa de lixo, multa, juros e
     # parcelamento. Em branco, o calculo e o mesmo de antes. O motor desconta
@@ -273,6 +280,7 @@ def rota_simular():
         tipo_ligacao=tipo_ligacao,
         cobrancas_nao_energia_reais=cobrancas_nao_energia,
         distribuidora_cnpj=distribuidora_cnpj,
+        perfil_simultaneidade=horario_uso,
     )
 
     if "erro" in resultado:

@@ -223,8 +223,18 @@
 <details class="secao-sanfona">
     <summary><h2 id="5-a-energia-que-voce-usa-na-hora"><span class="divider-dot"></span>5. A energia que você usa na hora</h2></summary>
 <div class="secao-conteudo">
-<p>Parte da energia dos painéis é usada pela casa <strong>no mesmo momento</strong> em que é gerada, por exemplo a geladeira ligada ao meio-dia. Essa parte nem chega a ir para a rede e <strong>não paga Fio B</strong>. Num estudo com 86 consumidores, ela foi de 37% da geração, em média (Dilli e Brito, 2025).</p>
-<p>A plataforma não sabe a que horas você usa energia, então trata toda a geração como se passasse pela rede. Com isso, <strong>a economia calculada fica menor que a real</strong>: aqui a plataforma erra para o lado seguro.</p>
+<p>Parte da energia dos painéis é usada pela casa <strong>no mesmo momento</strong> em que é gerada, por exemplo a geladeira ligada ao meio-dia. Essa parte nem chega a ir para a rede e <strong>não paga Fio B</strong>: ela economiza a tarifa inteira (ANEEL, Relatório de AIR nº 0004/2018). Em casas com painéis, essa parte foi de 38,92% da geração em 231 sistemas medidos pela CPFL e pela Unicamp em Campinas (o valor que a ANEEL adotou nesse relatório), de 34% em 596 casas medidas pela EPE (Nota Técnica DEA-SEE 009/2023) e de 37% em 86 consumidores do Tocantins (Dilli e Brito, 2025).</p>
+<p>Por isso o formulário tem a pergunta opcional <strong>Em que horário a sua casa mais usa energia?</strong>, no bloco “Deixar o resultado mais preciso”. Cada resposta vira uma parte da geração usada na hora, sempre pelo lado mais baixo das medições:</p>
+<ul>
+<li><strong>Quase tudo à noite:</strong> 10%. No estudo do Tocantins, quem usa energia sobretudo à noite ficou entre 8% e 38% (média de 20%).</li>
+<li><strong>Igual de dia e de noite:</strong> 30%. No mesmo estudo, o grupo de uso equilibrado ficou entre 29% e 62%.</li>
+<li><strong>Bastante de dia:</strong> 39%, a média medida em Campinas. No estudo do Tocantins, o grupo de uso diurno ficou entre 44% e 84%.</li>
+</ul>
+<p>Sem resposta, a plataforma considera <strong>0%</strong>: trata toda a geração como se passasse pela rede, e a economia calculada fica menor que a real. Aqui ela erra para o lado seguro.</p>
+<p>A resposta muda só a economia e o tempo de retorno; <strong>o número de painéis continua o mesmo</strong>. Duas regras seguem valendo: a energia usada na hora diminui o consumo puxado da rede, e a conta nunca fica abaixo do valor mínimo da distribuidora. Em consumo baixo, esse mínimo pode absorver todo o ganho.</p>
+<ul>
+<li><strong>Exemplo (Guaíra, 300 kWh por mês, simulação em novembro de 2026):</strong> em 2026 a economia quase não muda (R$ 186,38 sem resposta e R$ 187,50 com qualquer resposta), porque com os painéis a conta já fica perto do valor mínimo. A diferença aparece quando a parte do Fio B cobrada sobe: o sistema se paga em 55,0 meses sem resposta, 52,7 meses com “quase tudo à noite”, 49,5 com “igual de dia e de noite” e 49,1 com “bastante de dia”.</li>
+</ul>
 </div>
 </details>
 </section>
@@ -265,7 +275,7 @@
 <td>mais curto</td>
 </tr>
 <tr>
-<th scope="row">Energia usada na hora (seção 5)</th>
+<th scope="row">Energia usada na hora, quando a pergunta do horário fica sem resposta, ou quando a casa usa mais que o percentual da resposta (seção 5)</th>
 <td>mais curto</td>
 </tr>
 <tr>
@@ -276,7 +286,7 @@
 </table></div>
 <p>Como há efeitos para os dois lados, <strong>o tempo de retorno é uma estimativa</strong>, útil para comparar e para decidir se vale pedir orçamento, mas não uma garantia.</p>
 <p><strong>Como ele se compara com outras fontes:</strong> nos cinco casos testados, o retorno mês a mês ficou entre <strong>3,4 e 5,6 anos</strong> (pela conta simples, que é a do artigo do TCC, entre 3,2 e 5,6 anos). Um estudo publicado calculou 4,57 anos para uma casa com 4,2 kWp, e três calculadoras gratuitas deram de 3 anos e 3 meses a 4 anos e 1 mês para a mesma casa (Costa et al., 2025). São tempos da mesma ordem de grandeza dos nossos, mas a comparação vale só como ordem de grandeza, porque os cenários são diferentes.</p>
-<p><strong>Nos próximos passos:</strong> a energia usada na hora; e, quando a ANEEL definir a regra de 2029 em diante, a economia somada em 25 anos, com a troca do inversor.</p>
+<p><strong>Nos próximos passos:</strong> quando a ANEEL definir a regra de 2029 em diante, a economia somada em 25 anos, com a troca do inversor.</p>
 </div>
 </details>
 </section>

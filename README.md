@@ -19,6 +19,7 @@ O repositório guarda duas versões, e cada uma tem um papel diferente.
 - **Retorno mês a mês.** No TCC, o tempo de retorno é a conta simples (investimento dividido pela economia do primeiro ano, Equação 11). No site, ele é calculado mês a mês, com o Fio B subindo ano a ano como manda a Lei 14.300/2022 e com um desgaste dos módulos de 0,5% ao ano. Por isso o retorno do site é um pouco mais longo que o do TCC. A conta simples continua no motor (`payback_meses()`) e é conferida pelo teste.
 - **Cobranças que não são energia.** Há um campo opcional para a iluminação pública e outras cobranças da conta, que não somem com a energia solar.
 - **Inversor de 1,0 kW.** O sistema de dois painéis de 600 Wp passou a usar o Growatt MIC 1000TL-X no lugar do MIC 1500TL-X. Com o de 1,5 kW, o inversor ficava maior que os painéis. Painéis, geração, custo e retorno não mudam.
+- **Energia usada na hora.** Uma pergunta opcional diz em que horário a casa mais usa energia. A parte da geração usada no mesmo instante (10%, 30% ou 39%, pelo lado baixo das medições da ANEEL, da EPE e de Dilli e Brito, 2025) economiza a tarifa inteira, sem o Fio B. Muda só a economia e o retorno; painéis, inversor e custo não mudam. Sem resposta, a conta é a de antes (0%).
 - **Nove páginas de explicação.** Como funciona, economia, equipamentos e preços, precisão, metodologia, limitações, sobre, contato e apoie.
 - **Atualização automática do Fio B** e **contador de acessos sem dado pessoal**, explicados mais abaixo.
 
