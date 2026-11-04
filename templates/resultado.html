@@ -269,10 +269,25 @@
 
     <p class="so-resumo grafico-nota" style="margin: 0 0 12px;">Este é o resumo da simulação. A versão completa, com o laudo da verificação elétrica, os gráficos mês a mês e as explicações, sai no botão “Imprimir completo” da página do resultado.</p>
 
+    {#- FASE 4, N3 (03/11/2026): COMPARTILHAR O RESULTADO COMO IMAGEM (pedido da aluna; maquete
+        aprovada por ela em 03/11). Os textos do cartao saem daqui, das MESMAS macros do resumo
+        acima, para o cartao e a tela nao terem como divergir. A imagem e desenhada no proprio
+        navegador (script no fim da pagina): nada vai para o servidor e nada e gravado. -#}
+    {%- set cartao_retorno = meio_ano(resultado.payback_meses) | string %}
     <div class="no-print botoes-imprimir" style="text-align: right; margin: -8px 0 20px;">
+        <button type="button" class="btn-secundario" id="btn-compartilhar" onclick="compartilharCartao(this)"
+                data-cidade="{{ resultado.cidade_encontrada.split(' - código IBGE')[0] }}"
+                data-consumo="{{ br(resultado.consumo_anual_kwh / 12, 0) }}"
+                data-paineis="{{ paineis(resultado.numero_paineis) }}"
+                data-kwp="{{ br(resultado.potencia_instalada_kwp) }}"
+                data-investimento="cerca de R$ {{ centenas(resultado.custo_total_sistema) }}"
+                data-ano="{{ resultado.retorno_por_ano[0].ano }}"
+                data-economia="R$ {{ br(resultado.economia_mensal_media, 0) }}"
+                data-retorno="{% if cartao_retorno != 'menos de meio ano' %}cerca de {% endif %}{{ cartao_retorno }}">📤 Compartilhar imagem</button>
         <button type="button" class="btn-secundario" onclick="imprimirResultado(true)">🖨️ Imprimir resumo</button>
         <button type="button" class="btn-secundario" onclick="imprimirResultado(false)">Imprimir completo</button>
     </div>
+    <p class="no-print aviso-compartilhar" id="aviso-compartilhar" role="status" aria-live="polite"></p>
 
     <div class="card">
         <h2><span class="divider-dot"></span>Dimensionamento do sistema</h2>
@@ -1136,6 +1151,146 @@
             delete d.dataset.abertaParaImprimir;
         });
     });
+})();
+</script>
+{#- FASE 4, N3 (03/11/2026): o cartao do resultado. Desenhado em <canvas> aqui mesmo, com as
+    fontes e as cores do site; nenhuma biblioteca de fora. No celular, abre o menu de compartilhar
+    do aparelho (Web Share API, com o arquivo da imagem); onde isso nao existe (quase todo
+    computador), a imagem e baixada. Nada sai do aparelho da pessoa a nao ser pelo app que ela
+    escolher, e o site nao grava nem conta nada disso. -#}
+<script>
+(function () {
+    var LARGURA = 1080, ALTURA = 1350, M = 90;
+    var NOITE = '#1C2433', NOITE2 = '#141B27', OURO = '#FFC24B', LARANJA = '#F2600C', CINZA = '#C9D0DB';
+    var TEXTO = 'Fiz a simulação no Quantos Painéis. Faça a sua, grátis: https://quantospaineis.com.br';
+    var NOME_ARQUIVO = 'quantos-paineis-simulacao.png';
+
+    /* Escreve o texto e, se ele nao couber na largura, diminui a letra ate caber (nomes longos
+       de cidade, retorno longo). */
+    function escrever(ctx, texto, x, y, peso, tamanho, familia, larguraMax) {
+        var t = tamanho;
+        ctx.font = peso + ' ' + t + 'px ' + familia;
+        while (t > 14 && ctx.measureText(texto).width > larguraMax) {
+            t -= 1;
+            ctx.font = peso + ' ' + t + 'px ' + familia;
+        }
+        ctx.fillText(texto, x, y);
+        return ctx.measureText(texto).width;
+    }
+
+    function sol(ctx, x, y, r) {
+        ctx.save();
+        ctx.strokeStyle = LARANJA; ctx.globalAlpha = 0.55; ctx.lineWidth = r * 0.19; ctx.lineCap = 'round';
+        for (var i = 0; i < 8; i++) {
+            var a = i * Math.PI / 4;
+            ctx.beginPath();
+            ctx.moveTo(x + Math.cos(a) * r * 1.38, y + Math.sin(a) * r * 1.38);
+            ctx.lineTo(x + Math.cos(a) * r * 1.88, y + Math.sin(a) * r * 1.88);
+            ctx.stroke();
+        }
+        ctx.restore();
+        var s = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 0, x, y, r * 1.4);
+        s.addColorStop(0, OURO); s.addColorStop(0.55, LARANJA); s.addColorStop(1, '#C94E0A');
+        ctx.fillStyle = s; ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fill();
+    }
+
+    function desenharCartao(cv, d) {
+        var ctx = cv.getContext('2d'), W = LARGURA, H = ALTURA, util = W - 2 * M;
+        ctx.fillStyle = NOITE; ctx.fillRect(0, 0, W, H);
+        var g = ctx.createRadialGradient(0, 0, 0, 0, 0, 900);
+        g.addColorStop(0, 'rgba(242,96,12,0.45)'); g.addColorStop(1, 'rgba(242,96,12,0)');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = NOITE2; ctx.fillRect(0, H - 170, W, 170);
+
+        sol(ctx, M + 34, 120, 26);
+        ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle';
+        escrever(ctx, 'Quantos Painéis', M + 100, 122, 800, 46, 'Sora', util - 100);
+        ctx.textBaseline = 'alphabetic';
+
+        ctx.fillStyle = OURO;
+        escrever(ctx, 'MINHA SIMULAÇÃO SOLAR', M, 300, 700, 30, 'Inter', util);
+        ctx.fillStyle = CINZA;
+        escrever(ctx, d.cidade, M, 355, 400, 36, 'Inter', util);
+        escrever(ctx, 'consumo médio de ' + d.consumo + ' kWh/mês', M, 405, 400, 36, 'Inter', util);
+
+        ctx.fillStyle = '#fff';
+        escrever(ctx, d.paineis, M, 570, 800, 120, 'Sora', util);
+        ctx.fillStyle = CINZA;
+        escrever(ctx, 'Sistema de ' + d.kwp + ' kWp', M, 640, 400, 40, 'Inter', util);
+
+        var linhas = [['Investimento total', d.investimento],
+                      ['Economia mensal em ' + d.ano, d.economia],
+                      ['Tempo de retorno', d.retorno]];
+        var y = 720;
+        for (var i = 0; i < linhas.length; i++) {
+            ctx.strokeStyle = 'rgba(201,208,219,0.25)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(M, y); ctx.lineTo(W - M, y); ctx.stroke();
+            ctx.fillStyle = CINZA;
+            var lr = escrever(ctx, linhas[i][0], M, y + 72, 600, 32, 'Inter', util * 0.45);
+            ctx.fillStyle = OURO; ctx.textAlign = 'right';
+            escrever(ctx, linhas[i][1], W - M, y + 76, 700, 46, 'Sora', util - lr - 30);
+            ctx.textAlign = 'left';
+            y += 118;
+        }
+        ctx.fillStyle = CINZA;
+        escrever(ctx, 'A garantia dos painéis é de 25 anos.', M, y + 50, 400, 30, 'Inter', util);
+
+        ctx.fillStyle = '#fff';
+        escrever(ctx, 'Faça a sua, grátis: quantospaineis.com.br', M, H - 100, 700, 38, 'Inter', util);
+        ctx.fillStyle = CINZA;
+        escrever(ctx, 'Simulação educativa. Não substitui o projeto de um profissional habilitado.',
+                 M, H - 52, 400, 25, 'Inter', util);
+    }
+
+    function avisar(texto) {
+        var p = document.getElementById('aviso-compartilhar');
+        if (p) { p.textContent = texto; }
+    }
+
+    function baixar(blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = NOME_ARQUIVO;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        avisar('A imagem foi baixada (' + NOME_ARQUIVO + '). Agora é só anexar onde quiser.');
+    }
+
+    /* As fontes do site carregam sob demanda: espera as cinco que o cartao usa. Se alguma
+       falhar, desenha com a fonte padrao do aparelho em vez de travar. */
+    function carregarFontes() {
+        if (!document.fonts || !document.fonts.load) { return Promise.resolve(); }
+        return Promise.all(['800 46px Sora', '700 46px Sora', '400 36px Inter', '600 32px Inter',
+                            '700 38px Inter'].map(function (f) { return document.fonts.load(f); }))
+            .catch(function () {});
+    }
+
+    window.compartilharCartao = function (botao) {
+        var d = botao.dataset;
+        botao.disabled = true;
+        avisar('');
+        carregarFontes().then(function () {
+            var cv = document.createElement('canvas');
+            cv.width = LARGURA; cv.height = ALTURA;
+            desenharCartao(cv, d);
+            return new Promise(function (ok) { cv.toBlob(ok, 'image/png'); });
+        }).then(function (blob) {
+            if (!blob) { throw new Error('sem imagem'); }
+            var arquivo = null;
+            try { arquivo = new File([blob], NOME_ARQUIVO, { type: 'image/png' }); } catch (e) {}
+            if (arquivo && navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+                return navigator.share({ files: [arquivo], text: TEXTO }).catch(function (e) {
+                    /* a pessoa fechou o menu: nao faz nada; outro erro: baixa a imagem */
+                    if (!e || e.name !== 'AbortError') { baixar(blob); }
+                });
+            }
+            baixar(blob);
+        }).catch(function () {
+            avisar('Não foi possível gerar a imagem neste navegador. Você pode usar o botão “Imprimir resumo”.');
+        }).then(function () {
+            botao.disabled = false;
+        });
+    };
 })();
 </script>
 <script src="{{ url_for('static', filename='tabelas.js') }}" defer></script>
