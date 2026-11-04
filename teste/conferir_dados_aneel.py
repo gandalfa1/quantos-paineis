@@ -86,7 +86,8 @@ ARQUIVO_MAPA = os.path.join(PASTA, "static", "distribuidoras_por_municipio.json"
 ARQUIVO_MUNICIPIOS = os.path.join(PASTA, "static", "municipios.json")
 
 CABECALHO_FIO_B = ["distribuidora", "cnpj", "fio_b_reais_por_kwh",
-                   "inicio_vigencia", "fim_vigencia", "resolucao_homologatoria"]
+                   "inicio_vigencia", "fim_vigencia", "resolucao_homologatoria",
+                   "cobranca_maxima_reais_por_kwh"]   # coluna nova: fase 4, N2 (04/11/2026)
 COBERTURA_MINIMA = 0.95   # o mesmo criterio da trava 2 do atualizar_dados_aneel.py
 
 # Os 5 casos de validacao contra o PVsyst (codigos IBGE da lista local)
@@ -139,6 +140,7 @@ def parte1(hoje):
     for cnpj in repetidos:
         falha(f"CNPJ repetido: {cnpj}")
     vencidas = 0
+    sem_maxima = []
     for cnpj, linha in tabela.items():
         nome = (linha.get("distribuidora") or "").strip()
         if not (len(cnpj) == 14 and cnpj.isdigit()):
@@ -151,6 +153,21 @@ def parte1(hoje):
                 falha(f"Fio B nao positivo em {nome}: {valor}")
         except (ValueError, TypeError):
             falha(f"Fio B ilegivel em {nome}: {linha.get('fio_b_reais_por_kwh')}")
+        # FASE 4, N2 (04/11/2026): a cobranca maxima (TUSD + TE do SCEE) pode
+        # ficar em branco; quando existe, tem de ser maior que o Fio B (a TUSD
+        # contem o Fio B) e menor que R$ 3/kWh (nenhuma tarifa residencial chega
+        # perto disso).
+        maxima = (linha.get("cobranca_maxima_reais_por_kwh") or "").strip()
+        if maxima:
+            try:
+                v_max = float(maxima.replace(",", "."))
+                if not (_valor(linha) < v_max < 3.0):
+                    falha(f"cobranca maxima incoerente em {nome}: {v_max} "
+                          f"(Fio B {_valor(linha)})")
+            except (ValueError, TypeError):
+                falha(f"cobranca maxima ilegivel em {nome}: {maxima}")
+        else:
+            sem_maxima.append(nome)
         inicio, fim = linha.get("inicio_vigencia"), linha.get("fim_vigencia")
         if not (_data_valida(inicio) and _data_valida(fim)):
             falha(f"vigencia com data invalida em {nome}: {inicio} a {fim}")
@@ -160,6 +177,8 @@ def parte1(hoje):
             vencidas += 1
             falha(f"{nome}: vigencia {inicio} a {fim} NAO inclui {hoje}")
     print(f"   {len(tabela)} distribuidoras; {vencidas} fora da vigencia em {hoje}")
+    print(f"   cobranca maxima em branco (o motor estima): {len(sem_maxima)}"
+          + (f" ({', '.join(sorted(sem_maxima)[:15])})" if sem_maxima else ""))
     return tabela
 
 
@@ -250,6 +269,14 @@ def parte4(tabela, anterior_csv, anterior_json):
             falha(f"{novo['distribuidora']}: valor mudou (R$ {_valor(velho):.6f} -> "
                   f"R$ {_valor(novo):.6f}) SEM vigencia nova "
                   f"({novo['inicio_vigencia']}) - nao e reajuste")
+        elif (not valor_mudou and mesma_vigencia
+              and {k: v for k, v in novo.items() if k != "cobranca_maxima_reais_por_kwh"}
+              == {k: v for k, v in velho.items() if k != "cobranca_maxima_reais_por_kwh"}):
+            # so a cobranca maxima mudou (ou apareceu): nao e reajuste do Fio B
+            if (novo.get("cobranca_maxima_reais_por_kwh") or "") != (
+                    velho.get("cobranca_maxima_reais_por_kwh") or ""):
+                mudancas.setdefault("_so_cobranca_maxima", 0)
+                mudancas["_so_cobranca_maxima"] += 1
         elif valor_mudou or not mesma_vigencia or novo != velho:
             variacao = (_valor(novo) - _valor(velho)) / _valor(velho) * 100
             print(f"   {novo['distribuidora']}: R$ {_valor(velho):.6f} -> "
@@ -257,6 +284,9 @@ def parte4(tabela, anterior_csv, anterior_json):
                   f"{novo['inicio_vigencia']} a {novo['fim_vigencia']} "
                   f"[{novo['resolucao_homologatoria'] or 'resolucao nao informada'}]")
             mudancas[cnpj] = "mudou"
+    so_maxima = mudancas.pop("_so_cobranca_maxima", 0)
+    if so_maxima:
+        print(f"   cobranca maxima nova ou diferente (Fio B igual) em {so_maxima} distribuidoras")
     if not mudancas:
         print("   nenhuma distribuidora mudou")
     if anterior_json and os.path.exists(anterior_json):

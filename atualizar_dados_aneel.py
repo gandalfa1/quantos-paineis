@@ -96,6 +96,14 @@ AS FONTES (todas do Portal de Dados Abertos da ANEEL)
      conjunto a distribuidora que o atende, com CNPJ.
  O encontro de (a) com (c) e feito por CNPJ, numero contra numero - nao por
  nome escrito, que varia de um conjunto para outro.
+ (a2) FASE 4, N2 (04/11/2026): das MESMAS linhas de (a) - mesma distribuidora,
+     mesma vigencia, detalhe SCEE - saem tambem os componentes TUSD e TE
+     (totais). A soma e a "cobranca maxima" sobre a energia compensada: tudo
+     o que nao e custo da energia, sem desconto da GD, que e o teto do art. 17
+     da Lei 14.300/2022 para depois de 2029 (a regra ainda nao existe; o
+     motor usa esse teto no "pior caso" do longo prazo). Mesma definicao do
+     artigo (d) (REN 1.000/2021, art. 655-I, par. 1o, II, b: "tarifas TUSD e
+     TE aplicaveis ao SCEE"). Valores SEM impostos, como o Fio B.
 
  LICENCA: os TRES conjuntos, (a), (b) e (c), sao publicados sob a Open Data
  Commons Open Database License (ODbL) 1.0, a mesma do OpenStreetMap
@@ -165,6 +173,8 @@ FILTRO_FIO_B = {
     "DscBaseTarifaria": "Tarifa de Aplicação",
     "DscDetalheConsumidor": "SCEE",
 }
+# FASE 4, N2 (04/11/2026): totais do detalhe SCEE que somam a cobranca maxima
+COMPONENTES_COBRANCA_MAXIMA = ("TUSD", "TE")
 COLUNAS_FIO_B = ["SigNomeAgente", "NumCPFCNPJ", "VlrComponenteTarifario",
                  "DatInicioVigencia", "DatFimVigencia", "DscResolucaoHomologatoria",
                  "DscComponenteTarifario", "DscSubGrupoTarifario",
@@ -356,13 +366,24 @@ def buscar_fio_b(hoje):
                            "tarifarias no portal da ANEEL")
 
     vigentes = {}
+    partes_cobranca = {}   # (cnpj, inicio) -> {"TUSD": R$/kWh, "TE": R$/kWh}
+    filtro_sem_componente = {k: v for k, v in FILTRO_FIO_B.items()
+                             if k != "DscComponenteTarifario"}
     for recurso in recursos:
         caminho = baixar_arquivo(recurso["url"], recurso["name"])
         for reg in ler_parquet(caminho, COLUNAS_FIO_B):
-            if any(str(reg.get(campo)) != valor for campo, valor in FILTRO_FIO_B.items()):
+            if any(str(reg.get(campo)) != valor
+                   for campo, valor in filtro_sem_componente.items()):
                 continue
             inicio, fim = _data(reg["DatInicioVigencia"]), _data(reg["DatFimVigencia"])
             if not (inicio <= hoje <= fim):
+                continue
+            componente = str(reg.get("DscComponenteTarifario"))
+            if componente in COMPONENTES_COBRANCA_MAXIMA:
+                partes_cobranca.setdefault((_cnpj(reg["NumCPFCNPJ"]), inicio), {})[
+                    componente] = _numero(reg["VlrComponenteTarifario"]) / 1000.0
+                continue
+            if componente != FILTRO_FIO_B["DscComponenteTarifario"]:
                 continue
             chave = _cnpj(reg["NumCPFCNPJ"])
             novo = {
@@ -390,6 +411,24 @@ def buscar_fio_b(hoje):
     # se a mais recente vier zero, a distribuidora sai (nao volta uma tarifa
     # mais antiga). Os nomes ficam registrados na saida, para quem le o
     # resumo da tarefa. A conferencia continua rigida como era.
+    # FASE 4, N2 (04/11/2026): cobranca maxima (TUSD + TE do detalhe SCEE) da
+    # MESMA vigencia escolhida para o Fio B. Fica em branco quando falta uma das
+    # duas partes, ou quando a soma nao passa do proprio Fio B (impossivel numa
+    # tarifa coerente: a TUSD contem o Fio B); o motor entao estima pela
+    # mediana das outras distribuidoras e a tela diz que e estimativa.
+    sem_cobranca = []
+    for chave, dados in vigentes.items():
+        partes = partes_cobranca.get((chave, dados["inicio_vigencia"]), {})
+        total = (partes["TUSD"] + partes["TE"]
+                 if all(c in partes for c in COMPONENTES_COBRANCA_MAXIMA) else None)
+        if total is not None and not total > dados["fio_b"]:
+            total = None
+        dados["cobranca_maxima"] = total
+        if total is None and dados["fio_b"] > 0:
+            sem_cobranca.append(dados["distribuidora"])
+    if sem_cobranca:
+        print("    Sem cobranca maxima (TUSD + TE do SCEE) coerente, deixada em branco: "
+              + ", ".join(sorted(sem_cobranca)))
     ignoradas = sorted(d["distribuidora"] for d in vigentes.values() if not d["fio_b"] > 0)
     if ignoradas:
         print("    Fio B zero ou negativo na ANEEL, deixado de fora do arquivo "
@@ -562,13 +601,19 @@ def texto_fio_b(fio_b):
     """
     saida = io.StringIO()
     escritor = csv.writer(saida, delimiter=";", lineterminator="\n")
+    # FASE 4, N2 (04/11/2026): coluna nova no FIM, cobranca_maxima_reais_por_kwh
+    # (em branco quando nao ha valor coerente). Quem le por nome de coluna
+    # (o motor e a conferencia) nao muda.
     escritor.writerow(["distribuidora", "cnpj", "fio_b_reais_por_kwh",
-                       "inicio_vigencia", "fim_vigencia", "resolucao_homologatoria"])
+                       "inicio_vigencia", "fim_vigencia", "resolucao_homologatoria",
+                       "cobranca_maxima_reais_por_kwh"])
     for dados in sorted(fio_b.values(), key=lambda d: d["distribuidora"]):
+        maxima = dados.get("cobranca_maxima")
         escritor.writerow([dados["distribuidora"], dados["cnpj"],
                            repr(dados["fio_b"]).replace(".", ","),
                            dados["inicio_vigencia"], dados["fim_vigencia"],
-                           dados["resolucao"].replace(";", ",")])
+                           dados["resolucao"].replace(";", ","),
+                           "" if maxima is None else repr(maxima).replace(".", ",")])
     return "\ufeff" + saida.getvalue()
 
 

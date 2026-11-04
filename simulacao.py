@@ -77,6 +77,19 @@ from calculo import (
     # Fase 4, N1 (03/11/2026): energia usada na hora (pergunta opcional).
     simultaneidade_do_perfil,
     economia_do_ano_com_simultaneidade,
+    # Fase 4, N2 (04/11/2026): longo prazo (25 anos) - manutencao e troca do
+    # inversor (premissas da EPE), pior caso da regra de 2029 e comparacao
+    # com a poupanca.
+    OEM_ANUAL_FRACAO,
+    TROCA_INVERSOR_FRACAO,
+    TROCA_INVERSOR_MES,
+    FONTE_PREMISSAS_EPE,
+    cobranca_maxima_pos_2029,
+    indicadores_longo_prazo,
+    POUPANCA_REAL_ANUAL,
+    POUPANCA_PERIODO,
+    FONTE_POUPANCA,
+    TESOURO_REAL_LIQUIDO_ANUAL,
     # NOTA T15: "potencia_inversor" e "potencia_inversor_comercial" deixaram
     # de ser chamadas DIRETAMENTE aqui. Elas continuam sendo a unica
     # definicao do encaixe na grade comercial (T4) - agora sao chamadas por
@@ -876,12 +889,36 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
     # (e o numero do TCC). Quando o percentual foi informado na chamada, ele
     # vale para todos os meses. A economia_media_mensal continua sendo a de
     # HOJE (a do primeiro mes do fluxo, com o percentual do ano corrente).
+    #
+    # FASE 4, N2 (04/11/2026): o retorno passou a contar a MANUTENCAO (1% do
+    # custo por ano) e a TROCA DO INVERSOR (15% do custo depois de 10 anos),
+    # premissas da EPE (calculo.py, bloco "MANUTENCAO E TROCA DO INVERSOR"),
+    # e a ser o mes a partir do qual a pessoa FICA no lucro. O mesmo fluxo vai
+    # ate os 25 anos e da o "longo prazo" da tela. Uma segunda conta, igual
+    # salvo pela cobranca de 2029 em diante (a maxima que a lei permite), da o
+    # "pior caso" - so quando o percentual do Fio B segue a lei (nao nos casos
+    # de validacao, que fixam o percentual).
     retorno = retorno_mes_a_mes(
         custo_total, geracao_anual, consumo_por_mes_kwh,
         piso_disponibilidade_kwh, tarifa, fio_b,
         percentual_fixo=None if ano_fio_b is not None else percentual_fio_b,
-        simultaneidade=fracao_na_hora, geracao_por_mes_kwh=geracao_por_mes)
+        simultaneidade=fracao_na_hora, geracao_por_mes_kwh=geracao_por_mes,
+        oem_anual=OEM_ANUAL_FRACAO, troca_inversor=TROCA_INVERSOR_FRACAO)
     payback = retorno["payback_meses"]
+    longo_prazo = indicadores_longo_prazo(retorno, custo_total)
+    cobranca_maxima, cobranca_maxima_estimada = (
+        cobranca_maxima_pos_2029(referencia_fio_b) if ano_fio_b is not None
+        else (None, None))
+    if cobranca_maxima is not None:
+        retorno_pior = retorno_mes_a_mes(
+            custo_total, geracao_anual, consumo_por_mes_kwh,
+            piso_disponibilidade_kwh, tarifa, fio_b,
+            simultaneidade=fracao_na_hora, geracao_por_mes_kwh=geracao_por_mes,
+            oem_anual=OEM_ANUAL_FRACAO, troca_inversor=TROCA_INVERSOR_FRACAO,
+            cobranca_pos_2029=cobranca_maxima)
+        longo_prazo_pior = indicadores_longo_prazo(retorno_pior, custo_total)
+    else:
+        longo_prazo_pior = None
 
     # 6b) GUARDA DE VIABILIDADE, PARTE 2 (correcao T18, Achado E)
     #
@@ -903,6 +940,7 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         # "levaria N anos" e passou a dizer quanto a economia soma em 25 anos,
         # contra o custo - o mesmo criterio, com um numero que a conta tem.
         acumulado_25 = retorno["acumulado_no_prazo"] or 0.0
+        custos_25 = retorno["custos_prazo"]
         # "que diminui" so quando diminui mesmo: onde o minimo da conta prende
         # a economia (art. 655-I), a escalada do Fio B nao a muda.
         economia_cai = (retorno["anos"][-1]["economia_por_mes"]
@@ -938,8 +976,9 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
                 + (", que diminui nos próximos anos" if economia_cai else "")
                 + f". Somada em {VIDA_UTIL_MODULOS_ANOS} anos, que é a "
                 f"garantia de desempenho dos próprios painéis, a economia chegaria "
-                f"a cerca de R$ {_reais(acumulado_25)}, menos do que o sistema "
-                f"custa. "
+                f"a cerca de R$ {_reais(acumulado_25)}; tirando a manutenção e uma "
+                f"troca do inversor (cerca de R$ {_reais(custos_25)}), sobra menos "
+                f"do que o sistema custa. "
                 + (
                     # CORRECAO (auditoria de 23/09/2026): o motivo so e o
                     # custo de disponibilidade quando ele de fato limitou a
@@ -974,6 +1013,7 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
             "payback_meses": payback,
             "payback_simples_meses": payback_simples,
             "economia_25_anos": acumulado_25,
+            "custos_25_anos": custos_25,
             "piso_disponibilidade_kwh": piso_disponibilidade_kwh,
             "tipo_ligacao": tipo_ligacao_usado,
             "tipo_ligacao_informado": tipo_ligacao_informado,
@@ -1190,6 +1230,25 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         # a tela nao pode dizer que ela cai.
         "economia_diminui": (retorno["anos"][-1]["economia_por_mes"]
                              < economia_media_mensal - 0.005),
+        # --- FASE 4, N2 (04/11/2026): longo prazo (25 anos) ---
+        # longo_prazo: o caso "a cobranca fica no Fio B" (100% de 2029 em
+        # diante, premissa provisoria); longo_prazo_pior: a cobranca maxima
+        # que a lei permite de 2029 em diante (None quando nao ha como
+        # calcular, ou quando o percentual do Fio B foi fixado na chamada).
+        # Cada um: economia, custos, lucro, tir, vpl_poupanca, vpl_tesouro,
+        # payback_descontado_poupanca, payback_meses. Nenhuma conta no template.
+        "longo_prazo": longo_prazo,
+        "longo_prazo_pior": longo_prazo_pior,
+        "cobranca_maxima_pos_2029": cobranca_maxima,
+        "cobranca_maxima_estimada": cobranca_maxima_estimada,
+        "oem_anual_reais": custo_total * OEM_ANUAL_FRACAO,
+        "troca_inversor_reais": custo_total * TROCA_INVERSOR_FRACAO,
+        "troca_inversor_apos_anos": TROCA_INVERSOR_MES // 12,
+        "fonte_premissas_epe": FONTE_PREMISSAS_EPE,
+        "poupanca_real_anual": POUPANCA_REAL_ANUAL,
+        "poupanca_periodo": POUPANCA_PERIODO,
+        "fonte_poupanca": FONTE_POUPANCA,
+        "tesouro_real_anual": TESOURO_REAL_LIQUIDO_ANUAL,
     }
 
 

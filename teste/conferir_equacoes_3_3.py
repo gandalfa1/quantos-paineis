@@ -110,6 +110,16 @@ import calculo      # noqa: E402  (o motor real)
 import simulacao    # noqa: E402
 from datetime import date   # noqa: E402
 
+# FASE 4, N2 (04/11/2026): as simulacoes desta conferencia usam o Fio B do
+# ESTADO (sem CNPJ), entao o pior caso sai da estimativa "Fio B x mediana da
+# razao cobranca maxima / Fio B" do arquivo da ANEEL. Para a conferencia nao
+# depender de o arquivo ja ter essa coluna preenchida (sem ela nao ha pior
+# caso, e o erro plantado "pior caso calculado com o Fio B" ficaria
+# invisivel), a razao fica FIXA aqui em 2,0 - valor de teste, perto da mediana
+# real (~2,1), que tambem cria casos com a cobranca acima da tarifa (o limite
+# do motor e conferido). O motor de verdade continua lendo o arquivo.
+calculo.RAZAO_COBRANCA_MAXIMA_MEDIANA = 2.0
+
 # Itens 28 e 11: o motor le a data em UM ponto so (calculo.data_de_hoje). Fixa-
 # la aqui deixa a conferencia reproduzivel em qualquer dia - antes ela passaria
 # a divergir sozinha em 01/01/2027, quando o motor trocaria para 75%.
@@ -212,19 +222,105 @@ PERCENTUAL_2029_EM_DIANTE = 1.00   # premissa provisoria (art. 17 ainda sem regr
 DEGRADACAO = 0.005                 # PINHO e GALDINO (2014), p. 132; EPE DEA-SEE 014/2023
 
 
-def eq11_mes_a_mes(I, G_ano, C_meses, C_disp, T, F_B, ano0, mes0, d=DEGRADACAO):
-    soma, anos = 0.0, {}
+# FASE 4, N2 (04/11/2026), pelo TEXTO do bloco "MANUTENCAO E TROCA DO
+# INVERSOR" do calculo.py (premissas da EPE, NT EPE-DEA-SEE 014/2022, Tab. 2):
+#   custo(t) = I x 1% / 12 todo mes + I x 15% no mes 120 (depois de 10 anos);
+#   retorno = mes a partir do qual a soma de (economia - custo) FICA acima de I;
+#   lucro em 25 anos = soma(economia - custo) - I;
+#   pior caso: de 2029 em diante, f = cobranca maxima (no lugar de Fio B x 100%).
+# Indicadores (bloco "RENDE MAIS QUE A POUPANCA?"): VPL a taxa real anual,
+# convertida para mensal, fluxo no fim de cada mes; TIR pela taxa mensal que
+# zera o VPL, anualizada.
+OEM = 0.01
+TROCA, MES_TROCA = 0.15, 120
+POUPANCA = 0.0357
+
+
+def fluxo_25(I, G_ano, C_meses, C_disp, T, F_B, ano0, mes0, d=DEGRADACAO, X=None):
+    """(economia por mes, custos por mes, ano civil de cada mes), 300 meses."""
+    eco, cus, anos, tetos, par = [], [], [], {}, {}
     for t in range(300):
         ano = ano0 + (mes0 - 1 + t) // 12
-        p = PERCENTUAL_LEI.get(ano, PERCENTUAL_2029_EM_DIANTE)
-        f = F_B * p
-        _, teto = eq4(C_meses, C_disp, T, f)
-        eco = min(G_ano * (1 - d) ** (t // 12), teto) * (T - f) / 12
-        anos[ano] = anos.get(ano, 0.0) + eco
-        if eco > 0 and soma + eco >= I:
-            return t + (I - soma) / eco, anos
-        soma += eco
-    return math.inf, anos
+        if (ano, t // 12) not in par:          # igual dentro de (ano civil, k)
+            p = PERCENTUAL_LEI.get(ano, PERCENTUAL_2029_EM_DIANTE)
+            # pior caso: a cobranca nunca passa da tarifa (texto do calculo.py);
+            # com f >= T a energia compensada nao economiza nada
+            pior = X is not None and ano >= 2029
+            f = min(X, T) if pior else F_B * p
+            if pior and f >= T:
+                par[(ano, t // 12)] = 0.0
+            else:
+                if f not in tetos:             # a Equacao 4 so depende de f
+                    tetos[f] = eq4(C_meses, C_disp, T, f)[1]
+                par[(ano, t // 12)] = max(min(G_ano * (1 - d) ** (t // 12), tetos[f]), 0.0) * (T - f) / 12
+        eco.append(par[(ano, t // 12)])
+        cus.append(I * OEM / 12 + (I * TROCA if t == MES_TROCA else 0.0))
+        anos.append(ano)
+    return eco, cus, anos
+
+
+def retorno_que_fica(I, eco, cus):
+    soma, pb = 0.0, math.inf
+    for t, (e, c) in enumerate(zip(eco, cus)):
+        liq = e - c
+        antes, soma = soma, soma + liq
+        if antes < I <= soma and liq > 0:
+            pb = t + (I - antes) / liq
+        elif soma < I:
+            pb = math.inf
+    return pb
+
+
+def vpl_texto(I, liq, taxa):
+    i = (1 + taxa) ** (1 / 12) - 1
+    return -I + sum(v / (1 + i) ** (t + 1) for t, v in enumerate(liq))
+
+
+def _blocos(liq):
+    """Agrupa meses seguidos de fluxo igual: [(1o mes, quantos, valor)]."""
+    blocos = []
+    for t, v in enumerate(liq):
+        if blocos and blocos[-1][2] == v:
+            blocos[-1][1] += 1
+        else:
+            blocos.append([t, 1, v])
+    return blocos
+
+
+def _vpl_mensal(I, blocos, i):
+    """VPL pela formula da serie uniforme em cada bloco (outra forma de somar
+    que a do motor, de proposito): n parcelas v, a 1a no fim do mes s+1, valem
+    v x q^(s+1) x (1 - q^n) / (1 - q), q = 1/(1+i)."""
+    q = 1 / (1 + i)
+    total = 0.0
+    for s0, n, v in blocos:
+        total += v * q ** (s0 + 1) * ((1 - q ** n) / (1 - q) if i > 0 else n)
+    return total - I
+
+
+def tir_texto(I, liq):
+    """Bissecao pura (outro metodo que o do motor, de proposito): 40 passos
+    entre 0% e 100% ao mes deixam a taxa mensal com erro < 1e-12."""
+    if sum(liq) <= I:
+        return None
+    blocos = _blocos(liq)
+    a, b = 0.0, 1.0
+    for _ in range(40):
+        m = (a + b) / 2
+        a, b = (m, b) if _vpl_mensal(I, blocos, m) > 0 else (a, m)
+    return (1 + (a + b) / 2) ** 12 - 1
+
+
+def eq11_mes_a_mes(I, G_ano, C_meses, C_disp, T, F_B, ano0, mes0, d=DEGRADACAO,
+                   fluxo=None):
+    eco, cus, anos_civis = fluxo or fluxo_25(I, G_ano, C_meses, C_disp, T, F_B, ano0, mes0, d)
+    pb = retorno_que_fica(I, eco, cus)
+    ultimo = anos_civis[min(math.ceil(pb) - 1, 299)] if pb != math.inf else anos_civis[-1]
+    anos = {}
+    for e, a in zip(eco, anos_civis):
+        if a <= ultimo:
+            anos[a] = anos.get(a, 0.0) + e
+    return pb, anos
 
 
 # ---------------------------------------------------------------------------
@@ -280,11 +376,26 @@ def completar(r, N_final, H):
     E_comp, S_ano = eq9(G_ano, r["C_comp"], r["v"])
     I = eq10(P_inst)
     PB = eq11(I, S_ano)
+    fluxo = fluxo_25(I, G_ano, r["C_meses"], r["C_disp"], r["T"], r["F_B"],
+                     DATA_DA_CONFERENCIA.year, DATA_DA_CONFERENCIA.month)
     PB_mes, eco_anos = eq11_mes_a_mes(I, G_ano, r["C_meses"], r["C_disp"], r["T"], r["F_B"],
-                                      DATA_DA_CONFERENCIA.year, DATA_DA_CONFERENCIA.month)
+                                      DATA_DA_CONFERENCIA.year, DATA_DA_CONFERENCIA.month,
+                                      fluxo=fluxo)
+    eco, cus, _ = fluxo
+    liq = [e - c for e, c in zip(eco, cus)]
     r.update(P_inst_final=P_inst, P_inv=P_inv, G_m=G_m, G_ano=G_ano,
-             E_comp=E_comp, S_ano=S_ano, I=I, PB=PB, PB_mes=PB_mes, eco_anos=eco_anos)
+             E_comp=E_comp, S_ano=S_ano, I=I, PB=PB, PB_mes=PB_mes, eco_anos=eco_anos,
+             eco_25=sum(eco), custos_25=sum(cus), lucro_25=sum(liq) - I,
+             vpl_poup=vpl_texto(I, liq, POUPANCA), tir=tir_texto(I, liq))
     return r
+
+
+def pior_caso(r, X):
+    """Lucro e TIR em 25 anos com a cobranca maxima X de 2029 em diante."""
+    eco, cus, _ = fluxo_25(r["I"], r["G_ano"], r["C_meses"], r["C_disp"], r["T"], r["F_B"],
+                           DATA_DA_CONFERENCIA.year, DATA_DA_CONFERENCIA.month, X=X)
+    liq = [e - c for e, c in zip(eco, cus)]
+    return sum(liq) - r["I"], tir_texto(r["I"], liq), retorno_que_fica(r["I"], eco, cus)
 
 
 def perto(a, b, rel=1e-9, absol=1e-6):
@@ -382,14 +493,40 @@ def comparar(entrada, fio_b_uf, mediana, motor=None):
         linhas = res["retorno_por_ano"]
         if not perto(linhas[0]["economia_por_mes"], res["economia_mensal_media"]):
             erros.append("PROPRIEDADE: 1o ano do retorno diferente da economia de hoje")
-        if linhas[-1]["acumulado"] < res["custo_total_sistema"] - 1e-6 or (
-                len(linhas) > 1 and linhas[-2]["acumulado"] >= res["custo_total_sistema"]):
+        # Fase 4, N2: com a troca do inversor a soma pode passar do custo, cair
+        # e passar de novo; a tabela termina no ano civil do mes do retorno.
+        mes_ret = math.ceil(res["payback_meses"]) - 1
+        ano_ret = res["retorno_inicio_ano"] + (res["retorno_inicio_mes"] - 1 + mes_ret) // 12
+        if linhas[-1]["acumulado"] < res["custo_total_sistema"] - 1e-6 or linhas[-1]["ano"] != ano_ret:
             erros.append("PROPRIEDADE: a tabela do retorno nao termina no ano em que se paga")
         soma = 0.0
         for l in linhas:
-            soma += l["economia"]
+            soma += l["economia"] - l["custos"]
             if not perto(soma, l["acumulado"], rel=1e-9, absol=1e-6):
                 erros.append(f"PROPRIEDADE: acumulado de {l['ano']} nao fecha")
+        # FASE 4, N2 (04/11/2026): longo prazo (25 anos) e pior caso
+        lp = res["longo_prazo"]
+        conf("economia em 25 anos", lp["economia"], eq["eco_25"])
+        conf("manutencao e troca em 25 anos", lp["custos"], eq["custos_25"])
+        conf("lucro em 25 anos", lp["lucro"], eq["lucro_25"])
+        conf("a mais que a poupanca (VPL)", lp["vpl_poupanca"], eq["vpl_poup"])
+        if (lp["tir"] is None) != (eq["tir"] is None) or (
+                lp["tir"] is not None and not perto(lp["tir"], eq["tir"], rel=1e-6, absol=1e-7)):
+            erros.append(f"TIR: motor={lp['tir']} texto={eq['tir']}")
+        X = res.get("cobranca_maxima_pos_2029")
+        lpp = res.get("longo_prazo_pior")
+        if (X is None) != (lpp is None):
+            erros.append(f"pior caso: cobranca={X} e resultado={lpp is not None}")
+        elif X is not None:
+            lucro_p, tir_p, pb_p = pior_caso(eq, X)
+            conf("lucro em 25 anos (pior caso)", lpp["lucro"], lucro_p)
+            if (lpp["tir"] is None) != (tir_p is None) or (
+                    tir_p is not None and not perto(lpp["tir"], tir_p, rel=1e-6, absol=1e-7)):
+                erros.append(f"TIR (pior caso): motor={lpp['tir']} texto={tir_p}")
+            if not (pb_p == lpp["payback_meses"] == math.inf or perto(pb_p, lpp["payback_meses"])):
+                erros.append(f"retorno (pior caso): motor={lpp['payback_meses']} texto={pb_p}")
+            if X > eq["F_B"] and lpp["lucro"] > lp["lucro"] + 1e-6:
+                erros.append("PROPRIEDADE: pior caso com lucro MAIOR que o caso do Fio B")
     else:
         # Guarda dos 25 anos: o motor devolve so os numeros principais.
         if N_final != eq["N"] and N_final < eq["N"]:
@@ -460,7 +597,13 @@ def varredura():
                         yield (C, max(c_fat, piso) * tarifa, c_fat, lig, uf, PERFIS[uf], "media")
 
 
-def rodar(motor=None, mostrar=True):
+def rodar(motor=None, mostrar=True, parar_em=None):
+    # FASE 4, N2 (04/11/2026): com o longo prazo (fluxo de 25 anos, TIR, pior
+    # caso) cada simulacao ficou ~4x mais lenta, e a conferencia inteira passaria
+    # de 30 min (o limite da tarefa automatica do GitHub). Nos ERROS PLANTADOS
+    # basta saber que o erro aparece: a varredura para depois de parar_em
+    # divergencias (a contagem sai como "pelo menos N"). A varredura principal
+    # (parte 2) continua inteira.
     fio_b_uf = fio_b_da_tabela_aneel()
     mediana = sorted(fio_b_uf.values())[13]
     falhas, n, guardas = [], 0, {}
@@ -495,6 +638,8 @@ def rodar(motor=None, mostrar=True):
         if erros:
             falhas.append(f"{entrada[3]}/{entrada[4]}/{entrada[6]}/"
                           f"{sum(entrada[0])/12:.0f} kWh: " + "; ".join(erros[:3]))
+            if parar_em and len(falhas) >= parar_em:
+                break
     if mostrar:
         print(f"Simulacoes da varredura: {n}")
         print(f"Resultados: {guardas}")
@@ -507,6 +652,9 @@ def rodar(motor=None, mostrar=True):
 # ---------------------------------------------------------------------------
 # 3) Erros plantados: cada um precisa ser detectado
 # ---------------------------------------------------------------------------
+PARAR_EM = 50
+
+
 def erros_plantados():
     orig = {n: getattr(calculo, n) for n in ("compensavel_do_mes", "hsp_medio_anual",
                                             "energia_diaria", "potencia_inversor_comercial",
@@ -548,6 +696,16 @@ def erros_plantados():
         "retorno sem a degradacao": (
             "simulacao", "retorno_mes_a_mes",
             lambda *a, **k: orig_ret(*a, **dict(k, degradacao_anual=0.0))),
+        # Fase 4, N2 (04/11/2026): os erros que o longo prazo pode ter
+        "retorno sem a manutencao": (
+            "simulacao", "retorno_mes_a_mes",
+            lambda *a, **k: orig_ret(*a, **dict(k, oem_anual=0.0))),
+        "troca do inversor esquecida": (
+            "simulacao", "retorno_mes_a_mes",
+            lambda *a, **k: orig_ret(*a, **dict(k, troca_inversor=0.0))),
+        "pior caso calculado com o Fio B": (
+            "simulacao", "retorno_mes_a_mes",
+            lambda *a, **k: orig_ret(*a, **dict(k, cobranca_pos_2029=None))),
         "escalada do Fio B um ano adiantada": (
             "calculo", "percentual_fio_b_vigente",
             lambda ano=None: orig_pct(ano if ano is None else ano + 1)),
@@ -575,14 +733,15 @@ def erros_plantados():
         antiga = getattr(alvo, funcao)
         setattr(alvo, funcao, nova)
         try:
-            falhas = rodar(mostrar=False)
+            falhas = rodar(mostrar=False, parar_em=PARAR_EM)
         except Exception as e:                                   # quebra tambem e deteccao
             falhas = [f"excecao: {e}"]
         finally:
             setattr(alvo, funcao, antiga)
         ok = len(falhas) > 0
         detectadas += ok
-        print(f"  {'DETECTADO' if ok else 'NAO DETECTADO'}: {nome} ({len(falhas)} divergencias)")
+        conta = (f"pelo menos {len(falhas)}" if len(falhas) >= PARAR_EM else str(len(falhas)))
+        print(f"  {'DETECTADO' if ok else 'NAO DETECTADO'}: {nome} ({conta} divergencias)")
     for n_, f_ in orig.items():
         setattr(calculo, n_, f_)
     for n_, f_ in orig_sim.items():
