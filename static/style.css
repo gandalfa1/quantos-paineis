@@ -1721,7 +1721,7 @@ table.tabela-retorno .retorno-meses { color: var(--color-text-muted); font-size:
 .secao-economia-titulo { font-family: 'Sora', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--color-text); }
 .secao-economia-linha { grid-column: 1; font-size: 0.92rem; color: var(--color-text-muted); }
 .secao-economia-abrir {
-  grid-column: 2; grid-row: 1 / span 2; display: inline-flex; align-items: center; gap: 6px;
+  grid-column: 2; grid-row: 1 / span 3; display: inline-flex; align-items: center; gap: 6px;
   font-size: 0.88rem; font-weight: 700; color: var(--color-primary-dark); white-space: nowrap;
 }
 .secao-economia-abrir::before { content: "Ver detalhes"; }
@@ -1748,6 +1748,12 @@ table.tabela-retorno .retorno-meses { color: var(--color-text-muted); font-size:
 .conta-25 tr.total td { border-bottom: none; background: var(--color-dica-bg); font-family: 'Sora', sans-serif; font-size: 1rem; }
 .conta-25 tr.total td:first-child { border-left: 3px solid var(--color-primary); padding-left: 12px; border-radius: 8px 0 0 8px; }
 .conta-25 tr.total td.v { padding-right: 12px; border-radius: 0 8px 8px 0; }
+.secao-economia-alerta { grid-column: 1; font-size: 0.88rem; color: var(--color-text); background: var(--color-dica-bg); border-radius: 8px; padding: 6px 10px; margin-top: 4px; }
+.conta-25 tr.grupo td { font-weight: 700; border-bottom: none; padding-top: 12px; }
+.conta-25 tr.sub td { color: var(--color-text-muted); font-size: 0.88rem; }
+.conta-25 tr.sub td:first-child { padding-left: 16px; }
+.conta-25 tr.sub td.v { font-weight: 400; }
+.conta-25 tr.total td { border-bottom: none; }
 .card-25 .alt { font-size: 0.9rem; color: var(--color-text-muted); margin: 10px 0 0; }
 .card-25 .bloco { border-top: 1px solid var(--color-border); margin-top: 22px; padding-top: 18px; }
 .card-25 h3 { font-family: 'Sora', sans-serif; font-size: 1.05rem; margin: 0 0 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

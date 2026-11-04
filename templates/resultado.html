@@ -562,11 +562,21 @@
         fica a vista; as duas impressoes abrem a secao sozinhas. -#}
     {%- set lp = resultado.longo_prazo %}
     {%- set lpp = resultado.longo_prazo_pior %}
-    {%- set lp_ref = lpp if lpp else lp %}
+    {#- (04/11/2026, decisao da aluna depois da medicao com os valores reais da ANEEL)
+        o numero PRINCIPAL e a conta com a cobranca so no Fio B, a mesma dos artigos;
+        o teto do art. 17 (sem abater beneficio nenhum) aparece como "pior caso",
+        num alerta a vista. Nada de "sobram": a pessoa gastou o dinheiro no comeco. -#}
+    {%- set principal = lp %}
+    {%- set tir_ref = principal.tir %}
+    {%- set ganha_poupanca = tir_ref is not none and tir_ref > resultado.poupanca_real_anual %}
+    {%- set pior_muda = lpp and lpp.payback_meses > lp.payback_meses + 0.5 %}
     <details class="secao-economia" id="economia">
         <summary class="secao-economia-cabeca">
             <span class="secao-economia-titulo">💰 Economia e retorno</span>
-            <span class="secao-economia-linha">R$ {{ br(resultado.economia_mensal_media, 0) }} por mês em {{ resultado.retorno_por_ano[0].ano }} · se paga em {% if texto_retorno != "menos de meio ano" %}cerca de {% endif %}{{ texto_retorno }} · {% if lp_ref.lucro > 0 %}em 25 anos sobram {% if lpp %}pelo menos {% else %}cerca de {% endif %}R$ {{ centenas(lp_ref.lucro) }}{% elif lpp %}pela conta mais cautelosa, não se paga em 25 anos{% else %}não se paga em 25 anos{% endif %}</span>
+            <span class="secao-economia-linha">R$ {{ br(resultado.economia_mensal_media, 0) }} por mês em {{ resultado.retorno_por_ano[0].ano }} · se paga em {% if texto_retorno != "menos de meio ano" %}cerca de {% endif %}{{ texto_retorno }} · {{ "rende mais que a poupança" if ganha_poupanca else "rende menos que a poupança" }}</span>
+            {%- if pior_muda %}
+            <span class="secao-economia-alerta">⚠️ Em 2029 a regra muda e ainda não se sabe como. No pior caso que a lei permite, {% if lpp.payback_meses > 300 %}o sistema não se pagaria em 25 anos.{% else %}o retorno iria para cerca de {{ meio_ano(lpp.payback_meses) }}.{% endif %}</span>
+            {%- endif %}
             <span class="secao-economia-abrir" aria-hidden="true"></span>
         </summary>
 
@@ -1022,7 +1032,7 @@
                     Tempo de retorno (payback)
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="O que é payback?">i</button>
-                        <span class="tip-bubble">Tempo necessário para que a economia acumulada com o sistema, menos a manutenção, iguale o valor total investido — depois disso, o que sobra passa a ser "lucro líquido" do investimento.</span>
+                        <span class="tip-bubble">Tempo necessário para que a economia acumulada com o sistema, menos a manutenção, iguale o valor total investido — a partir daí, a economia de cada mês é ganho seu.</span>
                     </span>
                 </span>
                 <span class="valor">{{ br(resultado.payback_meses, 1) }} meses (~{{ br(resultado.payback_meses / 12, 1) }} anos)</span>
@@ -1109,44 +1119,30 @@
         cautelosa para 2029, a conta aberta com o custo dentro, a poupanca em barras).
         Todos os numeros vem prontos do motor (resultado.longo_prazo e
         resultado.longo_prazo_pior); aqui so ha texto e a largura das barras. -#}
-    {%- set principal = lpp if lpp else lp %}
-    {%- set tir_ref = principal.tir %}
-    {%- set ganha_poupanca = tir_ref is not none and tir_ref > resultado.poupanca_real_anual %}
     <div class="card card-25">
         <h2><span class="divider-dot"></span>No longo prazo (25 anos)</h2>
-        {#- (04/11/2026, pedido da aluna: texto que o leigo entenda; nada de "pior caso"
-            nem nomes de regra no texto principal.) -#}
-        {% if lpp %}
-            {% if lpp.lucro > 0 %}
-        <p class="valor-faixa">Em 25 anos, sobram pelo menos R$ {{ centenas(lpp.lucro) }}</p>
-            {% else %}
-        <p class="valor-faixa">Pela conta mais cautelosa, o sistema não se paga em 25 anos</p>
-            {% endif %}
-        {% elif lp.lucro > 0 %}
-        <p class="valor-faixa">Em 25 anos, sobram cerca de R$ {{ centenas(lp.lucro) }}</p>
-        {% else %}
-        <p class="valor-faixa">Em 25 anos, o sistema não se paga</p>
-        {% endif %}
+        {#- (04/11/2026, pedido da aluna: texto que o leigo entenda; sem "sobram",
+            sem "pelo menos": a economia e os gastos lado a lado.) -#}
         <p class="lead">Somando os 25 anos de garantia dos painéis, com os preços de hoje:</p>
         <table class="conta-25">
-            <tr><td>Economia na conta de luz</td><td class="v">R$ {{ br(principal.economia, 0) }}</td></tr>
-            <tr><td>− Custo do sistema</td><td class="v">− R$ {{ br(resultado.custo_total_sistema, 0) }}</td></tr>
-            <tr><td>− Manutenção (cerca de R$ {{ br(resultado.oem_anual_reais, 0) }} por ano)</td><td class="v">− R$ {{ br(principal.custos - resultado.troca_inversor_reais, 0) }}</td></tr>
-            <tr><td>− Troca do inversor, depois de {{ resultado.troca_inversor_apos_anos }} anos</td><td class="v">− R$ {{ br(resultado.troca_inversor_reais, 0) }}</td></tr>
-            <tr class="total"><td>{{ "Sobram" if principal.lucro >= 0 else "Faltam" }}</td><td class="v">R$ {{ br(principal.lucro | abs, 0) }}</td></tr>
+            <tr class="total"><td>Economia na conta de luz</td><td class="v">R$ {{ br(principal.economia, 0) }}</td></tr>
+            <tr class="grupo"><td>Gastos no mesmo período</td><td class="v">R$ {{ br(resultado.custo_total_sistema + principal.custos, 0) }}</td></tr>
+            <tr class="sub"><td>Sistema</td><td class="v">R$ {{ br(resultado.custo_total_sistema, 0) }}</td></tr>
+            <tr class="sub"><td>Manutenção (cerca de R$ {{ br(resultado.oem_anual_reais, 0) }} por ano)</td><td class="v">R$ {{ br(principal.custos - resultado.troca_inversor_reais, 0) }}</td></tr>
+            <tr class="sub"><td>Troca do inversor, depois de {{ resultado.troca_inversor_apos_anos }} anos</td><td class="v">R$ {{ br(resultado.troca_inversor_reais, 0) }}</td></tr>
         </table>
         {% if lpp %}
-        <p class="alt"><strong>Por que “pelo menos”?</strong> Em 2029 muda a regra de quanto a conta de luz cobra de quem tem painéis, e ainda não se sabe como ela vai ficar. Para não prometer demais, a conta acima já supõe a mudança mais cara para você. {% if lp.lucro > 0 %}Se ela for mais leve, podem sobrar até cerca de <strong>R$ {{ centenas(lp.lucro) }}</strong>.{% else %}Se ela for mais leve, o resultado melhora, mas o sistema ainda não se paga em 25 anos.{% endif %}</p>
+        <p class="alt"><strong>Por que dois resultados?</strong> Em 2029 muda a regra de quanto a conta de luz cobra de quem tem painéis, e ainda não se sabe como ela vai ficar. As contas desta página supõem que a cobrança continue só no Fio B, como em 2028. No pior caso que a lei permite, a economia em 25 anos cairia para cerca de <strong>R$ {{ centenas(lpp.economia) }}</strong>{% if lpp.payback_meses > 300 %} e o sistema não se pagaria em 25 anos{% elif pior_muda %}, o sistema se pagaria em cerca de {{ meio_ano(lpp.payback_meses) }}{% if lpp.tir is not none %} e renderia cerca de {{ br(lpp.tir * 100, 1 if lpp.tir < 0.1 else 0) }}% ao ano{% endif %}{% else %}; o tempo de retorno não muda, porque o sistema se paga antes de 2029{% endif %}.</p>
         <details class="nota-mais">
             <summary>Entenda a mudança de 2029</summary>
             <div>
             <p>A energia que os painéis mandam para a rede durante o dia volta para a sua casa à noite. Por esse “vai e volta”, a distribuidora cobra uma parte pelo uso dos fios, chamada <strong>Fio B</strong>. A lei já marcou quanto: 60% do Fio B em 2026, 75% em 2027 e 90% em 2028 (Lei nº 14.300/2022, art. 27).</p>
             <p>De 2029 em diante, a lei manda a ANEEL criar uma regra nova (art. 17), que pode cobrar mais do que o Fio B. Essa regra ainda não saiu; a previsão é 2027. Por isso fizemos a conta de dois jeitos:</p>
             <ul>
-                <li><strong>O número principal</strong> supõe a cobrança máxima que a lei permite: R$ {{ br(resultado.cobranca_maxima_pos_2029, 2) }} por kWh que vai e volta{% if resultado.cobranca_maxima_estimada %} (estimado, porque a ANEEL ainda não publicou esse valor para a sua distribuidora){% elif resultado.fio_b_distribuidora_referencia %}, pela tarifa da {{ resultado.fio_b_distribuidora_referencia }} publicada pela ANEEL{% endif %}.</li>
-                <li><strong>O outro</strong> supõe que a cobrança continue só no Fio B, como em 2028.</li>
+                <li><strong>A conta principal</strong> supõe que a cobrança continue só no Fio B, como em 2028.</li>
+                <li><strong>O pior caso</strong> supõe a cobrança máxima que a lei permite: R$ {{ br(resultado.cobranca_maxima_pos_2029, 2) }} por kWh que vai e volta{% if resultado.cobranca_maxima_estimada %} (estimado, porque a ANEEL ainda não publicou esse valor para a sua distribuidora){% elif resultado.fio_b_distribuidora_referencia %}, pela tarifa da {{ resultado.fio_b_distribuidora_referencia }} publicada pela ANEEL{% endif %}, sem descontar nada.</li>
             </ul>
-            <p>O resultado de verdade deve ficar entre os dois. O tempo de retorno também muda: {% if lpp.payback_meses == lp.payback_meses %}aqui fica igual, porque o sistema se paga antes de 2029{% elif lpp.payback_meses > 300 %}na conta principal, o sistema não se pagaria em 25 anos{% else %}na conta principal, cerca de {{ meio_ano(lpp.payback_meses) }}, em vez de {{ meio_ano(lp.payback_meses) }}{% endif %}.</p>
+            <p>A lei manda descontar dessa cobrança os benefícios que os painéis trazem para a rede (art. 17, § 1º). Por isso o resultado de verdade deve ficar entre os dois.</p>
             </div>
         </details>
         {% endif %}
@@ -1167,10 +1163,10 @@
             <summary>O que entra nesta conta</summary>
             <div><ul>
                 <li><strong>Manutenção:</strong> cerca de R$ {{ br(resultado.oem_anual_reais, 0) }} por ano (1% do valor do sistema).</li>
-                <li><strong>Troca do inversor:</strong> o inversor, o aparelho que liga os painéis à sua casa, costuma ter garantia de 10 anos. A conta inclui uma troca, de cerca de R$ {{ br(resultado.troca_inversor_reais, 0) }} (15% do valor do sistema). Em sistemas pequenos, ela pode sair mais cara, e sobraria um pouco menos.</li>
+                <li><strong>Troca do inversor:</strong> o inversor, o aparelho que liga os painéis à sua casa, costuma ter garantia de 10 anos. A conta inclui uma troca, de cerca de R$ {{ br(resultado.troca_inversor_reais, 0) }} (15% do valor do sistema). Em sistemas pequenos, ela pode sair mais cara, e o resultado seria um pouco pior.</li>
                 <li><strong>Desgaste:</strong> os painéis geram cerca de {{ br(resultado.degradacao_anual_modulos * 100, 1) }}% menos a cada ano.</li>
-                <li><strong>Preços de hoje:</strong> a conta tira a inflação de tudo, e por isso dá para comparar com a poupança. Se a conta de luz subir mais que a inflação, sobra mais.</li>
-                <li><strong>Pagamento à vista:</strong> com financiamento, sobra menos, por causa dos juros.</li>
+                <li><strong>Preços de hoje:</strong> a conta tira a inflação de tudo, e por isso dá para comparar com a poupança. Se a conta de luz subir mais que a inflação, a economia é maior.</li>
+                <li><strong>Pagamento à vista:</strong> com financiamento, o resultado é pior, por causa dos juros.</li>
                 <li><strong>Depois dos 25 anos:</strong> os painéis costumam continuar gerando, mas isso não entra na conta.</li>
             </ul>
             <p class="nota-fonte">Manutenção e troca do inversor: os mesmos valores que a EPE, a empresa de pesquisa do governo federal, usa nas projeções oficiais ({{ resultado.fonte_premissas_epe }}). Poupança e inflação: {{ resultado.fonte_poupanca }}; período de {{ resultado.poupanca_periodo }}.</p></div>
@@ -1181,7 +1177,7 @@
             <div>
             <div class="tabela-wrap">
             <table class="tabela-geracao tabela-retorno">
-                <tr><th>Indicador (25 anos, valores reais)</th>{% if lpp %}<th>Cobrança só no Fio B</th><th>Cobrança máxima após 2029</th>{% else %}<th>Valor</th>{% endif %}</tr>
+                <tr><th>Indicador (25 anos, valores reais)</th>{% if lpp %}<th>Cobrança só no Fio B (principal)</th><th>Cobrança máxima após 2029 (pior caso)</th>{% else %}<th>Valor</th>{% endif %}</tr>
                 {%- set casos = [lp, lpp] if lpp else [lp] %}
                 <tr><td>TIR real</td>{% for c in casos %}<td>{{ (br(c.tir * 100, 1) ~ "% a.a.") if c.tir is not none else "não existe" }}</td>{% endfor %}</tr>
                 <tr><td>VPL a {{ br(resultado.poupanca_real_anual * 100, 2) }}% a.a. (poupança)</td>{% for c in casos %}<td>R$ {{ br(c.vpl_poupanca, 0) }}</td>{% endfor %}</tr>
