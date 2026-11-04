@@ -138,7 +138,7 @@
         .so-resumo { display: none; }
         @media print {
             body.imprimir-resumo .fora-do-resumo,
-            body.imprimir-resumo details { display: none !important; }
+            body.imprimir-resumo details:not(.secao-economia) { display: none !important; }
             body.imprimir-resumo .so-resumo { display: block; }
             /* mais compacto no papel, para o resumo caber em 2 folhas A4 */
             body.imprimir-resumo .page-wrap { padding: 0; }
@@ -555,6 +555,20 @@
         </p>
         </details>
     </div>
+
+    {#- FASE 4, N2 (04/11/2026), pedido da aluna: tudo o que e dinheiro (economia
+        na conta, investimento e retorno, longo prazo) fica numa secao que abre
+        com um clique, para a pagina nao abrir cheia de texto. A linha do resumo
+        fica a vista; as duas impressoes abrem a secao sozinhas. -#}
+    {%- set lp = resultado.longo_prazo %}
+    {%- set lpp = resultado.longo_prazo_pior %}
+    {%- set lp_ref = lpp if lpp else lp %}
+    <details class="secao-economia" id="economia">
+        <summary class="secao-economia-cabeca">
+            <span class="secao-economia-titulo">💰 Economia e retorno</span>
+            <span class="secao-economia-linha">R$ {{ br(resultado.economia_mensal_media, 0) }} por mês em {{ resultado.retorno_por_ano[0].ano }} · se paga em {% if texto_retorno != "menos de meio ano" %}cerca de {% endif %}{{ texto_retorno }} · {% if lp_ref.lucro > 0 %}em 25 anos sobram {% if lpp %}pelo menos {% else %}cerca de {% endif %}R$ {{ centenas(lp_ref.lucro) }}{% elif lpp %}com a regra mais dura de 2029, não se paga em 25 anos{% else %}não se paga em 25 anos{% endif %}</span>
+            <span class="secao-economia-abrir" aria-hidden="true"></span>
+        </summary>
 
     <div class="card">
         <h2>
@@ -1008,7 +1022,7 @@
                     Tempo de retorno (payback)
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="O que é payback?">i</button>
-                        <span class="tip-bubble">Tempo necessário para que a economia acumulada com o sistema iguale o valor total investido — depois disso, a economia mensal passa a ser "lucro líquido" do investimento.</span>
+                        <span class="tip-bubble">Tempo necessário para que a economia acumulada com o sistema, menos a manutenção, iguale o valor total investido — depois disso, o que sobra passa a ser "lucro líquido" do investimento.</span>
                     </span>
                 </span>
                 <span class="valor">{{ br(resultado.payback_meses, 1) }} meses (~{{ br(resultado.payback_meses / 12, 1) }} anos)</span>
@@ -1026,6 +1040,7 @@
                     <th>Ano</th>
                     <th>Fio B cobrado</th>
                     <th>Economia no ano (R$)</th>
+                    <th>Manutenção (R$)</th>
                     <th>Somada (R$)</th>
                 </tr>
                 {% for linha in resultado.retorno_por_ano %}
@@ -1033,16 +1048,17 @@
                     <td>{{ linha.ano }}{% if linha.meses < 12 %} <span class="retorno-meses">({{ linha.meses }} {{ "mês" if linha.meses == 1 else "meses" }})</span>{% endif %}</td>
                     <td>{{ (linha.percentual_fio_b * 100) | round | int }}%</td>
                     <td>{{ br(linha.economia) }}</td>
+                    <td>{{ br(linha.custos) }}{% if linha.custos > resultado.oem_anual_reais * 1.5 %} <span class="retorno-meses">(com a troca do inversor)</span>{% endif %}</td>
                     <td>{{ br(linha.acumulado) }}</td>
                 </tr>
                 {% endfor %}
             </table>
         </div>
-        <p class="nota-exata">Conta exata da plataforma, com centavos, para conferir — não é um preço. O sistema se paga quando a economia somada alcança o custo, o que acontece em {{ resultado.retorno_por_ano[-1].ano }}. No resumo do topo os valores aparecem arredondados, porque um orçamento real pode vir acima ou abaixo da média nacional.</p>
+        <p class="nota-exata">Conta exata da plataforma, com centavos, para conferir — não é um preço. O sistema se paga quando a economia somada, menos a manutenção, alcança o custo, o que acontece em {{ resultado.retorno_por_ano[-1].ano }}. No resumo do topo os valores aparecem arredondados, porque um orçamento real pode vir acima ou abaixo da média nacional.</p>
         <details class="nota-mais">
             <summary>Como o retorno é calculado</summary>
             <div>
-            <p>A economia é somada mês a mês, a partir de {{ ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"][resultado.retorno_inicio_mes - 1] }} de {{ resultado.retorno_inicio_ano }}, até alcançar o custo do sistema. Ela muda de um ano para o outro por dois motivos:</p>
+            <p>A economia, menos a manutenção, é somada mês a mês, a partir de {{ ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"][resultado.retorno_inicio_mes - 1] }} de {{ resultado.retorno_inicio_ano }}, até alcançar o custo do sistema. Ela muda de um ano para o outro por dois motivos:</p>
             <ul>
                 {% if resultado.percentual_fio_b_informado %}
                 <li><strong>Fio B:</strong> nesta simulação o percentual do Fio B foi informado diretamente e vale para todos os anos.</li>
@@ -1054,7 +1070,7 @@
             {% if not resultado.economia_diminui and not resultado.percentual_fio_b_informado %}
             <p>No seu caso a economia fica igual em todos os anos: com os painéis, a conta já fica no valor mínimo da distribuidora (o custo de disponibilidade), e continua nele quando a lei aumenta o Fio B.</p>
             {% endif %}
-            <p>A tarifa é mantida constante, como se acompanhasse a inflação; se subir mais que ela, o retorno chega antes. Não entram manutenção, troca de equipamento nem juros.</p>
+            <p>A tarifa é mantida constante, como se acompanhasse a inflação; se subir mais que ela, o retorno chega antes. Entram a manutenção (1% do valor do sistema por ano, cerca de R$ {{ br(resultado.oem_anual_reais, 0) }}) e, se o retorno passar de 10 anos, a troca do inversor (15% do valor, cerca de R$ {{ br(resultado.troca_inversor_reais, 0) }}), como no modelo da EPE, a empresa de pesquisa do governo federal. Não entram juros: a conta supõe pagamento à vista.</p>
             {% if resultado.economia_diminui %}
             <p>Pela conta simples — custo dividido pela economia de hoje, como se ela nunca mudasse — daria {{ br(resultado.payback_simples_meses, 1) }} meses: mais curto, mas não é o que a lei prevê.</p>
             {% endif %}
@@ -1088,6 +1104,93 @@
         </details>
     </div>
 
+    {#- FASE 4, N2 (04/11/2026): o LONGO PRAZO (25 anos). Maquete aprovada pela
+        aluna em 04/11 ("No longo prazo (25 anos)", numero principal = pior caso
+        da regra de 2029, a conta aberta com o custo dentro, a poupanca em barras).
+        Todos os numeros vem prontos do motor (resultado.longo_prazo e
+        resultado.longo_prazo_pior); aqui so ha texto e a largura das barras. -#}
+    {%- set principal = lpp if lpp else lp %}
+    {%- set tir_ref = principal.tir %}
+    {%- set ganha_poupanca = tir_ref is not none and tir_ref > resultado.poupanca_real_anual %}
+    <div class="card card-25">
+        <h2><span class="divider-dot"></span>No longo prazo (25 anos)</h2>
+        {% if lpp %}
+            {% if lpp.lucro > 0 %}
+        <p class="valor-faixa">Mesmo com a regra mais dura possível para 2029, sobram cerca de R$ {{ centenas(lpp.lucro) }}</p>
+            {% else %}
+        <p class="valor-faixa">Com a regra mais dura possível para 2029, o sistema não se paga em 25 anos</p>
+            {% endif %}
+        {% elif lp.lucro > 0 %}
+        <p class="valor-faixa">Em 25 anos, sobram cerca de R$ {{ centenas(lp.lucro) }}</p>
+        {% else %}
+        <p class="valor-faixa">Em 25 anos, o sistema não se paga</p>
+        {% endif %}
+        <p class="lead">A conta, somando os 25 anos de garantia dos painéis, em dinheiro de hoje{% if lpp %}, com a regra mais dura para 2029{% endif %}:</p>
+        <table class="conta-25">
+            <tr><td>Economia na conta de luz</td><td class="v">R$ {{ br(principal.economia, 0) }}</td></tr>
+            <tr><td>− Custo do sistema</td><td class="v">− R$ {{ br(resultado.custo_total_sistema, 0) }}</td></tr>
+            <tr><td>− Manutenção (cerca de R$ {{ br(resultado.oem_anual_reais, 0) }} por ano)</td><td class="v">− R$ {{ br(principal.custos - resultado.troca_inversor_reais, 0) }}</td></tr>
+            <tr><td>− Troca do inversor, depois de {{ resultado.troca_inversor_apos_anos }} anos</td><td class="v">− R$ {{ br(resultado.troca_inversor_reais, 0) }}</td></tr>
+            <tr class="total"><td>{{ "Sobram" if principal.lucro >= 0 else "Faltam" }}</td><td class="v">R$ {{ br(principal.lucro | abs, 0) }}</td></tr>
+        </table>
+        {% if lpp %}
+        <p class="alt"><strong>Regra mais dura</strong> = a ANEEL cobrar, a partir de 2029, tudo o que a lei permite sobre a energia que vai para a rede e volta, sem descontar nenhum benefício. Se a cobrança ficar só no Fio B, como até 2028, a economia sobe para R$ {{ br(lp.economia, 0) }} e {% if lp.lucro > 0 %}sobram cerca de <strong>R$ {{ centenas(lp.lucro) }}</strong>{% else %}o sistema ainda não se paga{% endif %}.</p>
+        <details class="nota-mais">
+            <summary>Por que existe uma "regra mais dura"</summary>
+            <div>
+            <p>A lei já diz quanto do Fio B se paga sobre a energia compensada até 2028: 60% em 2026, 75% em 2027 e 90% em 2028 (Lei nº 14.300/2022, art. 27). De 2029 em diante vale o art. 17 da mesma lei, que manda cobrar a parte da tarifa que não é energia, descontados os benefícios que a geração na casa traz para a rede. A ANEEL ainda não fez essa conta: a regra deve sair em 2027.</p>
+            <p>Para não prometer o que pode não acontecer, o número principal usa o máximo que a lei permite cobrar, sem descontar nenhum benefício: R$ {{ br(resultado.cobranca_maxima_pos_2029, 4) }} por kWh compensado{% if resultado.cobranca_maxima_estimada %} (estimado: a ANEEL ainda não publicou esse valor para a sua distribuidora, então usamos a proporção típica das outras){% elif resultado.fio_b_distribuidora_referencia %}, pela tarifa da {{ resultado.fio_b_distribuidora_referencia }} publicada pela ANEEL{% endif %}. Nesse caso, o tempo de retorno também muda: {% if lpp.payback_meses == lp.payback_meses %}fica igual, porque o sistema se paga antes de 2029{% elif lpp.payback_meses > 300 %}o sistema não se pagaria em 25 anos{% else %}cerca de {{ meio_ano(lpp.payback_meses) }}, em vez de {{ meio_ano(lp.payback_meses) }}{% endif %}.</p>
+            </div>
+        </details>
+        {% endif %}
+
+        <div class="bloco">
+            <h3>Rende mais que a poupança? <span class="selo {{ 'selo-sim' if ganha_poupanca else 'selo-nao' }}">{{ "Sim" if ganha_poupanca else "Não" }}</span></h3>
+            {%- set escala = [tir_ref if tir_ref is not none else 0, resultado.poupanca_real_anual, 0.0001] | max %}
+            <div class="comparacao">
+                <span class="rot">Seu sistema{% if lpp %}, na regra mais dura{% endif %}</span>
+                <div class="trilho">{% if tir_ref is not none %}<div class="seg sistema" style="width: {{ ((tir_ref / escala * 50) | round(1)) if tir_ref < escala else 50 }}%"></div>{% endif %}<span class="txt" style="left: calc({{ ((tir_ref / escala * 50) | round(1)) if tir_ref is not none else 0 }}% + 8px)">{% if tir_ref is not none %}cerca de {{ br(tir_ref * 100, 1 if tir_ref < 0.1 else 0) }}% ao ano{% else %}não devolve o que custou{% endif %}</span></div>
+                <span class="rot">Poupança</span>
+                <div class="trilho"><div class="seg poup" style="width: {{ (resultado.poupanca_real_anual / escala * 50) | round(1) }}%"></div><span class="txt" style="left: calc({{ (resultado.poupanca_real_anual / escala * 50) | round(1) }}% + 8px)">{{ br(resultado.poupanca_real_anual * 100, 1) }}% ao ano</span></div>
+            </div>
+            <p class="nota">{% if principal.vpl_poupanca > 0 %}Em reais: o sistema deixa cerca de <strong>R$ {{ centenas(principal.vpl_poupanca) }} a mais</strong> do que deixar o mesmo dinheiro na poupança, em dinheiro de hoje.{% else %}Em reais: o sistema deixa cerca de <strong>R$ {{ centenas(principal.vpl_poupanca | abs) }} a menos</strong> do que deixar o mesmo dinheiro na poupança, em dinheiro de hoje.{% endif %} Os dois rendimentos já descontam a inflação; o do sistema chega como desconto na conta de luz, sem imposto.{% if lpp and lp.tir is not none %} Se a cobrança ficar só no Fio B, o sistema renderia cerca de {{ br(lp.tir * 100, 1 if lp.tir < 0.1 else 0) }}% ao ano.{% endif %} A poupança é a dos últimos 12 meses ({{ resultado.poupanca_periodo }}, Banco Central), um dos melhores momentos dela nos últimos 10 anos.</p>
+        </div>
+
+        <details class="nota-mais">
+            <summary>O que entra nesta conta</summary>
+            <div><ul>
+                <li><strong>Manutenção:</strong> 1% do valor do sistema por ano (cerca de R$ {{ br(resultado.oem_anual_reais, 0) }}), como no modelo da EPE, a empresa de pesquisa do governo federal.</li>
+                <li><strong>Troca do inversor depois de {{ resultado.troca_inversor_apos_anos }} anos:</strong> 15% do valor do sistema (cerca de R$ {{ br(resultado.troca_inversor_reais, 0) }}), também da EPE. Em sistemas pequenos o inversor pode custar mais que isso, e sobraria um pouco menos.</li>
+                <li><strong>Desgaste dos painéis:</strong> {{ br(resultado.degradacao_anual_modulos * 100, 1) }}% de rendimento a menos por ano.</li>
+                <li><strong>Tarifa:</strong> acompanha a inflação. Se subir mais que ela, sobra mais.</li>
+                <li><strong>Sem juros:</strong> a conta supõe pagamento à vista. Com financiamento, sobra menos.</li>
+                <li><strong>25 anos:</strong> é a garantia de desempenho dos painéis. Eles costumam continuar gerando depois disso, o que não entra na conta.</li>
+            </ul>
+            <p class="nota-fonte">Fontes: {{ resultado.fonte_premissas_epe }}; poupança e inflação: {{ resultado.fonte_poupanca }}.</p></div>
+        </details>
+
+        <details class="nota-mais">
+            <summary>Para quem é técnico: VPL, TIR e payback descontado</summary>
+            <div>
+            <div class="tabela-wrap">
+            <table class="tabela-geracao tabela-retorno">
+                <tr><th>Indicador (25 anos, valores reais)</th>{% if lpp %}<th>Cobrança só no Fio B</th><th>Regra mais dura</th>{% else %}<th>Valor</th>{% endif %}</tr>
+                {%- set casos = [lp, lpp] if lpp else [lp] %}
+                <tr><td>TIR real</td>{% for c in casos %}<td>{{ (br(c.tir * 100, 1) ~ "% a.a.") if c.tir is not none else "não existe" }}</td>{% endfor %}</tr>
+                <tr><td>VPL a {{ br(resultado.poupanca_real_anual * 100, 2) }}% a.a. (poupança)</td>{% for c in casos %}<td>R$ {{ br(c.vpl_poupanca, 0) }}</td>{% endfor %}</tr>
+                <tr><td>VPL a {{ br(resultado.tesouro_real_anual * 100, 0) }}% a.a. (Tesouro IPCA+, líquido)</td>{% for c in casos %}<td>R$ {{ br(c.vpl_tesouro, 0) }}</td>{% endfor %}</tr>
+                <tr><td>Payback simples (com manutenção)</td>{% for c in casos %}<td>{{ (br(c.payback_meses, 1) ~ " meses") if c.payback_meses <= 300 else "acima de 25 anos" }}</td>{% endfor %}</tr>
+                <tr><td>Payback descontado (poupança)</td>{% for c in casos %}<td>{{ (br(c.payback_descontado_poupanca, 1) ~ " meses") if c.payback_descontado_poupanca <= 300 else "acima de 25 anos" }}</td>{% endfor %}</tr>
+                <tr><td>Lucro em 25 anos, sem desconto</td>{% for c in casos %}<td>R$ {{ br(c.lucro, 0) }}</td>{% endfor %}</tr>
+            </table>
+            </div>
+            <p class="nota-fonte">Fluxo mensal em dinheiro de hoje: economia na conta, menos a manutenção e a troca do inversor, desde o mês da simulação. A explicação de cada indicador está na página <a href="/metodologia">Metodologia</a>.</p>
+            </div>
+        </details>
+    </div>
+    </details>
+
+
     <div class="card fora-do-resumo">
         <h2><span class="divider-dot"></span>Perguntas frequentes</h2>
 
@@ -1110,7 +1213,7 @@
 
         <details class="faq-item">
             <summary>O tempo de retorno considera manutenção ao longo dos anos?</summary>
-            <p>Não. O retorno soma a economia de cada ano até ela alcançar o custo do sistema — já considerando o aumento do Fio B cobrado previsto em lei e o desgaste dos painéis —, mas não inclui custos de manutenção, limpeza dos painéis ou troca de componentes ao longo dos 25 anos da garantia de desempenho dos módulos.</p>
+            <p>Sim. O retorno soma a economia de cada mês, menos a manutenção (1% do valor do sistema por ano), até ela alcançar o custo do sistema — já considerando o aumento do Fio B cobrado previsto em lei e o desgaste dos painéis. Se o retorno passar de 10 anos, entra também uma troca do inversor (15% do valor do sistema). Os dois valores são os que a EPE, a empresa de pesquisa do governo federal, usa nas projeções oficiais. Na seção “Economia e retorno”, o quadro “No longo prazo” mostra a conta inteira dos 25 anos.</p>
         </details>
 
         <details class="faq-item">
@@ -1167,6 +1270,11 @@
         document.body.classList.remove('imprimir-resumo');
     });
     window.addEventListener('beforeprint', function () {
+        /* FASE 4, N2 (04/11/2026): a secao "Economia e retorno" abre nas duas
+           impressoes (o resumo tambem leva os numeros dela). */
+        document.querySelectorAll('details.secao-economia').forEach(function (d) {
+            if (!d.open) { d.open = true; d.dataset.abertaParaImprimir = 'sim'; }
+        });
         if (document.body.classList.contains('imprimir-resumo')) { return; }
         document.querySelectorAll('details.detalhes-tecnicos, details.nota-mais').forEach(function (d) {
             if (!d.open) { d.open = true; d.dataset.abertaParaImprimir = 'sim'; }

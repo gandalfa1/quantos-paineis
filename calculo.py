@@ -645,6 +645,11 @@ _ARQUIVO_MAPA_DISTRIBUIDORAS = os.path.join(
     "distribuidoras_por_municipio.json")
 
 
+# FASE 4, N2 (04/11/2026): guardada a parte, para nao mudar os dicionarios do
+# Fio B que a tela ja usa. {cnpj: R$/kWh ou None}.
+COBRANCA_MAXIMA_POR_DISTRIBUIDORA = {}
+
+
 def _carregar_fio_b_por_distribuidora():
     """
     Le fio_b_por_distribuidora.csv. Devolve {cnpj: {...}} ou {} se nao der.
@@ -665,6 +670,15 @@ def _carregar_fio_b_por_distribuidora():
                     continue
                 inicio = str(linha.get("inicio_vigencia") or "").strip() or None
                 fim = str(linha.get("fim_vigencia") or "").strip() or None
+                # FASE 4, N2 (04/11/2026): cobranca maxima (TUSD + TE do SCEE),
+                # coluna nova e opcional; em branco ou torta = None.
+                try:
+                    maxima = float(str(linha.get("cobranca_maxima_reais_por_kwh")
+                                       or "").replace(",", "."))
+                    maxima = maxima if maxima > valor else None
+                except ValueError:
+                    maxima = None
+                COBRANCA_MAXIMA_POR_DISTRIBUIDORA[cnpj] = maxima
                 tabela[cnpj] = {
                     "cnpj": cnpj,
                     "distribuidora": str(linha.get("distribuidora") or "").strip(),
@@ -769,6 +783,58 @@ def fio_b_do_municipio(codigo_ibge=None, uf=None, cnpj_escolhido=None, hoje=None
         "opcoes": opcoes,
         "tabela_de_arquivo": True,
     }
+
+
+# ---------------------------------------------------------------------
+# FASE 4, N2 (04/11/2026) - COBRANCA MAXIMA DEPOIS DE 2029 (o "pior caso")
+# ---------------------------------------------------------------------
+# A Lei 14.300/2022 (art. 27) fixa o Fio B cobrado sobre a energia compensada
+# ate 2028 (90%). De 2029 em diante vale o art. 17: cobrar "todas as
+# componentes tarifarias nao associadas ao custo da energia", abatidos os
+# beneficios que a ANEEL ainda vai calcular - a regra NAO existe em
+# 04/11/2026 (Tomada de Subsidios ANEEL 23/2025; regulamentacao prevista para
+# 2027). O motor continua usando 100% do Fio B como premissa provisoria (o
+# caso de cima) e calcula tambem o TETO que a lei permite: a tarifa do SCEE
+# inteira sem nenhum beneficio abatido, TUSD + TE do detalhe SCEE dos dados
+# abertos da ANEEL (as "tarifas TUSD e TE aplicaveis ao SCEE" da REN
+# 1.000/2021, art. 655-I, par. 1o, II, b; a TE do SCEE ja vem sem as parcelas
+# de energia). Mesma definicao do artigo (d). Valor SEM impostos, como o Fio B
+# (e subtraido da tarifa da conta do mesmo jeito que o Fio B ja e).
+#
+# QUANDO A DISTRIBUIDORA NAO TEM O VALOR (coluna em branco, ou Fio B vindo da
+# tabela do estado): estimado como Fio B x a MEDIANA da razao cobranca
+# maxima / Fio B das distribuidoras do arquivo, e a tela diz que e
+# estimativa. Sem nenhum valor no arquivo, nao ha pior caso (None).
+def _mediana(valores):
+    v = sorted(valores)
+    if not v:
+        return None
+    meio = len(v) // 2
+    return v[meio] if len(v) % 2 else (v[meio - 1] + v[meio]) / 2
+
+
+RAZAO_COBRANCA_MAXIMA_MEDIANA = _mediana(
+    m / FIO_B_POR_DISTRIBUIDORA[c]["fio_b"]
+    for c, m in COBRANCA_MAXIMA_POR_DISTRIBUIDORA.items()
+    if m is not None and c in FIO_B_POR_DISTRIBUIDORA)
+
+
+def cobranca_maxima_pos_2029(referencia_fio_b):
+    """
+    Teto da cobranca sobre a energia compensada depois de 2029 (R$/kWh) para a
+    referencia de Fio B que o motor usou (o dicionario de fio_b_do_municipio).
+
+    Devolve (valor, estimada): estimada = False quando o valor e o da propria
+    distribuidora; True quando saiu da mediana (ver o bloco acima). (None, None)
+    quando nao ha como calcular.
+    """
+    cnpj = (referencia_fio_b or {}).get("cnpj")
+    fio_b = (referencia_fio_b or {}).get("fio_b")
+    if cnpj and COBRANCA_MAXIMA_POR_DISTRIBUIDORA.get(cnpj):
+        return COBRANCA_MAXIMA_POR_DISTRIBUIDORA[cnpj], False
+    if fio_b and fio_b > 0 and RAZAO_COBRANCA_MAXIMA_MEDIANA:
+        return fio_b * RAZAO_COBRANCA_MAXIMA_MEDIANA, True
+    return None, None
 
 
 # ---------------------------------------------------------------------
@@ -1480,12 +1546,52 @@ def payback_dentro_da_vida_util(payback_em_meses):
 DEGRADACAO_ANUAL_MODULOS = 0.005
 
 
+# ---------------------------------------------------------------------
+# FASE 4, N2 (04/11/2026) - MANUTENCAO E TROCA DO INVERSOR (premissas da EPE)
+# ---------------------------------------------------------------------
+# Ate aqui o retorno nao tinha manutencao nem troca de equipamento (o bloco
+# acima dizia: "inclui-las so afastaria o payback"). Para o LONGO PRAZO (o que
+# sobra em 25 anos) elas pesam, e o retorno passa a conta-las tambem, para os
+# dois numeros sairem da mesma conta. Valores e fonte:
+#   EPE, Nota Tecnica EPE-DEA-SEE 014/2022, "Modelo de Mercado da Micro e
+#   Minigeracao Distribuida (4MD): Metodologia - Versao PDE 2032", Tabela 2,
+#   p. 15: O&M de 1% do investimento inicial por ano (sistemas locais, o caso
+#   residencial); custo do inversor no 10o ano = 15% do CAPEX; degradacao de
+#   0,5% a.a. (a mesma ja usada acima); vida util de 25 anos. A mesma nota
+#   usa payback SIMPLES (sem juros) para o residencial, como este motor.
+#   (O pacote de programas da EPE, epe4md, traz os mesmos 15% e chama o
+#   momento de "ano 11": e o mesmo instante, depois de 10 anos completos.)
+# Em dinheiro de hoje, como a tarifa: a manutencao e 1% do custo por ano,
+# dividida igualmente pelos 12 meses, desde o 1o mes; a troca e paga uma vez,
+# no mes 120 (o 1o mes depois de 10 anos completos).
+# SENTIDO DO EFEITO: as duas so diminuem a economia liquida (lado
+# conservador). Em sistema pequeno, 15% pode ficar ABAIXO do preco real de um
+# inversor (MIC 3000TL-X: R$ 1.669 a R$ 1.964 em loja, 04/11/2026, contra 15%
+# de R$ 9.150 = R$ 1.372) - limitacao declarada na pagina Limitacoes.
+OEM_ANUAL_FRACAO = 0.01
+TROCA_INVERSOR_FRACAO = 0.15
+TROCA_INVERSOR_MES = 120
+FONTE_PREMISSAS_EPE = ("EPE, Nota Técnica EPE-DEA-SEE 014/2022 (Modelo 4MD, "
+                       "versão PDE 2032), Tabela 2, p. 15")
+
+# O RETORNO QUE VALE, com custos ao longo do tempo: o mes a partir do qual a
+# soma (economia - custos) FICA acima do investimento. Sem custos e igual ao
+# 1o mes em que a soma passa o custo (a regra de antes). Com a troca do
+# inversor pode haver diferenca: medido em 04/11/2026, em 140 de 8.556
+# simulacoes o sistema se pagava antes do mes 120 e a troca fazia a soma voltar
+# para baixo do investimento; nesses casos o retorno e o mes em que ela passa
+# o custo DE NOVO (claude/n2_medicao/registro_n2.txt no Project).
+
+
 def retorno_mes_a_mes(custo_total, geracao_anual_kwh, consumo_por_mes_kwh,
                       piso_disponibilidade_kwh, tarifa, valor_fio_b,
                       inicio=None, percentual_fixo=None,
                       degradacao_anual=DEGRADACAO_ANUAL_MODULOS,
                       meses_max=PAYBACK_MAXIMO_MESES,
-                      simultaneidade=0.0, geracao_por_mes_kwh=None):
+                      simultaneidade=0.0, geracao_por_mes_kwh=None,
+                      oem_anual=0.0, troca_inversor=0.0,
+                      troca_mes=TROCA_INVERSOR_MES,
+                      cobranca_pos_2029=None):
     """
     Retorno do investimento mes a mes, com a escalada do Fio B da Lei
     14.300/2022 e a degradacao dos modulos (ver o bloco acima).
@@ -1494,18 +1600,32 @@ def retorno_mes_a_mes(custo_total, geracao_anual_kwh, consumo_por_mes_kwh,
     percentual_fixo: quando informado, vale para todos os meses (e assim
     que os casos antigos seguem reproduziveis).
 
+    FASE 4, N2 (04/11/2026), tres parametros novos, todos com padrao que
+    reproduz a conta de antes linha por linha:
+      oem_anual       - manutencao, fracao do custo por ano (0 = sem);
+      troca_inversor  - troca do inversor, fracao do custo, paga no mes
+                        troca_mes (0 = sem);
+      cobranca_pos_2029 - R$/kWh cobrados sobre a energia compensada de 2029
+                        em diante NO LUGAR do Fio B x 100% (o "pior caso", com a
+                        cobranca maxima de cobranca_maxima_pos_2029()). Ignorado
+                        quando percentual_fixo e informado.
+
     Devolve um dicionario:
-      payback_meses        - meses ate se pagar (fracionado); infinito se
+      payback_meses        - meses ate FICAR no lucro (fracionado); infinito se
                              nao se paga dentro de meses_max
       inicio_ano, inicio_mes
-      acumulado_no_prazo   - economia somada nos meses_max meses (so quando
-                             nao se paga; senao None)
+      acumulado_no_prazo   - ECONOMIA somada nos meses_max meses, sem custos (so
+                             quando nao se paga; senao None) - como antes
       anos                 - uma linha por ANO CIVIL, da instalacao ate o
                              ano em que o sistema se paga (ou ate o fim do
-                             prazo): ano, meses (quantos meses daquele ano
-                             entraram), percentual_fio_b, economia (R$ no
-                             ano), economia_por_mes e acumulado (R$ no fim
-                             daquele ano)
+                             prazo): ano, meses, percentual_fio_b, economia (R$
+                             no ano, sem custos), custos (manutencao e troca no
+                             ano), economia_por_mes e acumulado (soma de
+                             economia - custos no fim daquele ano)
+      economia_prazo, custos_prazo, lucro_prazo - somas dos meses_max meses
+                             (lucro = economia - custos - custo_total)
+      fluxo_liquido        - lista mes a mes de economia - custos (para a TIR,
+                             o VPL e o payback descontado)
     Nunca levanta excecao por economia zero ou negativa: o retorno sai
     infinito e quem decide o que dizer e o simulacao.py (mesma regra de
     payback_meses).
@@ -1522,7 +1642,7 @@ def retorno_mes_a_mes(custo_total, geracao_anual_kwh, consumo_por_mes_kwh,
     geracao_mensal = (list(geracao_por_mes_kwh.values())
                       if isinstance(geracao_por_mes_kwh, dict)
                       else list(geracao_por_mes_kwh or []))
-    economia_com_simultaneidade = {}   # (p, k) -> economia do ano
+    economia_com_simultaneidade = {}   # (f, k) -> economia do ano
     if inicio is None:
         hoje = data_de_hoje()
         inicio = (hoje.year, hoje.month)
@@ -1530,57 +1650,218 @@ def retorno_mes_a_mes(custo_total, geracao_anual_kwh, consumo_por_mes_kwh,
     consumos = _consumos_do_ano(0.0, consumo_por_mes_kwh)
     consumo_anual = sum(consumos)
 
-    teto_por_percentual = {}      # o teto so depende de f: no maximo 4 contas
-    acumulado = 0.0
-    payback = math.inf
-    anos = []
-    linha = None
-    t = 0
-    while t < meses_max:
+    # 1) economia e custos de cada mes (sempre os meses_max meses)
+    # (a economia de um mes so depende do ano civil - que da o percentual e a
+    # cobranca - e de k, os anos completos desde a instalacao: guardada por par)
+    teto_por_cobranca = {}        # o teto so depende de f
+    por_par = {}                  # (ano_civil, k) -> (economia do mes, p)
+    economias, custos, anos_civis, percentuais = [], [], [], []
+    for t in range(meses_max):
         ano_civil = ano0 + (mes0 - 1 + t) // 12
-        if linha is None or linha["ano"] != ano_civil:
-            if linha is not None:
-                anos.append(linha)
-                if payback != math.inf:
-                    linha = None
-                    break
+        k = t // 12
+        if (ano_civil, k) not in por_par:
             p = (percentual_fixo if percentual_fixo is not None
                  else percentual_fio_b_vigente(ano_civil))
-            linha = {"ano": ano_civil, "meses": 0, "percentual_fio_b": p,
-                     "economia": 0.0, "acumulado": acumulado}
-        p = linha["percentual_fio_b"]
-        f = valor_fio_b * p
-        if p not in teto_por_percentual:
-            teto_por_percentual[p] = consumo_compensavel_do_ano(
-                consumo_anual, piso_disponibilidade_kwh, consumos, tarifa, f)
-        k = t // 12
-        geracao = geracao_anual_kwh * (1 - degradacao_anual) ** k
-        if simultaneidade:
-            if (p, k) not in economia_com_simultaneidade:
-                fator = (1 - degradacao_anual) ** k
-                economia_com_simultaneidade[(p, k)] = economia_do_ano_com_simultaneidade(
-                    [gm * fator for gm in geracao_mensal], consumos,
-                    piso_disponibilidade_kwh, tarifa, f, simultaneidade)["economia"]
-            economia = economia_com_simultaneidade[(p, k)] / 12
-        else:
-            economia = max(min(geracao, teto_por_percentual[p]), 0.0) * (tarifa - f) / 12
-        if payback == math.inf and economia > 0 and acumulado + economia >= custo_total:
-            payback = t + (custo_total - acumulado) / economia
-        acumulado += economia
+            f = valor_fio_b * p
+            if (cobranca_pos_2029 is not None and percentual_fixo is None
+                    and ano_civil >= 2029):
+                # A cobranca nunca passa da propria tarifa: o art. 17 cobra
+                # componentes da tarifa, entao no maximo a tarifa inteira (com
+                # f = tarifa a energia compensada nao economiza nada, e nao
+                # "custa" mais que a conta sem painel). So acontece com o valor
+                # ESTIMADO (Fio B x mediana) e tarifa da conta baixa; com o
+                # valor da propria distribuidora, TUSD + TE do SCEE e sempre
+                # menor que a tarifa. Achado da conferencia de 04/11/2026: sem
+                # este limite a economia do pior caso saia negativa.
+                f = min(cobranca_pos_2029, tarifa)
+            if f not in teto_por_cobranca:
+                teto_por_cobranca[f] = consumo_compensavel_do_ano(
+                    consumo_anual, piso_disponibilidade_kwh, consumos, tarifa, f)
+            geracao = geracao_anual_kwh * (1 - degradacao_anual) ** k
+            if simultaneidade:
+                if (f, k) not in economia_com_simultaneidade:
+                    fator = (1 - degradacao_anual) ** k
+                    economia_com_simultaneidade[(f, k)] = economia_do_ano_com_simultaneidade(
+                        [gm * fator for gm in geracao_mensal], consumos,
+                        piso_disponibilidade_kwh, tarifa, f, simultaneidade)["economia"]
+                economia_par = economia_com_simultaneidade[(f, k)] / 12
+            else:
+                economia_par = max(min(geracao, teto_por_cobranca[f]), 0.0) * (tarifa - f) / 12
+            por_par[(ano_civil, k)] = (economia_par, p)
+        economia, p = por_par[(ano_civil, k)]
+        custo_mes = custo_total * oem_anual / 12
+        if troca_inversor and t == troca_mes:
+            custo_mes += custo_total * troca_inversor
+        economias.append(economia)
+        custos.append(custo_mes)
+        anos_civis.append(ano_civil)
+        percentuais.append(p)
+
+    # 2) o retorno: o mes a partir do qual a soma liquida FICA acima do custo
+    payback = math.inf
+    acumulado = 0.0
+    for t in range(meses_max):
+        liquido = economias[t] - custos[t]
+        antes = acumulado
+        acumulado += liquido
+        if antes < custo_total <= acumulado and liquido > 0:
+            payback = t + (custo_total - antes) / liquido
+        elif acumulado < custo_total:
+            payback = math.inf
+
+    # 3) a tabela por ano civil, ate o ano do retorno (ou ate o fim do prazo)
+    # o mes da passagem e o t com payback em (t, t + 1]
+    ultimo_ano = (anos_civis[min(math.ceil(payback) - 1, meses_max - 1)]
+                  if payback != math.inf else anos_civis[-1])
+    anos = []
+    acumulado = 0.0
+    for t in range(meses_max):
+        if anos_civis[t] > ultimo_ano:
+            break
+        if not anos or anos[-1]["ano"] != anos_civis[t]:
+            anos.append({"ano": anos_civis[t], "meses": 0,
+                         "percentual_fio_b": percentuais[t],
+                         "economia": 0.0, "custos": 0.0, "acumulado": acumulado})
+        linha = anos[-1]
+        acumulado += economias[t] - custos[t]
         linha["meses"] += 1
-        linha["economia"] += economia
+        linha["economia"] += economias[t]
+        linha["custos"] += custos[t]
         linha["acumulado"] = acumulado
-        t += 1
-    if linha is not None:
-        anos.append(linha)
     for l in anos:
         l["economia_por_mes"] = l["economia"] / l["meses"] if l["meses"] else 0.0
+
+    economia_prazo, custos_prazo = sum(economias), sum(custos)
     return {
         "payback_meses": payback,
         "inicio_ano": ano0,
         "inicio_mes": mes0,
-        "acumulado_no_prazo": acumulado if payback == math.inf else None,
+        "acumulado_no_prazo": economia_prazo if payback == math.inf else None,
         "anos": anos,
+        "economia_prazo": economia_prazo,
+        "custos_prazo": custos_prazo,
+        "lucro_prazo": economia_prazo - custos_prazo - custo_total,
+        "fluxo_liquido": [e - c for e, c in zip(economias, custos)],
+    }
+
+
+# ---------------------------------------------------------------------
+# FASE 4, N2 (04/11/2026) - "RENDE MAIS QUE A POUPANCA?" (TIR e VPL)
+# ---------------------------------------------------------------------
+# Tudo em dinheiro de hoje (a tarifa nao sobe acima da inflacao), entao a
+# comparacao tem de ser com o rendimento REAL (acima da inflacao).
+# POUPANCA: rendimento dos ultimos 12 meses descontado o IPCA, com as series
+# oficiais do Banco Central (SGS 196 - poupanca, depositos a partir de
+# 04/05/2012, rentabilidade mensal; SGS 433 - IPCA mensal, do IBGE), baixadas
+# em 04/11/2026: out/2025 a set/2026, poupanca 8,31%, IPCA 4,58% ->
+# (1,0831 / 1,0458) - 1 = 3,57% ao ano. E a regua MAIS DIFICIL dos ultimos 10
+# anos (media de 10 anos: 0,97%; em 2015, 2019, 2020 e 2021 a poupanca perdeu
+# da inflacao) - escolha da aluna (04/11/2026), para nao favorecer o sistema.
+# A poupanca nao paga imposto, como a economia na conta de luz: comparacao
+# justa. Conta refeita por claude/n2_medicao/poupanca_real.py (Project).
+# ATUALIZAR A MAO de tempos em tempos (valor, periodo e data).
+POUPANCA_REAL_ANUAL = 0.0357
+POUPANCA_PERIODO = "outubro de 2025 a setembro de 2026"
+FONTE_POUPANCA = ("Banco Central do Brasil, séries 196 (rendimento da poupança) e "
+                  "433 (IPCA, do IBGE), consultadas em 04/11/2026")
+# Segunda referencia (so na Metodologia): titulo publico atrelado ao IPCA,
+# depois da inflacao e do imposto de renda, ~5% real - a mesma do artigo (d)
+# e do Ipea (Dantas e Pompermayer, 2018, TD 2388).
+TESOURO_REAL_LIQUIDO_ANUAL = 0.05
+
+
+def _taxa_mensal(taxa_anual):
+    return (1 + taxa_anual) ** (1 / 12) - 1
+
+
+def vpl(fluxo_liquido, custo_total, taxa_anual):
+    """Valor presente liquido do fluxo mensal (1o fluxo no fim do 1o mes)."""
+    q = 1.0 / (1.0 + _taxa_mensal(taxa_anual))
+    total, fator = 0.0, q
+    for v in fluxo_liquido:
+        total += v * fator
+        fator *= q
+    return total - custo_total
+
+
+def payback_descontado(fluxo_liquido, custo_total, taxa_anual):
+    """Meses ate a soma DESCONTADA ficar acima do custo (mesma regra do
+    retorno: o mes a partir do qual fica); infinito se nao chega."""
+    q = 1.0 / (1.0 + _taxa_mensal(taxa_anual))
+    payback, acumulado, fator = math.inf, 0.0, 1.0
+    for t, v in enumerate(fluxo_liquido):
+        fator *= q
+        presente = v * fator
+        antes = acumulado
+        acumulado += presente
+        if antes < custo_total <= acumulado and presente > 0:
+            payback = t + (custo_total - antes) / presente
+        elif acumulado < custo_total:
+            payback = math.inf
+    return payback
+
+
+def tir_real_anual(fluxo_liquido, custo_total):
+    """
+    Taxa interna de retorno, ao ano, do fluxo mensal (em dinheiro de hoje, entao
+    e uma taxa REAL). None quando o fluxo nao devolve nem o custo (a TIR seria
+    negativa ou nao existiria - a tela diz "nao se paga").
+
+    Newton-Raphson na taxa MENSAL, protegido por um intervalo [0; 1] que
+    encolhe a cada passo (se o passo de Newton sair do intervalo, usa o meio
+    dele). O VPL cai quando a taxa sobe, porque depois do investimento o fluxo
+    e positivo (a troca do inversor nao inverte isso enquanto a soma devolve o
+    custo). Para quando a taxa mensal muda menos de 1e-12.
+    """
+    if sum(fluxo_liquido) <= custo_total:
+        return None
+
+    def valor_e_derivada(i):
+        q = 1.0 / (1.0 + i)
+        valor = derivada = 0.0
+        fator = q
+        for t, v in enumerate(fluxo_liquido):
+            valor += v * fator
+            derivada -= (t + 1) * v * fator * q
+            fator *= q
+        return valor - custo_total, derivada
+
+    baixo, alto, i = 0.0, 1.0, 0.01
+    for _ in range(200):
+        f, df = valor_e_derivada(i)
+        if f > 0:
+            baixo = i
+        else:
+            alto = i
+        proximo = i - f / df if df < 0 else (baixo + alto) / 2
+        if not (baixo < proximo < alto):
+            proximo = (baixo + alto) / 2
+        if abs(proximo - i) < 1e-12:
+            i = proximo
+            break
+        i = proximo
+    return (1 + i) ** 12 - 1
+
+
+def indicadores_longo_prazo(retorno, custo_total):
+    """
+    Resume o fluxo de 25 anos de retorno_mes_a_mes() no que a tela mostra.
+    Devolve: economia, custos, lucro (R$ em 25 anos, sem juros), tir (real ao
+    ano ou None), vpl_poupanca e vpl_tesouro (R$ "a mais que" cada aplicacao,
+    em dinheiro de hoje), payback_descontado_poupanca (meses ou infinito) e
+    payback_meses (o retorno sem juros, o mesmo da tabela).
+    """
+    fluxo = retorno["fluxo_liquido"]
+    return {
+        "economia": retorno["economia_prazo"],
+        "custos": retorno["custos_prazo"],
+        "lucro": retorno["lucro_prazo"],
+        "tir": tir_real_anual(fluxo, custo_total),
+        "vpl_poupanca": vpl(fluxo, custo_total, POUPANCA_REAL_ANUAL),
+        "vpl_tesouro": vpl(fluxo, custo_total, TESOURO_REAL_LIQUIDO_ANUAL),
+        "payback_descontado_poupanca": payback_descontado(fluxo, custo_total,
+                                                          POUPANCA_REAL_ANUAL),
+        "payback_meses": retorno["payback_meses"],
     }
 
 
