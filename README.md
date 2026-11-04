@@ -20,6 +20,7 @@ O repositório guarda duas versões, e cada uma tem um papel diferente.
 - **Cobranças que não são energia.** Há um campo opcional para a iluminação pública e outras cobranças da conta, que não somem com a energia solar.
 - **Inversor de 1,0 kW.** O sistema de dois painéis de 600 Wp passou a usar o Growatt MIC 1000TL-X no lugar do MIC 1500TL-X. Com o de 1,5 kW, o inversor ficava maior que os painéis. Painéis, geração, custo e retorno não mudam.
 - **Energia usada na hora.** Uma pergunta opcional diz em que horário a casa mais usa energia. A parte da geração usada no mesmo instante (10%, 30% ou 39%, pelo lado baixo das medições da ANEEL, da EPE e de Dilli e Brito, 2025) economiza a tarifa inteira, sem o Fio B. Muda só a economia e o retorno; painéis, inversor e custo não mudam. Sem resposta, a conta é a de antes (0%).
+- **Manutenção, 25 anos e poupança.** O retorno passou a descontar a manutenção (1% do preço por ano) e uma troca do inversor depois de 10 anos (15% do preço), valores da EPE (Nota Técnica EPE-DEA-SEE 014/2022). O mesmo fluxo vai até 25 anos e dá a economia e os gastos do período, a taxa interna de retorno real ("rende cerca de X% ao ano") comparada com a poupança dos últimos 12 meses descontada a inflação (Banco Central, séries 196 e 433), o VPL e o retorno descontado. A tela mostra também o pior caso para 2029: a cobrança máxima que a Lei 14.300/2022 (art. 17) permite sobre a energia compensada, pelos dados abertos da ANEEL, sem desconto pelos benefícios. A conta principal continua com 100% do Fio B depois de 2028. Painéis, inversor, geração, custo e economia de hoje não mudam.
 - **Nove páginas de explicação.** Como funciona, economia, equipamentos e preços, precisão, metodologia, limitações, sobre, contato e apoie.
 - **Atualização automática do Fio B** e **contador de acessos sem dado pessoal**, explicados mais abaixo.
 
@@ -102,7 +103,8 @@ A numeração abaixo é a do artigo do TCC. Os comentários do código usam a nu
 | 9 – Energia compensada e economia anual | Equações 8a e 8b | `energia_compensavel_anual()`, `economia_anual_estimada()` |
 | 10 – Custo | (curva da Greener) | `custo_sistema_greener()` |
 | 11 – Payback simples (TCC) | Equação 9 | `payback_meses()` |
-| (só no site) – Retorno mês a mês | – | `retorno_mes_a_mes()` |
+| (só no site) – Retorno mês a mês, com manutenção e troca do inversor | – | `retorno_mes_a_mes()` |
+| (só no site) – 25 anos, TIR, VPL e pior caso de 2029 | – | `indicadores_longo_prazo()`, `tir_real_anual()`, `cobranca_maxima_pos_2029()` |
 | 12 – Correção pela temperatura | (verificação elétrica) | `voc_na_temperatura_minima()`, `vmp_na_temperatura_maxima()`, `isc_na_temperatura_maxima()` |
 
 ## Dados e créditos
