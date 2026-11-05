@@ -1,14 +1,11 @@
-# B1 (fase 4) - TESTE 3: distancia entre a sede do IBGE e outras fontes de
-# coordenada. Criado em 05/11/2026. TEMPORARIO: nao grava nada no repositorio e
-# nao vai para o main.
+# B1 (fase 4) - TESTE 4: coordenadas dos municipios no Wikidata (3a fonte, para
+# desempatar IBGE x lista kelvins). Criado em 05/11/2026. TEMPORARIO: nao grava
+# nada no repositorio e nao vai para o main.
 #
-# Motivo: na tabela, Campinas/SP caiu num quadrado da NASA ao sul de 23 graus S,
-# embora o centro da cidade fique perto de 22,9 graus S. Este teste mede, SEM
-# mostrar coordenadas do IBGE, a distancia (km) entre:
-#  - a sede do IBGE (lml_cidade_p) e a lista aberta kelvins/municipios-brasileiros;
-#  - a sede do IBGE e a coordenada usada pelo site nos 10 casos do artigo (a)
-#    (que ja e publica nos relatorios do PVsyst em resultados/);
-#  - nas capitais, o ponto da camada Cidade e o da camada Capital.
+# O Wikidata e CC0 (dominio publico): as coordenadas podem aparecer no registro.
+# Busca todo item com codigo de municipio do IBGE (P1585) e coordenada (P625),
+# fora as declaracoes "deprecated", e entrega o resultado compactado no registro
+# (a nuvem do Claude nao alcanca o Wikidata nem baixa artefatos).
 # Roda sozinho quando o ramo fase4-b1-teste-acesso recebe um envio.
 
 name: B1 teste de acesso (NASA e IBGE)
@@ -23,59 +20,29 @@ permissions:
 jobs:
   teste:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 20
     steps:
-      - name: Baixar a BC250 2025 e a lista kelvins
+      - name: Wikidata - coordenadas dos municipios
         run: |
-          base=https://geoftp.ibge.gov.br/cartas_e_mapas/bases_cartograficas_continuas/bc250/versao2025/geopackage
-          curl -sS -m 1500 -o /tmp/bc250.zip "$base/bc250_gpkg_2026-03-03.zip"
-          echo "ff223482c743b81fff6b422378e6ada9406abedcff3f9768afb7cbef1da80781  /tmp/bc250.zip" | sha256sum -c
-          unzip -o -q /tmp/bc250.zip -d /tmp/bc250
-          curl -sS -m 60 -o /tmp/kelvins.csv https://raw.githubusercontent.com/kelvins/municipios-brasileiros/main/csv/municipios.csv
-
-      - name: Distancias
-        run: |
-          python3 - <<'EOF'
-          import csv, math, sqlite3, struct, statistics as st
-
-          def ponto(blob):
-              blob = bytes(blob)
-              tam = {0: 0, 1: 32, 2: 48, 3: 48, 4: 64}[(blob[3] >> 1) & 7]
-              w = blob[8 + tam:]
-              o = "<" if w[0] == 1 else ">"
-              x, y = struct.unpack(o + "dd", w[5:21])
-              return y, x
-
-          def km(a, b):
-              la1, lo1, la2, lo2 = map(math.radians, (*a, *b))
-              h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
-              return 6371 * 2 * math.asin(math.sqrt(h))
-
-          con = sqlite3.connect("/tmp/bc250/bc250_2026-03-03.gpkg")
-          cid = {c: (n, ponto(g)) for n, c, g in con.execute("select nome, geocodigo, geom from lml_cidade_p") if c}
-          cap = {c: (n, ponto(g)) for n, c, g in con.execute("select nome, geocodigo, geom from lml_capital_p") if c}
-          kel = {r["codigo_ibge"]: (r["nome"], (float(r["latitude"]), float(r["longitude"])))
-                 for r in csv.DictReader(open("/tmp/kelvins.csv", encoding="utf-8"))}
-
-          print("== capitais: camada Cidade x camada Capital (km)")
-          d = sorted((round(km(cid[c][1], cap[c][1]), 2), cap[c][0]) for c in cap)
-          print("  ", d)
-
-          print("\n== sede IBGE x lista kelvins (km)")
-          ds = sorted(((km(cid[c][1], kel[c][1]), c, kel[c][0]) for c in cid if c in kel), reverse=True)
-          v = sorted(x[0] for x in ds)
-          print(f"  n={len(v)} mediana {st.median(v):.2f} p90 {v[int(.9*len(v))]:.2f} p99 {v[int(.99*len(v))]:.2f} max {v[-1]:.2f}")
-          for lim in (1, 2, 5, 10, 20, 50):
-              print(f"  acima de {lim} km: {sum(1 for x in v if x > lim)}")
-          print("  as 40 maiores:")
-          for dist, c, n in ds[:40]:
-              print(f"    {c} {n}: {dist:.1f} km")
-
-          print("\n== sede IBGE x coordenada do site nos 10 casos do artigo (a) (km)")
-          site = {"1501402": (-1.4506, -48.4682), "2903904": (-13.2828, -43.1802), "3509502": (-22.9056, -47.0596),
-                  "5002704": (-20.4640, -54.6163), "5103403": (-15.5987, -56.0991), "4106902": (-25.4296, -49.2713),
-                  "4108809": (-24.0852, -54.2568), "1302603": (-3.1316, -59.9825), "3304557": (-22.9110, -43.2094),
-                  "2211001": (-5.0875, -42.8050)}
-          for c, p in site.items():
-              print(f"   {c} {cid[c][0]}: IBGE x site {km(cid[c][1], p):.1f} km | kelvins x site {km(kel[c][1], p):.1f} km")
+          cat > consulta.rq <<'EOF'
+          SELECT ?item ?ibge ?coord ?rank ?tipo WHERE {
+            ?item wdt:P1585 ?ibge ;
+                  p:P625 ?st .
+            ?st ps:P625 ?coord ;
+                wikibase:rank ?rank .
+            FILTER(?rank != wikibase:DeprecatedRank)
+            OPTIONAL { ?item wdt:P31 ?tipo . }
+          }
           EOF
+          curl -sS -m 300 -G "https://query.wikidata.org/sparql" \
+            --data-urlencode "query@consulta.rq" \
+            -H "Accept: text/csv" \
+            -H "User-Agent: quantos-paineis/1.1 (+https://quantospaineis.com.br/contato)" \
+            -o wikidata.csv -w "HTTP %{http_code}, %{size_download} bytes\n"
+          wc -l wikidata.csv
+          head -3 wikidata.csv
+          date -u +"consultado em %Y-%m-%dT%H:%M:%SZ"
+          sha256sum wikidata.csv
+          echo "=====INICIO_WIKIDATA====="
+          gzip -9c wikidata.csv | base64 -w 200
+          echo "=====FIM_WIKIDATA====="
