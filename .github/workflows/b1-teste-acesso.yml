@@ -1,0 +1,97 @@
+# B1 (fase 4) - TESTE DE ACESSO. Criado em 05/11/2026. TEMPORARIO.
+#
+# So confere tres coisas, sem gravar nada no repositorio:
+#  1. se o computador do GitHub alcanca a NASA POWER (ponto e regiao);
+#  2. se alcanca o IBGE e baixa a BC250 versao 2025 (GeoPackage);
+#  3. quais colunas e quantos pontos tem as camadas de sede municipal
+#     ("Cidade") e "Capital".
+# Por causa da duvida da licenca da BC250, o registro NAO mostra coordenadas
+# das sedes: so nomes de colunas, contagens e atributos de texto.
+# Roda sozinho quando o ramo fase4-b1-teste-acesso recebe um envio.
+# Nao vai para o main: o ramo e apagado depois do teste.
+
+name: B1 teste de acesso (NASA e IBGE)
+
+on:
+  push:
+    branches: [fase4-b1-teste-acesso]
+
+permissions:
+  contents: read
+
+jobs:
+  teste:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: NASA POWER - ponto (Guaira/PR)
+        continue-on-error: true
+        run: |
+          curl -sS -m 60 -o ponto.json -w "HTTP %{http_code}\n" \
+            "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude=-54.2567519&latitude=-24.0851924&format=JSON"
+          python3 - <<'EOF'
+          import json
+          d = json.load(open("ponto.json"))
+          print("geometry:", d.get("geometry"))
+          print("header:", json.dumps(d.get("header"), ensure_ascii=False))
+          print("valores:", d["properties"]["parameter"]["ALLSKY_SFC_SW_DWN"])
+          EOF
+
+      - name: NASA POWER - regiao pequena (para ver a grade)
+        continue-on-error: true
+        run: |
+          curl -sS -m 90 -o regiao.json -w "HTTP %{http_code}\n" \
+            "https://power.larc.nasa.gov/api/temporal/climatology/regional?parameters=ALLSKY_SFC_SW_DWN&community=RE&latitude-min=-25&latitude-max=-23&longitude-min=-55&longitude-max=-53&format=JSON"
+          python3 - <<'EOF'
+          import json
+          d = json.load(open("regiao.json"))
+          if "features" not in d:
+              print(json.dumps(d, ensure_ascii=False)[:1500])
+              raise SystemExit
+          fs = d["features"]
+          print("pontos na regiao:", len(fs))
+          for f in fs[:12]:
+              v = f["properties"]["parameter"]["ALLSKY_SFC_SW_DWN"]
+              print(f["geometry"]["coordinates"], v.get("JAN"), v.get("JUL"), v.get("ANN"))
+          print("header:", json.dumps(d.get("header"), ensure_ascii=False))
+          EOF
+
+      - name: IBGE - baixar a BC250 2025 (GeoPackage)
+        run: |
+          base=https://geoftp.ibge.gov.br/cartas_e_mapas/bases_cartograficas_continuas/bc250/versao2025/geopackage
+          curl -sS -m 30 "$base/" | grep -o 'href="[^"]*zip"' | head
+          arq=$(curl -sS -m 30 "$base/" | grep -o 'href="[^"]*zip"' | head -1 | sed 's/href="//;s/"$//')
+          echo "arquivo: $arq"
+          curl -sS -m 1500 -o bc250.zip -w "HTTP %{http_code}, %{size_download} bytes, %{time_total} s\n" "$base/$arq"
+          sha256sum bc250.zip
+          unzip -l bc250.zip
+
+      - name: IBGE - colunas das camadas de sede
+        run: |
+          unzip -o -q bc250.zip -d bc250
+          python3 - <<'EOF'
+          import glob, sqlite3
+          gp = glob.glob("bc250/**/*.gpkg", recursive=True)
+          print("geopackages:", gp)
+          con = sqlite3.connect(gp[0])
+          camadas = [r[0] for r in con.execute(
+              "select table_name from gpkg_contents order by table_name")]
+          print(len(camadas), "camadas; as de localidade:",
+                [c for c in camadas if c.startswith("lml_")])
+          for c in camadas:
+              if c in ("lml_cidade_p", "lml_capital_p") or c.startswith("lml_cidade") or c.startswith("lml_capital"):
+                  cols = con.execute(f'pragma table_info("{c}")').fetchall()
+                  n = con.execute(f'select count(*) from "{c}"').fetchone()[0]
+                  print(f"\n== {c}: {n} pontos")
+                  print("colunas:", [(x[1], x[2]) for x in cols])
+                  texto = [x[1] for x in cols if x[2].upper() in ("TEXT", "") or "CHAR" in x[2].upper()
+                           or x[2].upper().startswith("INT") or x[2].upper() in ("REAL", "DOUBLE")]
+                  texto = [t for t in texto if t.lower() not in ("geom", "geometry", "shape", "x", "y")
+                           and not any(p in t.lower() for p in ("lat", "lon", "coord"))]
+                  for linha in con.execute(f'select {", ".join(chr(34)+t+chr(34) for t in texto)} from "{c}" limit 3'):
+                      print("exemplo:", dict(zip(texto, linha)))
+                  for t in texto:
+                      if t.lower() in ("nome", "nm_mun", "nomeabrev"):
+                          for linha in con.execute(f'select {", ".join(chr(34)+t2+chr(34) for t2 in texto)} from "{c}" where "{t}" like "%Gua_ra%"'):
+                              print("Guaira?:", dict(zip(texto, linha)))
+          EOF
