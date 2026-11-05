@@ -1,14 +1,15 @@
-# B1 (fase 4) - TESTE DE ACESSO. Criado em 05/11/2026. TEMPORARIO.
+# B1 (fase 4) - TESTE 2: as sedes do IBGE casam com a nossa lista? Criado em
+# 05/11/2026. TEMPORARIO: nao grava nada no repositorio e nao vai para o main.
 #
-# So confere tres coisas, sem gravar nada no repositorio:
-#  1. se o computador do GitHub alcanca a NASA POWER (ponto e regiao);
-#  2. se alcanca o IBGE e baixa a BC250 versao 2025 (GeoPackage);
-#  3. quais colunas e quantos pontos tem as camadas de sede municipal
-#     ("Cidade") e "Capital".
-# Por causa da duvida da licenca da BC250, o registro NAO mostra coordenadas
-# das sedes: so nomes de colunas, contagens e atributos de texto.
+# Confere, na BC250 versao 2025 do IBGE (camadas "Cidade" e "Capital"):
+#  - se todo ponto tem codigo IBGE (geocodigo) e se ha codigos repetidos;
+#  - se os 5.571 codigos de static/municipios.json tem sede, e quais sobram;
+#  - se cada sede cai DENTRO do proprio municipio (camada lml_municipio_a);
+#  - em quantos quadrados de 1 grau da NASA as sedes caem, e quantas ficam
+#    perto (menos de 0,05 grau) de uma borda de quadrado.
+# Por causa da duvida da licenca da BC250, o registro NAO mostra coordenadas:
+# so contagens, codigos e nomes.
 # Roda sozinho quando o ramo fase4-b1-teste-acesso recebe um envio.
-# Nao vai para o main: o ramo e apagado depois do teste.
 
 name: B1 teste de acesso (NASA e IBGE)
 
@@ -24,74 +25,113 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - name: NASA POWER - ponto (Guaira/PR)
-        continue-on-error: true
-        run: |
-          curl -sS -m 60 -o ponto.json -w "HTTP %{http_code}\n" \
-            "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude=-54.2567519&latitude=-24.0851924&format=JSON"
-          python3 - <<'EOF'
-          import json
-          d = json.load(open("ponto.json"))
-          print("geometry:", d.get("geometry"))
-          print("header:", json.dumps(d.get("header"), ensure_ascii=False))
-          print("valores:", d["properties"]["parameter"]["ALLSKY_SFC_SW_DWN"])
-          EOF
-
-      - name: NASA POWER - regiao pequena (para ver a grade)
-        continue-on-error: true
-        run: |
-          curl -sS -m 90 -o regiao.json -w "HTTP %{http_code}\n" \
-            "https://power.larc.nasa.gov/api/temporal/climatology/regional?parameters=ALLSKY_SFC_SW_DWN&community=RE&latitude-min=-25&latitude-max=-23&longitude-min=-55&longitude-max=-53&format=JSON"
-          python3 - <<'EOF'
-          import json
-          d = json.load(open("regiao.json"))
-          if "features" not in d:
-              print(json.dumps(d, ensure_ascii=False)[:1500])
-              raise SystemExit
-          fs = d["features"]
-          print("pontos na regiao:", len(fs))
-          for f in fs[:12]:
-              v = f["properties"]["parameter"]["ALLSKY_SFC_SW_DWN"]
-              print(f["geometry"]["coordinates"], v.get("JAN"), v.get("JUL"), v.get("ANN"))
-          print("header:", json.dumps(d.get("header"), ensure_ascii=False))
-          EOF
+      - uses: actions/checkout@v4
 
       - name: IBGE - baixar a BC250 2025 (GeoPackage)
         run: |
           base=https://geoftp.ibge.gov.br/cartas_e_mapas/bases_cartograficas_continuas/bc250/versao2025/geopackage
-          curl -sS -m 30 "$base/" | grep -o 'href="[^"]*zip"' | head
-          arq=$(curl -sS -m 30 "$base/" | grep -o 'href="[^"]*zip"' | head -1 | sed 's/href="//;s/"$//')
-          echo "arquivo: $arq"
-          curl -sS -m 1500 -o bc250.zip -w "HTTP %{http_code}, %{size_download} bytes, %{time_total} s\n" "$base/$arq"
-          sha256sum bc250.zip
-          unzip -l bc250.zip
+          curl -sS -m 1500 -o /tmp/bc250.zip -w "HTTP %{http_code}, %{size_download} bytes\n" "$base/bc250_gpkg_2026-03-03.zip"
+          echo "ff223482c743b81fff6b422378e6ada9406abedcff3f9768afb7cbef1da80781  /tmp/bc250.zip" | sha256sum -c
+          unzip -o -q /tmp/bc250.zip -d /tmp/bc250
+          python3 -m pip install --quiet shapely
 
-      - name: IBGE - colunas das camadas de sede
+      - name: Sedes do IBGE x nossa lista
         run: |
-          unzip -o -q bc250.zip -d bc250
           python3 - <<'EOF'
-          import glob, sqlite3
-          gp = glob.glob("bc250/**/*.gpkg", recursive=True)
-          print("geopackages:", gp)
-          con = sqlite3.connect(gp[0])
-          camadas = [r[0] for r in con.execute(
-              "select table_name from gpkg_contents order by table_name")]
-          print(len(camadas), "camadas; as de localidade:",
-                [c for c in camadas if c.startswith("lml_")])
-          for c in camadas:
-              if c in ("lml_cidade_p", "lml_capital_p") or c.startswith("lml_cidade") or c.startswith("lml_capital"):
-                  cols = con.execute(f'pragma table_info("{c}")').fetchall()
-                  n = con.execute(f'select count(*) from "{c}"').fetchone()[0]
-                  print(f"\n== {c}: {n} pontos")
-                  print("colunas:", [(x[1], x[2]) for x in cols])
-                  texto = [x[1] for x in cols if x[2].upper() in ("TEXT", "") or "CHAR" in x[2].upper()
-                           or x[2].upper().startswith("INT") or x[2].upper() in ("REAL", "DOUBLE")]
-                  texto = [t for t in texto if t.lower() not in ("geom", "geometry", "shape", "x", "y")
-                           and not any(p in t.lower() for p in ("lat", "lon", "coord"))]
-                  for linha in con.execute(f'select {", ".join(chr(34)+t+chr(34) for t in texto)} from "{c}" limit 3'):
-                      print("exemplo:", dict(zip(texto, linha)))
-                  for t in texto:
-                      if t.lower() in ("nome", "nm_mun", "nomeabrev"):
-                          for linha in con.execute(f'select {", ".join(chr(34)+t2+chr(34) for t2 in texto)} from "{c}" where "{t}" like "%Gua_ra%"'):
-                              print("Guaira?:", dict(zip(texto, linha)))
+          import json, math, sqlite3, struct
+          from collections import Counter
+          from shapely import wkb
+          from shapely.geometry import Point
+
+          con = sqlite3.connect("/tmp/bc250/bc250_2026-03-03.gpkg")
+
+          def geometria(blob):
+              # GeoPackage: cabecalho "GP" + envelope + WKB
+              flags = blob[3]
+              tam_env = {0: 0, 1: 32, 2: 48, 3: 48, 4: 64}[(flags >> 1) & 7]
+              return wkb.loads(bytes(blob[8 + tam_env:]))
+
+          for c in ("lml_cidade_p", "lml_capital_p", "lml_municipio_a"):
+              srs = con.execute("select srs_id from gpkg_contents where table_name=?", (c,)).fetchone()
+              print(c, "sistema de referencia:", srs,
+                    con.execute("select srs_name, organization, organization_coordsys_id from gpkg_spatial_ref_sys where srs_id=?", srs).fetchone())
+
+          lista = json.load(open("static/municipios.json"))
+          nossos = {str(m["ibge"]): m for m in lista}
+          print("\nnossa lista:", len(lista), "registros,", len(nossos), "codigos")
+
+          sedes = {}
+          for camada in ("lml_cidade_p", "lml_capital_p"):
+              linhas = con.execute(f'select nome, geocodigo, geometriaaproximada, geom from "{camada}"').fetchall()
+              cods = Counter(l[1] for l in linhas)
+              print(f"\n== {camada}: {len(linhas)} pontos")
+              print("  geocodigo vazio:", sum(1 for l in linhas if not l[1]))
+              print("  geometriaaproximada:", Counter(l[2] for l in linhas))
+              print("  codigos que aparecem mais de 1 vez:", {k: v for k, v in cods.items() if v > 1})
+              if camada == "lml_capital_p":
+                  print("  tipos:", Counter(r[0] for r in con.execute('select tipocapital from lml_capital_p')))
+                  for l in linhas:
+                      if l[1] not in nossos:
+                          print("  capital sem codigo da lista:", l[0], l[1])
+              for nome, cod, aprox, g in linhas:
+                  sedes.setdefault(cod, []).append((camada, nome, aprox, geometria(g)))
+
+          print("\n== casamento com a nossa lista")
+          sem_sede = [m for k, m in nossos.items() if k not in sedes]
+          print("municipios da lista SEM sede no IBGE:", len(sem_sede), sem_sede[:20])
+          sobram = {k: [(s[0], s[1]) for s in v] for k, v in sedes.items() if k not in nossos}
+          print("codigos do IBGE fora da lista:", len(sobram))
+          for k, v in list(sobram.items())[:40]:
+              print("  ", k, v)
+          varias = {k: [(s[0], s[1]) for s in v] for k, v in sedes.items() if k in nossos and len(v) > 1}
+          print("municipios da lista com mais de 1 ponto:", len(varias))
+          for k, v in list(varias.items())[:40]:
+              print("  ", k, nossos[k]["nome"], nossos[k]["uf"], v)
+
+          import unicodedata
+          def norm(t):
+              t = unicodedata.normalize("NFD", t or "").lower()
+              return "".join(ch for ch in t if not unicodedata.combining(ch)).replace("-", " ").replace("'", "").strip()
+          nomes_dif = [(k, nossos[k]["nome"], v[0][1]) for k, v in sedes.items()
+                       if k in nossos and norm(nossos[k]["nome"]) != norm(v[0][1])]
+          print("mesmo codigo, nome diferente:", len(nomes_dif))
+          for x in nomes_dif[:60]:
+              print("  ", x)
+
+          print("\n== a sede cai dentro do proprio municipio?")
+          poligonos = {}
+          for cod, g in con.execute('select geocodigo, geom from lml_municipio_a'):
+              poligonos.setdefault(cod, []).append(geometria(g))
+          print("poligonos de municipio:", len(poligonos))
+          fora, sem_pol = [], []
+          for k in nossos:
+              if k not in sedes:
+                  continue
+              if k not in poligonos:
+                  sem_pol.append(k); continue
+              p = sedes[k][0][3]
+              if not any(pol.buffer(0).covers(Point(p.x, p.y)) for pol in poligonos[k]):
+                  dist = min(pol.distance(Point(p.x, p.y)) for pol in poligonos[k])
+                  fora.append((k, nossos[k]["nome"], nossos[k]["uf"], round(dist * 111, 2)))
+          print("sem poligono:", len(sem_pol), sem_pol[:10])
+          print("sede FORA do proprio municipio:", len(fora), "(distancia ate o limite, km aprox.)")
+          for x in fora[:40]:
+              print("  ", x)
+
+          print("\n== quadrados de 1 grau da NASA (bordas nos graus inteiros)")
+          quadrados = Counter()
+          perto = 0
+          for k in nossos:
+              if k not in sedes:
+                  continue
+              p = sedes[k][0][3]
+              quadrados[(math.floor(p.y), math.floor(p.x))] += 1
+              dlat = min(p.y - math.floor(p.y), math.ceil(p.y) - p.y)
+              dlon = min(p.x - math.floor(p.x), math.ceil(p.x) - p.x)
+              if min(dlat, dlon) < 0.05:
+                  perto += 1
+          print("quadrados diferentes:", len(quadrados))
+          print("municipios por quadrado: max", max(quadrados.values()),
+                "mediana", sorted(quadrados.values())[len(quadrados) // 2])
+          print("sedes a menos de 0,05 grau (~5,5 km) de uma borda:", perto)
           EOF
