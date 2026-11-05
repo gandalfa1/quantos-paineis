@@ -1,0 +1,48 @@
+# B1 (fase 4) - MONTAR A TABELA DE SOL DOS MUNICIPIOS. Criado em 05/11/2026.
+#
+# Baixa a BC250 versao 2025 do IBGE (sedes municipais), roda o
+# montar_tabela_sol.py (um pedido a NASA POWER por quadrado de 1 grau, mais a
+# conferencia da regra dos quadrados) e entrega sol_municipios.csv e
+# sol_municipios_info.json como ARTEFATO da execucao. Nao grava nada no
+# repositorio. As coordenadas do IBGE nao vao para o artefato nem para o
+# registro.
+# Por enquanto roda sozinho quando o ramo fase4-b1-tabela-sol recebe um envio.
+
+name: B1 montar tabela de sol (NASA e IBGE)
+
+on:
+  push:
+    branches: [fase4-b1-tabela-sol]
+
+permissions:
+  contents: read
+
+jobs:
+  montar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Instalar dependencias
+        run: python -m pip install --quiet -r requirements.txt
+
+      - name: Baixar a BC250 2025 do IBGE (GeoPackage)
+        run: |
+          base=https://geoftp.ibge.gov.br/cartas_e_mapas/bases_cartograficas_continuas/bc250/versao2025/geopackage
+          curl -sS -m 1500 -o /tmp/bc250.zip -w "HTTP %{http_code}, %{size_download} bytes\n" "$base/bc250_gpkg_2026-03-03.zip"
+          echo "ff223482c743b81fff6b422378e6ada9406abedcff3f9768afb7cbef1da80781  /tmp/bc250.zip" | sha256sum -c
+          unzip -o -q /tmp/bc250.zip -d /tmp/bc250
+
+      - name: Montar a tabela
+        run: python montar_tabela_sol.py /tmp/bc250/bc250_2026-03-03.gpkg saida
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tabela-sol
+          path: saida/
+          retention-days: 30
