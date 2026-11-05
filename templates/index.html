@@ -987,14 +987,17 @@
         var campoLigacao = document.getElementById('ligacao');
         var MINIMO_KWH = { monofasica: 30, bifasica: 50, trifasica: 100 };
         // REVISAO GERAL, PARTE 3 (07/10/2026), regra 5: tarifa FORA DO COMUM.
-        // A mais cara do pais, sem impostos, era de ~R$ 1,06/kWh (Enel RJ,
-        // homologacao ANEEL, ciclo de jan/2026 - levantamento comparesolar.com.br,
-        // abr/2026); com o ICMS mais alto e a bandeira vermelha 2 fica perto de
-        // R$ 1,65. R$ 3/kWh e quase o dobro: acima disso, quase sempre e numero
-        // digitado errado (um zero a mais, virgula fora do lugar). NAO bloqueia:
-        // so avisa (a conta pode ter multa ou parcelamento - campo das cobrancas).
-        // O MESMO limite esta no resultado.html (TARIFA_FORA_DO_COMUM).
+        // FASE 4, A2 (04/11/2026): limites remedidos com a tarifa B1 residencial
+        // (TE + TUSD, ANEEL, Componentes Tarifarias, 80 distribuidoras, 20/10/2026)
+        // mais ICMS de cada estado, PIS/Cofins de 2% a 9% e bandeira ate R$ 0,10/kWh:
+        // uma conta certa sai entre ~R$ 0,75 e ~R$ 2,49 por kWh (a mais cara e a da
+        // CERES-RJ; o "~R$ 1,65" de antes estava desatualizado). Acima de R$ 3/kWh
+        // ou abaixo de R$ 0,50/kWh quase sempre e numero digitado errado (zero a
+        // mais ou a menos, virgula fora do lugar). NAO bloqueia: so avisa (a conta
+        // pode ter multa ou parcelamento; tarifa social ou desconto deixam o kWh
+        // baratissimo). Os MESMOS limites estao no resultado.html.
         var TARIFA_FORA_DO_COMUM = 3.0;
+        var TARIFA_BAIXA_DEMAIS = 0.5;
         var campoCobrancas = document.getElementById('cobrancas');
         var NOME_LIGACAO = { monofasica: 'monofásica', bifasica: 'bifásica', trifasica: 'trifásica' };
         if (!campoFatura || !campoConta || !campoMedia || !avisoConta
@@ -1096,9 +1099,13 @@
                 var tarifa = (fatura - (cobr || 0)) / Math.max(conta, minimoT);
                 if (tarifa > TARIFA_FORA_DO_COMUM) {
                     textosConta.push('Por esta conta, cada kWh sairia por R$ ' + reais(tarifa)
-                        + ' — bem acima do preço da energia nas contas de luz residenciais do país. Confira o valor da conta e o consumo: um zero a mais, ou uma vírgula fora do lugar, muda todo o resultado.'
-                        + (cobr === null ? ' Se a conta tiver multa, juros ou parcelamento, informe esse valor na seção 3, em “Cobranças da conta que não são energia”.' : ''));
+                        + ', caro demais. Confira se não tem um zero a mais no valor.'
+                        + (cobr === null ? ' Se a conta tiver multa ou parcelamento, informe esse valor na seção 3, em “Cobranças da conta que não são energia”.' : ''));
                     curtos.push('o preço do kWh pela sua conta (R$ ' + reais(tarifa) + ') está muito acima do normal');
+                } else if (tarifa < TARIFA_BAIXA_DEMAIS) {
+                    textosConta.push('Por esta conta, cada kWh sairia por R$ ' + reais(tarifa)
+                        + ', barato demais. Confira se não falta um zero no valor ou sobra um no consumo.');
+                    curtos.push('o preço do kWh pela sua conta (R$ ' + reais(tarifa) + ') está muito abaixo do normal');
                 }
             }
             mostrar(avisoConta, textosConta);

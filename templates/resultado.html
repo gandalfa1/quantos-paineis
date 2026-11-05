@@ -230,14 +230,20 @@
             <p>Localização encontrada: {{ resultado.cidade_encontrada | replace(" - código IBGE", ", código IBGE") }}</p>
         </div>
     </div>
-    {#- REVISAO GERAL, PARTE 3 (07/10/2026): tarifa FORA DO COMUM. Mesmo limite da
-        regra 5 do formulario (index.html, com a fonte): acima de R$ 3/kWh, quase o
-        dobro da tarifa mais cara do pais com impostos, quase sempre e numero digitado
-        errado - e entao economia e retorno desta pagina nao valem. So avisa. -#}
+    {#- REVISAO GERAL, PARTE 3 (07/10/2026) e FASE 4, A2 (04/11/2026): tarifa FORA DO
+        COMUM. Mesmos limites da regra 5 do formulario (index.html, com a fonte): conta
+        certa sai entre ~R$ 0,75 e ~R$ 2,49 por kWh; acima de R$ 3 ou abaixo de R$ 0,50,
+        quase sempre e numero digitado errado - e entao economia e retorno desta pagina
+        nao valem. So avisa. Textos curtos, para o leigo (pedido da aluna, 04/11). -#}
     {%- set TARIFA_FORA_DO_COMUM = 3.0 %}
+    {%- set TARIFA_BAIXA_DEMAIS = 0.5 %}
     {%- if resultado.tarifa_calculada > TARIFA_FORA_DO_COMUM %}
     <div class="aviso-destaque" id="aviso-tarifa-alta" style="margin-bottom: 20px;">
-        <p><strong>Confira os números da sua conta: por ela, cada kWh sai por R$ {{ br(resultado.tarifa_calculada) }}, bem acima do preço da energia nas contas de luz residenciais do país.</strong> Provavelmente algum número foi digitado errado — um zero a mais, ou uma vírgula fora do lugar. Com essa tarifa, a economia e o tempo de retorno desta página não valem: confira o valor e o consumo da conta e simule de novo.{% if not resultado.cobrancas_nao_energia_reais %} Se a conta tiver multa, juros ou parcelamento, informe esse valor em “Cobranças da conta que não são energia”, na seção 3 do formulário.{% endif %}</p>
+        <p>⚠️ <strong>Confira sua conta:</strong> por ela, cada kWh custaria R$ {{ br(resultado.tarifa_calculada) }}, caro demais. Talvez tenha um zero a mais no valor.{% if not resultado.cobrancas_nao_energia_reais %} Se a conta tiver multa ou parcelamento, informe esse valor em “Cobranças da conta que não são energia”.{% endif %}</p>
+    </div>
+    {%- elif resultado.tarifa_calculada < TARIFA_BAIXA_DEMAIS %}
+    <div class="aviso-destaque" id="aviso-tarifa-baixa" style="margin-bottom: 20px;">
+        <p>⚠️ <strong>Confira sua conta:</strong> por ela, cada kWh custaria só R$ {{ br(resultado.tarifa_calculada) }}, barato demais. Talvez falte um zero no valor ou sobre um no consumo. Se a sua conta tem tarifa social ou desconto, este resultado não vale para você.</p>
     </div>
     {%- endif %}
 
