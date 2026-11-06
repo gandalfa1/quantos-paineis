@@ -477,6 +477,33 @@ def _buscar_no_nominatim(municipio):
     raise ErroNominatim("consulta ao Nominatim sem sucesso: " + "; ".join(ULTIMAS_TENTATIVAS))
 
 
+def _identificacao(municipio):
+    """Os campos que identificam o municipio no resultado (B1, 06/11/2026:
+    separados de buscar_coordenadas para o caminho da tabela de sol usar os
+    mesmos, sem consultar ninguem)."""
+    return {
+        "nome_encontrado": (f"{municipio['nome']} ({UF_PARA_NOME[municipio['uf']]})"
+                            f" - código IBGE {municipio['ibge']}"),
+        "uf": municipio["uf"],
+        "municipio": municipio["nome"],
+        "codigo_ibge": municipio["ibge"],
+    }
+
+
+def municipio_da_lista(cidade):
+    """
+    B1 (fase 4, 06/11/2026): acha o municipio na LISTA LOCAL, sem consultar
+    o Nominatim nem ninguem. Devolve os mesmos campos de identificacao de
+    buscar_coordenadas (nome_encontrado, uf, municipio, codigo_ibge), SEM
+    latitude e longitude - quem tem a tabela de sol nao precisa delas -, ou
+    None se a cidade nao estiver na lista (ou for ambigua).
+    """
+    municipio = encontrar_municipio(cidade)
+    if municipio is None:
+        return None
+    return _identificacao(municipio)
+
+
 def buscar_coordenadas(cidade):
     """
     Recebe a cidade escolhida na lista, ex: "Guaíra - PR".
@@ -532,11 +559,7 @@ def buscar_coordenadas(cidade):
     return {
         "latitude": registro["latitude"],
         "longitude": registro["longitude"],
-        "nome_encontrado": (f"{municipio['nome']} ({UF_PARA_NOME[municipio['uf']]})"
-                            f" - código IBGE {municipio['ibge']}"),
-        "uf": municipio["uf"],
-        "municipio": municipio["nome"],
-        "codigo_ibge": municipio["ibge"],
+        **_identificacao(municipio),
         "osm_tipo": registro.get("osm_tipo"),
         "osm_id": registro.get("osm_id"),
         "fonte_coordenadas": origem,

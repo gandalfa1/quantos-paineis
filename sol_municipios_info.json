@@ -1,0 +1,54 @@
+{
+ "data_da_montagem": "2026-11-06",
+ "municipios": 5571,
+ "quadrados_nasa": 554,
+ "nasa_power": {
+  "endpoint": "https://power.larc.nasa.gov/api/temporal/climatology/point",
+  "parametro": "ALLSKY_SFC_SW_DWN",
+  "comunidade": "RE",
+  "api": {
+   "name": "POWER Climatology API",
+   "version": "v2.10.1"
+  },
+  "end": null,
+  "range": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)",
+  "sources": [
+   "SYN1DEG"
+  ],
+  "start": null,
+  "licenca": "CC BY 4.0"
+ },
+ "regra_da_maioria": {
+  "as_3_fontes": 5481,
+  "kelvins_e_wikidata": 43,
+  "ibge_e_wikidata": 23,
+  "ibge_e_kelvins": 23,
+  "sem_maioria_vale_ibge": 1
+ },
+ "fontes_de_coordenada": {
+  "ibge": {
+   "fonte": "IBGE/DGC, Base Cartografica Continua do Brasil, escala 1:250.000 - BC250, camada lml_cidade_p",
+   "arquivo": "bc250_2026-03-03.gpkg",
+   "sha256": "87ceffdfb894d9f034812a3ad25126a831f8f6016f01e412ca487edccb208a7d",
+   "observacao": "coordenadas usadas so para escolher o quadrado; nao publicadas"
+  },
+  "kelvins": {
+   "fonte": "github.com/kelvins/municipios-brasileiros, csv/municipios.csv",
+   "versao": "503e2f70bbf1b4b7ec0b1f68b09086ccc38fe861",
+   "sha256": "22bd03d004361329f69ddfa3f6c99cd53012aa53972a172e10b141288ad0b1fe",
+   "licenca": "MIT"
+  },
+  "wikidata": {
+   "fonte": "query.wikidata.org (P1585 + P625, sem declaracoes deprecated)",
+   "consultado_em": "2026-11-06T14:47:26Z",
+   "sha256": "3c13445874474d2d468cf236e5457333954f8c2a92e4c2f7dd878c0b9491a279",
+   "licenca": "CC0 1.0"
+  }
+ },
+ "conferencia_quadrados": {
+  "amostra_sedes": 100,
+  "perto_da_borda_no_pais": 1018,
+  "trocados_conferidos": 43,
+  "diferentes": 0
+ }
+}

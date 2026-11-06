@@ -81,6 +81,11 @@ _ENTRADA = {"uf": None, "hsp": None}
 geo = types.ModuleType("geocoding")
 geo.buscar_coordenadas = lambda cidade: {
     "latitude": 0.0, "longitude": 0.0, "nome_encontrado": cidade, "uf": _ENTRADA["uf"]}
+# B1 (fase 4, 06/11/2026): o simulacao.py passou a procurar a cidade numa
+# tabela de sol pre-calculada antes de consultar os servicos de fora. Aqui
+# o duble diz que a cidade NAO esta na lista: o sol continua vindo de
+# _ENTRADA, e esta conferencia testa as equacoes com o sol que ela escolhe.
+geo.municipio_da_lista = lambda cidade: None
 nasa = types.ModuleType("nasa_power")
 nasa.buscar_hsp_mensal = lambda lat, lon: list(_ENTRADA["hsp"])
 

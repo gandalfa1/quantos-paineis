@@ -36,7 +36,8 @@ data); os numeros oficiais sao os do artigo.
 
 import geocoding
 import nasa_power
-from geocoding import buscar_coordenadas, ErroNominatim
+import sol_municipios
+from geocoding import buscar_coordenadas, municipio_da_lista, ErroNominatim
 from nasa_power import buscar_hsp_mensal, ErroNasaPower
 from calculo import (
     hsp_medio_anual,
@@ -317,33 +318,51 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         modo_consumo = "media"
         consumo_por_mes_kwh = {mes: consumo_medio_kwh for mes in NOMES_MESES}
 
-    # 1) localizacao do usuario -> coordenadas (Passo 2)
-    #
-    # O try/except e do passo 6 (01/10/2026): sem ele, ErroNominatim subia
-    # ate o Flask e a pessoa recebia a pagina de erro dele. Ver as
-    # mensagens no comeco deste arquivo.
-    try:
-        coordenadas = buscar_coordenadas(cidade)
-    except ErroNominatim as falha:
-        return {"erro": MENSAGEM_SEM_COORDENADA,
-                "erro_servico_indisponivel": True,
-                "erro_detalhe_tecnico": _detalhe_tecnico(
-                    "OpenStreetMap (Nominatim)", geocoding.ULTIMAS_TENTATIVAS,
-                    alternativa=falha)}
-    if coordenadas is None:
-        # 01/10/2026 (passo 6): acentuacao corrigida (decisao da aluna). O
-        # texto e o mesmo; so as palavras ficaram escritas certo.
-        return {"erro": f"Não foi possível encontrar a cidade '{cidade}'."}
+    # 0b) TABELA DE SOL (B1, fase 4, 06/11/2026). Quando a cidade esta na
+    # lista local e na tabela pre-calculada (sol_municipios.csv), o sol vem
+    # dela e NINGUEM de fora e consultado: nem o OpenStreetMap (as
+    # coordenadas so serviam para pedir o sol) nem a NASA POWER. A tabela
+    # tem a MESMA grandeza que a NASA devolvia (ALLSKY_SFC_SW_DWN, 12 meses,
+    # sem arredondar); o quadrado de 1 grau de cada municipio foi escolhido
+    # pela regra da maioria entre 3 fontes de coordenada (ver o
+    # montar_tabela_sol.py). Sem a tabela (arquivo faltando ou com defeito)
+    # ou sem a cidade nela, o caminho antigo abaixo continua IDENTICO.
+    identificado = municipio_da_lista(cidade)
+    sol_da_tabela = (sol_municipios.sol_do_municipio(identificado["codigo_ibge"])
+                     if identificado is not None else None)
+    if sol_da_tabela is not None:
+        coordenadas = identificado
+        hsp_mensal = sol_da_tabela["hsp"]
+        fonte_do_sol = "tabela"
+    else:
+        fonte_do_sol = "nasa_power"
+        # 1) localizacao do usuario -> coordenadas (Passo 2)
+        #
+        # O try/except e do passo 6 (01/10/2026): sem ele, ErroNominatim subia
+        # ate o Flask e a pessoa recebia a pagina de erro dele. Ver as
+        # mensagens no comeco deste arquivo.
+        try:
+            coordenadas = buscar_coordenadas(cidade)
+        except ErroNominatim as falha:
+            return {"erro": MENSAGEM_SEM_COORDENADA,
+                    "erro_servico_indisponivel": True,
+                    "erro_detalhe_tecnico": _detalhe_tecnico(
+                        "OpenStreetMap (Nominatim)", geocoding.ULTIMAS_TENTATIVAS,
+                        alternativa=falha)}
+        if coordenadas is None:
+            # 01/10/2026 (passo 6): acentuacao corrigida (decisao da aluna). O
+            # texto e o mesmo; so as palavras ficaram escritas certo.
+            return {"erro": f"Não foi possível encontrar a cidade '{cidade}'."}
 
-    # 2) coordenadas -> HSP mensal real (Passo 3)
-    try:
-        hsp_mensal = buscar_hsp_mensal(coordenadas["latitude"], coordenadas["longitude"])
-    except ErroNasaPower:
-        return {"erro": MENSAGEM_SEM_IRRADIACAO,
-                "erro_servico_indisponivel": True,
-                "erro_detalhe_tecnico": _detalhe_tecnico(
-                    "NASA POWER",
-                    (nasa_power.ULTIMO_DIAGNOSTICO or {}).get("tentativas"))}
+        # 2) coordenadas -> HSP mensal real (Passo 3)
+        try:
+            hsp_mensal = buscar_hsp_mensal(coordenadas["latitude"], coordenadas["longitude"])
+        except ErroNasaPower:
+            return {"erro": MENSAGEM_SEM_IRRADIACAO,
+                    "erro_servico_indisponivel": True,
+                    "erro_detalhe_tecnico": _detalhe_tecnico(
+                        "NASA POWER",
+                        (nasa_power.ULTIMO_DIAGNOSTICO or {}).get("tentativas"))}
     # CORRECAO T17 (14/09/2026), Achado C: a media anual passou a ser
     # ponderada pelos dias de cada mes, o mesmo peso que a Equacao 5 ja
     # aplicava na geracao. A media simples continua sendo calculada, mas
@@ -1021,6 +1040,12 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
 
     return {
         "cidade_encontrada": coordenadas["nome_encontrado"],
+        # B1 (06/11/2026): de onde veio o sol - "tabela" (sol_municipios.csv)
+        # ou "nasa_power" (caminho antigo). So auditoria; nada usa.
+        "fonte_do_sol": fonte_do_sol,
+        "sol_quadrado_nasa": sol_da_tabela["quadrado_nasa"] if sol_da_tabela else None,
+        "sol_fontes_do_quadrado": sol_da_tabela["fontes_do_quadrado"] if sol_da_tabela else None,
+        "sol_periodo": sol_municipios.periodo_da_tabela() if sol_da_tabela else None,
         # hsp_medio_anual passa a ser a media PONDERADA pelos dias do mes
         # (correcao T17). A media simples, que era o valor ate 14/09/2026,
         # vai junto para a tela e o artigo poderem comparar as duas.
