@@ -30,8 +30,11 @@ O repositório guarda duas versões, e cada uma tem um papel diferente.
 |---|---|
 | `calculo.py` | O motor de cálculo: as equações, a verificação elétrica e o catálogo de módulos e inversores |
 | `simulacao.py` | Junta tudo numa função só, `simular()` |
-| `geocoding.py` | Busca as coordenadas do município (Nominatim/OpenStreetMap) |
-| `nasa_power.py` | Busca a irradiação solar de cada mês (NASA POWER) |
+| `geocoding.py` | Acha o município na lista; se a tabela de sol faltar, busca as coordenadas (Nominatim/OpenStreetMap) |
+| `nasa_power.py` | Busca a irradiação solar de cada mês na NASA POWER, se a tabela de sol faltar |
+| `sol_municipios.csv`, `sol_municipios_info.json` | A tabela de sol: 12 médias mensais da NASA POWER (2001-2025) para cada um dos 5.571 municípios, e de onde ela veio |
+| `sol_municipios.py` | Lê e confere a tabela de sol; com qualquer defeito, a tabela fica desligada e o site volta a consultar o Nominatim e a NASA |
+| `montar_tabela_sol.py` | Monta a tabela de sol: escolhe o quadrado de 1 grau da NASA de cada município pela maioria entre três fontes de localização da sede (IBGE, municipios-brasileiros e Wikidata) |
 | `app.py`, `templates/`, `static/` | O site (Flask): o formulário, a tela de resultado e as páginas de explicação |
 | `armazenamento.py`, `contador.py` | O banco opcional: memória de municípios e de sol, e o contador de acessos |
 | `atualizar_dados_aneel.py` | Baixa os dados abertos da ANEEL e refaz os dois arquivos abaixo |
@@ -48,7 +51,7 @@ O repositório guarda duas versões, e cada uma tem um papel diferente.
 
 ## Como rodar no computador
 
-É preciso ter o Python instalado (a plataforma foi feita com o Python 3.14) e internet, porque as coordenadas e a irradiação são buscadas na hora.
+É preciso ter o Python instalado (a plataforma foi feita com o Python 3.14). O sol dos municípios já vem na tabela `sol_municipios.csv`; a internet só é usada se ela faltar.
 
 ```
 pip install -r requirements.txt
@@ -81,7 +84,7 @@ Duas vezes por semana, a tarefa `.github/workflows/atualizar-fio-b.yml` roda o `
 
 Sem configuração nenhuma, o site funciona sozinho. Quando existe a variável de ambiente `DATABASE_URL`, com o endereço de um banco Postgres, ele passa a usar o banco para duas coisas:
 
-- **Memória** das coordenadas e do sol de cada município já consultado, para não repetir a consulta ao Nominatim e à NASA. Essa memória é privada e não é publicada.
+- **Memória** das coordenadas e do sol de cada município já consultado, para não repetir a consulta ao Nominatim e à NASA (só usada se a tabela de sol faltar). Essa memória é privada e não é publicada.
 - **Contador de acessos**: quantas vezes cada página foi aberta por dia, e quantas simulações foram feitas em cada estado. Não guarda endereço IP, cookie, navegador, município nem os valores digitados. Conta acessos, não pessoas, e o número é aproximado.
 
 No servidor, o site roda com `gunicorn app:app --workers 1 --timeout 60`, com o registro de acessos do gunicorn desligado.
@@ -110,7 +113,8 @@ A numeração abaixo é a do artigo do TCC. Os comentários do código usam a nu
 ## Dados e créditos
 
 - **Irradiação solar:** The data was obtained from National Aeronautics and Space Administration (NASA) Langley Research Center's Prediction Of Worldwide Energy Resources (POWER) project funded through the NASA Earth Science Division.
-- **Coordenadas:** Nominatim, com dados © OpenStreetMap contributors, disponíveis sob a Open Database License (ODbL): https://www.openstreetmap.org/copyright
+- **Localização das sedes, para escolher o quadrado de sol:** Fonte: IBGE/DGC. Base Cartográfica Contínua do Brasil, escala 1:250.000 - BC250 (as coordenadas do IBGE não são publicadas na tabela); municipios-brasileiros (licença MIT); Wikidata (CC0).
+- **Coordenadas, se a tabela de sol faltar:** Nominatim, com dados © OpenStreetMap contributors, disponíveis sob a Open Database License (ODbL): https://www.openstreetmap.org/copyright
 - **Fio B e distribuidora de cada município:** ANEEL, Portal de Dados Abertos (conjuntos "Componentes Tarifárias", "IndQual Município" e "Indicadores Coletivos de Continuidade"), sob a Open Database License (ODbL) 1.0. Valores sem impostos. Os arquivos que vêm desses dados e a licença deles estão em `dados-ANEEL-LICENCA.txt`.
 - **Lista de municípios:** códigos e nomes conferidos com a lista oficial do IBGE. Origem e licença em `static/municipios-LICENCA.txt`.
 - **Preços:** Greener, Estudo Estratégico – Mercado Fotovoltaico, março de 2026 (preços de janeiro de 2026).

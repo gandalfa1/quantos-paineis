@@ -102,14 +102,14 @@
 <td>A lista foi montada a partir do conjunto aberto <em>municipios-brasileiros</em> (licença MIT) e conferida com a API de Localidades do IBGE em 30/09/2026. Os 5.571 municípios batem com o IBGE.</td>
 </tr>
 <tr>
-<th scope="row">Localização da cidade</th>
-<td><strong>Nominatim</strong>, com dados do <strong>OpenStreetMap</strong></td>
-<td>A busca é feita pelo município e pelo estado. O ponto só é aceito se o estado e o nome baterem e se o lugar for o próprio município (e não, por exemplo, um povoado com o mesmo nome em outra cidade). Depois de encontrado, o ponto fica guardado no servidor.</td>
+<th scope="row">Quadrado de sol da cidade</th>
+<td><strong>IBGE</strong> (BC250), <strong>municipios-brasileiros</strong> e <strong>Wikidata</strong></td>
+<td>A NASA divide o mapa em quadrados de 1 grau, com cerca de 100 km de lado. Para saber em qual quadrado fica cada município, a plataforma compara a localização da sede em três fontes e usa o quadrado em que pelo menos duas concordam. As três apontaram o mesmo quadrado em 5.481 dos 5.571 municípios. Em um município não houve maioria, e valeu o IBGE. A localização das sedes não é publicada: a tabela traz só o quadrado.</td>
 </tr>
 <tr>
 <th scope="row">Sol (irradiação)</th>
 <td><strong>NASA POWER</strong></td>
-<td>É a irradiação global no plano horizontal, em média para cada mês, de janeiro de 2001 a dezembro de 2020 (parâmetro ALLSKY_SFC_SW_DWN). Vem do serviço Climatology API, versão v2.10.0 (a versão que a NASA informou na consulta de 30/09/2026), com a fonte de dados SYN1DEG, estimada por satélite. A resposta fica guardada no servidor e é consultada de novo depois de um ano.</td>
+<td>É a irradiação global no plano horizontal, em média para cada mês, de janeiro de 2001 a dezembro de 2025 (parâmetro ALLSKY_SFC_SW_DWN; Climatology API v2.10.1, fonte SYN1DEG, estimada por satélite). Os valores dos 5.571 municípios foram baixados de uma vez, em 06/11/2026. Eles ficam numa tabela pública no repositório, junto com o programa que a monta. Se a tabela faltar, a plataforma volta a buscar a cidade no OpenStreetMap e o sol na NASA, na hora.</td>
 </tr>
 <tr>
 <th scope="row">Fio B</th>
@@ -253,7 +253,7 @@
 <li>cinco casos não formam uma amostra estatística;</li>
 <li>o erro da própria NASA POWER não foi avaliado.</li>
 </ul>
-<p><strong>E o site de hoje?</strong> Depois da comparação (feita com a versão do código de 23/09/2026), mudaram a escolha da cidade, a forma de guardar os dados e as explicações da tela, e três partes da conta: o Fio B passou a ser o da distribuidora do município (02/10/2026), o tempo de retorno passou a ser somado mês a mês (06/10/2026), a conta de um mês abaixo do mínimo passou a ser dividida pelo mínimo (07/10/2026) e a manutenção e a troca do inversor entraram no retorno (novembro de 2026). Nada disso muda o jeito de calcular a geração: em 07/10/2026 os cinco casos foram refeitos com o site atual, com os dados reais da NASA e do OpenStreetMap, e painéis, inversor e geração continuaram idênticos aos da comparação.</p>
+<p><strong>E o site de hoje?</strong> Depois da comparação (feita com a versão do código de 23/09/2026), mudaram a escolha da cidade, a forma de guardar os dados e as explicações da tela, e quatro partes da conta: o Fio B passou a ser o da distribuidora do município (02/10/2026), o tempo de retorno passou a ser somado mês a mês (06/10/2026), a conta de um mês abaixo do mínimo passou a ser dividida pelo mínimo (07/10/2026) e a manutenção e a troca do inversor entraram no retorno (novembro de 2026). Nada disso muda o jeito de calcular a geração: em 07/10/2026 os cinco casos foram refeitos com o site atual, com os dados reais da NASA e do OpenStreetMap, e painéis, inversor e geração continuaram idênticos aos da comparação. Em novembro de 2026, o sol passou a vir de uma tabela, com a média de 2001 a 2025. Nos cinco casos, painéis e inversor continuaram os mesmos, e a geração mudou no máximo 0,2% (Manaus).</p>
 </div>
 </details>
 </section>
@@ -285,10 +285,13 @@
 <li>EPE. Nota Técnica EPE-DEA-SEE 014/2022 (Modelo 4MD, versão PDE 2032). Rio de Janeiro: Empresa de Pesquisa Energética, 2022.</li>
 <li>EPE. Nota Técnica DEA-SEE 009/2023: aprimoramento na metodologia de estimação da geração de micro e minigeradores fotovoltaicos distribuídos. 2023.</li>
 <li>GREENER. Estudo estratégico: mercado fotovoltaico, referente ao ano de 2025. Março de 2026.</li>
-<li>NASA. POWER: Prediction Of Worldwide Energy Resources. Climatology API, v2.10.0.</li>
+<li>IBGE. Base Cartográfica Contínua do Brasil, escala 1:250.000 – BC250. Versão 2025. Fonte: IBGE/DGC.</li>
+<li>KELVINS. municipios-brasileiros. GitHub, licença MIT.</li>
+<li>NASA. POWER: Prediction Of Worldwide Energy Resources. Climatology API, v2.10.0 (comparação com o PVsyst) e v2.10.1 (tabela de sol).</li>
 <li>OpenStreetMap / Nominatim. © OpenStreetMap contributors, licença ODbL.</li>
 <li>PINHO, J. T.; GALDINO, M. A. (org.). Manual de engenharia para sistemas fotovoltaicos. CEPEL-CRESESB, 2014.</li>
 <li>PVSYST SA. PVsyst 8.1.</li>
+<li>WIKIDATA. Coordenadas das sedes municipais, consulta de 06/11/2026. Licença CC0.</li>
 </ul>
 </div>
 </details>
@@ -309,7 +312,7 @@
         <li><a href="/apoie">Apoie o projeto</a></li>
     </ul>
     <p>Simulação educativa: não substitui o projeto de um profissional habilitado. Código aberto (AGPL-3.0) no <a href="https://github.com/gandalfa1/quantos-paineis" target="_blank" rel="noopener">GitHub</a>.</p>
-    <p class="rodape-creditos">Irradiação solar: projeto POWER do NASA Langley Research Center, financiado pela NASA Earth Science Division — <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>, licença CC BY 4.0. Localização: dados © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, licença ODbL. Municípios: códigos e nomes oficiais do IBGE. Fio B e distribuidoras: contém informações dos conjuntos <a href="https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias" target="_blank" rel="noopener">Componentes Tarifárias</a>, <a href="https://dadosabertos.aneel.gov.br/dataset/indqual-municipio" target="_blank" rel="noopener">IndQual Município</a> e <a href="https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec" target="_blank" rel="noopener">Indicadores Coletivos de Continuidade</a>, da ANEEL, disponibilizados sob a licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. Preços: Greener, março de 2026.</p>
+    <p class="rodape-creditos">Irradiação solar: projeto POWER do NASA Langley Research Center, financiado pela NASA Earth Science Division — <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>, licença CC BY 4.0. Municípios e localização das sedes: IBGE/DGC, Base Cartográfica Contínua do Brasil, escala 1:250.000 (BC250); <a href="https://github.com/kelvins/municipios-brasileiros" target="_blank" rel="noopener">municipios-brasileiros</a> (licença MIT); <a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a> (CC0). Fio B e distribuidoras: contém informações dos conjuntos <a href="https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias" target="_blank" rel="noopener">Componentes Tarifárias</a>, <a href="https://dadosabertos.aneel.gov.br/dataset/indqual-municipio" target="_blank" rel="noopener">IndQual Município</a> e <a href="https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec" target="_blank" rel="noopener">Indicadores Coletivos de Continuidade</a>, da ANEEL, disponibilizados sob a licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>. Preços: Greener, março de 2026.</p>
 </footer>
 </div>
 <script>

@@ -1266,13 +1266,18 @@
         pagina power.larc.nasa.gov/docs/referencing/.
         OpenStreetMap: licenca ODbL, que exige atribuicao visivel com link
         para openstreetmap.org/copyright.
+        B1 (fase 4, 06/11/2026): com a tabela de sol, o OpenStreetMap so e
+        consultado quando a tabela falta (plano B); o credito dele aparece so
+        quando o resultado veio por esse caminho (fonte_do_sol == "nasa_power").
+        Municipios: IBGE/DGC (BC250), kelvins (MIT) e Wikidata (CC0), as tres
+        fontes de localizacao das sedes usadas para escolher o quadrado de sol.
         FASE 1, PASSO 8 (02/10/2026) - ANEEL: os tres conjuntos usados (Componentes
         Tarifarias, IndQual Municipio e Indicadores Coletivos de Continuidade)
         sao publicados sob a ODbL 1.0 (conferido no portal em 02/10/2026). O Fio B
         e o nome da distribuidora mostrados aqui sao "Produced Work" da licenca, e
         a secao 4.3 pede um aviso dizendo de onde veio e qual e a licenca, com
         link. Ver dados-ANEEL-LICENCA.txt. #}
-    <p class="rodape rodape-creditos">Irradiação solar: projeto POWER (Prediction Of Worldwide Energy Resources) do NASA Langley Research Center, financiado pela NASA Earth Science Division — <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>, licença CC BY 4.0. Localização: dados © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, licença ODbL. Municípios: códigos e nomes oficiais do IBGE. Fio B e distribuidoras: contém informações dos conjuntos <a href="https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias" target="_blank" rel="noopener">Componentes Tarifárias</a>, <a href="https://dadosabertos.aneel.gov.br/dataset/indqual-municipio" target="_blank" rel="noopener">IndQual Município</a> e <a href="https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec" target="_blank" rel="noopener">Indicadores Coletivos de Continuidade</a>, da ANEEL, disponibilizados sob a licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>.</p>
+    <p class="rodape rodape-creditos">Irradiação solar: projeto POWER (Prediction Of Worldwide Energy Resources) do NASA Langley Research Center, financiado pela NASA Earth Science Division — <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>, licença CC BY 4.0. Municípios e localização das sedes: IBGE/DGC, Base Cartográfica Contínua do Brasil, escala 1:250.000 (BC250); <a href="https://github.com/kelvins/municipios-brasileiros" target="_blank" rel="noopener">municipios-brasileiros</a> (licença MIT); <a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a> (CC0).{% if resultado and resultado.fonte_do_sol == "nasa_power" %} Localização: dados © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, licença ODbL.{% endif %} Fio B e distribuidoras: contém informações dos conjuntos <a href="https://dadosabertos.aneel.gov.br/dataset/componentes-tarifarias" target="_blank" rel="noopener">Componentes Tarifárias</a>, <a href="https://dadosabertos.aneel.gov.br/dataset/indqual-municipio" target="_blank" rel="noopener">IndQual Município</a> e <a href="https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec" target="_blank" rel="noopener">Indicadores Coletivos de Continuidade</a>, da ANEEL, disponibilizados sob a licença <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL</a>.</p>
 
 </main>
 {#- A sanfona tecnica abre sozinha na impressao. Motivo: nos testes 13 e
