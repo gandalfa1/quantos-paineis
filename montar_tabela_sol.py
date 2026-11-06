@@ -40,16 +40,27 @@ COMO:
  2. A irradiacao da NASA POWER (fonte SYN1DEG) vem em quadrados de 1 grau,
     com as bordas nos graus inteiros (conferido em 05/11/2026: o ponto de
     Guaira devolve exatamente o valor do quadrado de centro -24,5 / -54,5).
-    Cada sede cai num quadrado; o programa pergunta a NASA uma vez por
-    quadrado, no CENTRO dele.
- 3. CONFERENCIA DA REGRA DOS QUADRADOS: para uma amostra de sedes (metade perto
-    de uma borda), pergunta tambem no ponto exato da sede e exige valores
-    IGUAIS aos do quadrado. Qualquer diferenca reprova e nada e entregue.
- 4. Grava sol_municipios.csv (codigo, nome, UF, centro do quadrado da NASA,
-    12 meses e a media anual da NASA) e sol_municipios_info.json (versao da
-    API, periodo, fontes, data, arquivo e sha256 da BC250 usada).
+ 3. REGRA DA MAIORIA (decisao da aluna, 05-06/11/2026): nenhuma fonte de
+    coordenada acerta sempre (o ponto do IBGE de Campinas fica a ~15 km do
+    centro; a lista kelvins confunde homonimos; o Wikidata erra alguns). Por
+    isso o quadrado de cada municipio e escolhido por 3 fontes independentes:
+    a sede do IBGE, a lista kelvins/municipios-brasileiros (MIT, versao fixa) e
+    o Wikidata (CC0; codigo P1585 + coordenada P625). Vale o quadrado de pelo
+    menos 2 fontes; sem maioria (ou fonte faltando), vale o do IBGE.
+ 4. Pergunta a NASA uma vez por quadrado, no CENTRO dele.
+ 5. CONFERENCIAS: (a) para uma amostra de sedes (metade perto de uma borda) e
+    para TODOS os municipios cujo quadrado nao e o do IBGE, pergunta tambem no
+    ponto exato da coordenada que decidiu e exige valores IGUAIS aos do
+    quadrado; (b) exige que a escolha de cada municipio reproduza a regra.
+    Qualquer diferenca reprova e nada e entregue.
+ 6. Grava sol_municipios.csv (codigo, nome, UF, centro do quadrado da NASA,
+    quais fontes concordaram, 12 meses e a media anual da NASA) e
+    sol_municipios_info.json (versao da API, periodo, fontes, contagens, data e
+    sha256 dos arquivos de entrada).
 
-Uso:  python3 montar_tabela_sol.py <arquivo.gpkg da BC250> <pasta de saida>
+Uso:  python3 montar_tabela_sol.py <BC250.gpkg> <kelvins municipios.csv>
+                                   <wikidata.csv> <pasta de saida>
+      (opcional: variavel WIKIDATA_CONSULTADO_EM com a hora da consulta)
 """
 import csv
 import hashlib
@@ -57,6 +68,7 @@ import json
 import math
 import os
 import random
+import re
 import struct
 import sqlite3
 import sys
@@ -79,6 +91,8 @@ TENTATIVAS = 4
 AMOSTRA_PERTO_DA_BORDA = 50
 AMOSTRA_LONGE_DA_BORDA = 50
 BORDA_GRAUS = 0.05
+KELVINS_VERSAO = "503e2f70bbf1b4b7ec0b1f68b09086ccc38fe861"
+KELVINS_SHA256 = "22bd03d004361329f69ddfa3f6c99cd53012aa53972a172e10b141288ad0b1fe"
 
 
 # ---------------------------------------------------------------------------
@@ -131,6 +145,57 @@ def distancia_da_borda(lat, lon):
                lon - math.floor(lon), math.ceil(lon) - lon)
 
 
+def sha256_do_arquivo(caminho):
+    h = hashlib.sha256()
+    with open(caminho, "rb") as f:
+        for bloco in iter(lambda: f.read(1 << 20), b""):
+            h.update(bloco)
+    return h.hexdigest()
+
+
+def coordenadas_kelvins(arquivo):
+    if sha256_do_arquivo(arquivo) != KELVINS_SHA256:
+        raise SystemExit("REPROVADO: a lista kelvins nao e a versao fixada")
+    with open(arquivo, encoding="utf-8") as f:
+        return {r["codigo_ibge"]: (float(r["latitude"]), float(r["longitude"]))
+                for r in csv.DictReader(f)}
+
+
+def coordenadas_wikidata(arquivo):
+    """Codigo IBGE -> lista de coordenadas (as de posto 'preferred', se houver;
+    senao as 'normal'; as 'deprecated' ja vem fora da consulta)."""
+    preferidas, normais = {}, {}
+    with open(arquivo, encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            achado = re.fullmatch(r"Point\((\S+) (\S+)\)", r["coord"])
+            if not achado or not re.fullmatch(r"\d{7}", r["ibge"]):
+                continue                 # coordenada fora da Terra ou codigo estranho
+            lon, lat = map(float, achado.groups())
+            destino = preferidas if r["rank"].endswith("PreferredRank") else normais
+            destino.setdefault(r["ibge"], set()).add((lat, lon))
+    return {c: sorted(preferidas.get(c) or normais[c])
+            for c in set(preferidas) | set(normais)}
+
+
+def escolher_quadrado(sede, kel, wd):
+    """Regra da maioria. sede: ponto do IBGE; kel: ponto da kelvins ou None;
+    wd: lista de pontos do Wikidata (pode ser vazia). Devolve (quadrado,
+    rotulo, ponto que decidiu)."""
+    qi = quadrado(*sede)
+    qk = quadrado(*kel) if kel else None
+    qws = {quadrado(*p) for p in wd}
+    qw = qws.pop() if len(qws) == 1 else None    # Wikidata ambiguo nao vota
+    if qk == qi and qw == qi:
+        return qi, "as_3_fontes", sede
+    if qk is not None and qk == qw:
+        return qk, "kelvins_e_wikidata", kel
+    if qk == qi:
+        return qi, "ibge_e_kelvins", sede
+    if qw == qi:
+        return qi, "ibge_e_wikidata", sede
+    return qi, "sem_maioria_vale_ibge", sede
+
+
 # ---------------------------------------------------------------------------
 # 2. NASA POWER
 # ---------------------------------------------------------------------------
@@ -173,15 +238,27 @@ def consultar_nasa(lat, lon):
 # ---------------------------------------------------------------------------
 # 3. Montagem e conferencias
 # ---------------------------------------------------------------------------
-def principal(arquivo_gpkg, pasta_saida):
+def principal(arquivo_gpkg, arquivo_kelvins, arquivo_wikidata, pasta_saida):
     municipios = json.load(open(ARQUIVO_MUNICIPIOS, encoding="utf-8"))
     codigos = [str(m["ibge"]) for m in municipios]
     if len(set(codigos)) != len(codigos):
         raise SystemExit("REPROVADO: codigo repetido em static/municipios.json")
     sedes = sedes_do_ibge(arquivo_gpkg, codigos)
-    print(f"{len(sedes)} sedes lidas da BC250")
+    kel = coordenadas_kelvins(arquivo_kelvins)
+    wd = coordenadas_wikidata(arquivo_wikidata)
+    print(f"{len(sedes)} sedes da BC250 | kelvins: {sum(c in kel for c in codigos)} "
+          f"| Wikidata: {sum(c in wd for c in codigos)} municipios")
+    if sum(c in wd for c in codigos) < 0.99 * len(codigos):
+        raise SystemExit("REPROVADO: o Wikidata veio com menos de 99% dos municipios")
 
-    quadrados = sorted({quadrado(*p) for p in sedes.values()})
+    escolha = {c: escolher_quadrado(sedes[c], kel.get(c), wd.get(c, []))
+               for c in codigos}
+    rotulos = {}
+    for c, (_, rot, _) in escolha.items():
+        rotulos[rot] = rotulos.get(rot, 0) + 1
+    print("regra da maioria:", json.dumps(rotulos, ensure_ascii=False))
+
+    quadrados = sorted({q for q, _, _ in escolha.values()})
     print(f"{len(quadrados)} quadrados de 1 grau da NASA")
 
     sol, cabecalhos = {}, []
@@ -196,38 +273,51 @@ def principal(arquivo_gpkg, pasta_saida):
         raise SystemExit(f"REPROVADO: a NASA mudou a versao/periodo no meio: {set(cabecalhos)}")
     cab_nasa = json.loads(cabecalhos[0])
 
-    # Conferencia da regra dos quadrados no ponto exato das sedes
+    # (b) a escolha de cada municipio reproduz a regra, conferida por outro caminho
+    for c in codigos:
+        votos = [quadrado(*sedes[c])]
+        if c in kel:
+            votos.append(quadrado(*kel[c]))
+        qws = {quadrado(*p) for p in wd.get(c, [])}
+        if len(qws) == 1:
+            votos.append(qws.pop())
+        mais = max(set(votos), key=votos.count)
+        esperado = mais if votos.count(mais) >= 2 else votos[0]
+        if escolha[c][0] != esperado:
+            raise SystemExit(f"REPROVADO: regra da maioria inconsistente em {c}")
+
+    # (a) regra dos quadrados no ponto exato: amostra de sedes + todos os trocados
     random.seed(20261105)
     perto = [c for c in codigos if distancia_da_borda(*sedes[c]) < BORDA_GRAUS]
     longe = [c for c in codigos if distancia_da_borda(*sedes[c]) >= BORDA_GRAUS]
     amostra = (random.sample(perto, min(AMOSTRA_PERTO_DA_BORDA, len(perto)))
                + random.sample(longe, min(AMOSTRA_LONGE_DA_BORDA, len(longe))))
+    trocados = [c for c in codigos if escolha[c][1] == "kelvins_e_wikidata"]
     diferentes = []
-    for c in amostra:
-        no_ponto, _ = consultar_nasa(*sedes[c])
-        if no_ponto != sol[quadrado(*sedes[c])]:
+    for c in amostra + trocados:
+        ponto = sedes[c] if c in amostra else escolha[c][2]
+        no_ponto, _ = consultar_nasa(*ponto)
+        if no_ponto != sol[quadrado(*ponto)]:
             diferentes.append(c)
     print(f"Conferencia da regra dos quadrados: {len(amostra)} sedes "
-          f"({len(perto)} estao perto de uma borda), {len(diferentes)} diferentes")
+          f"({len(perto)} estao perto de uma borda) + {len(trocados)} municipios "
+          f"com o quadrado trocado, {len(diferentes)} diferentes")
     if diferentes:
-        raise SystemExit(f"REPROVADO: ponto da sede diferente do quadrado em {diferentes}")
+        raise SystemExit(f"REPROVADO: ponto diferente do quadrado em {diferentes}")
 
     os.makedirs(pasta_saida, exist_ok=True)
     arq_csv = os.path.join(pasta_saida, "sol_municipios.csv")
     with open(arq_csv, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-        w.writerow(["codigo_ibge", "municipio", "uf", "nasa_lat", "nasa_lon"]
+        w.writerow(["codigo_ibge", "municipio", "uf", "nasa_lat", "nasa_lon",
+                    "fontes_do_quadrado"]
                    + [m.lower() for m in MESES] + ["anual_nasa"])
         for m in municipios:
-            q = quadrado(*sedes[str(m["ibge"])])
+            q, rot, _ = escolha[str(m["ibge"])]
             v = sol[q]
-            w.writerow([m["ibge"], m["nome"], m["uf"], q[0], q[1]]
+            w.writerow([m["ibge"], m["nome"], m["uf"], q[0], q[1], rot]
                        + [v[x] for x in MESES] + [v["ANN"]])
 
-    h = hashlib.sha256()
-    with open(arquivo_gpkg, "rb") as f:
-        for bloco in iter(lambda: f.read(1 << 20), b""):
-            h.update(bloco)
     info = {
         "data_da_montagem": date.today().isoformat(),
         "municipios": len(municipios),
@@ -235,14 +325,27 @@ def principal(arquivo_gpkg, pasta_saida):
         "nasa_power": {"endpoint": URL_NASA, "parametro": PARAMETRO,
                        "comunidade": "RE", **cab_nasa,
                        "licenca": "CC BY 4.0"},
-        "sedes": {"fonte": "IBGE/DGC, Base Cartografica Continua do Brasil, "
-                           "escala 1:250.000 - BC250, camada lml_cidade_p",
-                  "arquivo": os.path.basename(arquivo_gpkg),
-                  "sha256_gpkg": h.hexdigest(),
-                  "observacao": "coordenadas usadas so para escolher o quadrado; "
-                                "nao publicadas"},
-        "conferencia_quadrados": {"amostra": len(amostra),
+        "regra_da_maioria": rotulos,
+        "fontes_de_coordenada": {
+            "ibge": {"fonte": "IBGE/DGC, Base Cartografica Continua do Brasil, "
+                              "escala 1:250.000 - BC250, camada lml_cidade_p",
+                     "arquivo": os.path.basename(arquivo_gpkg),
+                     "sha256": sha256_do_arquivo(arquivo_gpkg),
+                     "observacao": "coordenadas usadas so para escolher o "
+                                   "quadrado; nao publicadas"},
+            "kelvins": {"fonte": "github.com/kelvins/municipios-brasileiros, "
+                                 "csv/municipios.csv",
+                        "versao": KELVINS_VERSAO, "sha256": KELVINS_SHA256,
+                        "licenca": "MIT"},
+            "wikidata": {"fonte": "query.wikidata.org (P1585 + P625, sem "
+                                  "declaracoes deprecated)",
+                         "consultado_em": os.environ.get("WIKIDATA_CONSULTADO_EM"),
+                         "sha256": sha256_do_arquivo(arquivo_wikidata),
+                         "licenca": "CC0 1.0"},
+        },
+        "conferencia_quadrados": {"amostra_sedes": len(amostra),
                                   "perto_da_borda_no_pais": len(perto),
+                                  "trocados_conferidos": len(trocados),
                                   "diferentes": 0},
     }
     with open(os.path.join(pasta_saida, "sol_municipios_info.json"), "w",
@@ -253,6 +356,6 @@ def principal(arquivo_gpkg, pasta_saida):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 5:
         raise SystemExit(__doc__)
-    principal(sys.argv[1], sys.argv[2])
+    principal(*sys.argv[1:])

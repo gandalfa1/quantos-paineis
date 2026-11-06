@@ -1,8 +1,9 @@
 # B1 (fase 4) - MONTAR A TABELA DE SOL DOS MUNICIPIOS. Criado em 05/11/2026.
 #
-# Baixa a BC250 versao 2025 do IBGE (sedes municipais), roda o
-# montar_tabela_sol.py (um pedido a NASA POWER por quadrado de 1 grau, mais a
-# conferencia da regra dos quadrados) e entrega sol_municipios.csv e
+# Baixa as 3 fontes de coordenada (sedes da BC250 versao 2025 do IBGE, lista
+# kelvins em versao fixa e Wikidata), roda o montar_tabela_sol.py (regra da
+# maioria, um pedido a NASA POWER por quadrado de 1 grau e as conferencias) e
+# entrega sol_municipios.csv e
 # sol_municipios_info.json como ARTEFATO da execucao (e, compactados, no
 # registro da execucao). Nao grava nada no
 # repositorio. As coordenadas do IBGE nao vao para o artefato nem para o
@@ -39,8 +40,30 @@ jobs:
           echo "ff223482c743b81fff6b422378e6ada9406abedcff3f9768afb7cbef1da80781  /tmp/bc250.zip" | sha256sum -c
           unzip -o -q /tmp/bc250.zip -d /tmp/bc250
 
+      - name: Baixar a lista kelvins (versao fixa) e consultar o Wikidata
+        run: |
+          curl -sS -m 60 -o /tmp/kelvins.csv \
+            https://raw.githubusercontent.com/kelvins/municipios-brasileiros/503e2f70bbf1b4b7ec0b1f68b09086ccc38fe861/csv/municipios.csv
+          echo "22bd03d004361329f69ddfa3f6c99cd53012aa53972a172e10b141288ad0b1fe  /tmp/kelvins.csv" | sha256sum -c
+          cat > /tmp/consulta.rq <<'EOF'
+          SELECT ?item ?ibge ?coord ?rank WHERE {
+            ?item wdt:P1585 ?ibge ;
+                  p:P625 ?st .
+            ?st ps:P625 ?coord ;
+                wikibase:rank ?rank .
+            FILTER(?rank != wikibase:DeprecatedRank)
+          }
+          EOF
+          echo "WIKIDATA_CONSULTADO_EM=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+          curl -sS -m 300 --fail -G "https://query.wikidata.org/sparql" \
+            --data-urlencode "query@/tmp/consulta.rq" \
+            -H "Accept: text/csv" \
+            -H "User-Agent: quantos-paineis/1.1 (+https://quantospaineis.com.br/contato)" \
+            -o /tmp/wikidata.csv -w "Wikidata: HTTP %{http_code}, %{size_download} bytes\n"
+          wc -l /tmp/wikidata.csv
+
       - name: Montar a tabela
-        run: python montar_tabela_sol.py /tmp/bc250/bc250_2026-03-03.gpkg saida
+        run: python montar_tabela_sol.py /tmp/bc250/bc250_2026-03-03.gpkg /tmp/kelvins.csv /tmp/wikidata.csv saida
 
       # A nuvem do Claude nao consegue baixar artefatos (o endereco de download
       # e bloqueado), mas le o registro: a tabela vai compactada para ele.
