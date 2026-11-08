@@ -44,6 +44,7 @@ O repositório guarda duas versões, e cada uma tem um papel diferente.
 | `fio_b_aneel_vigente_22-09-2026.csv`, `fio_b_aneel_conferencia_01-10-2026.csv` | Retratos do Fio B usados no TCC e numa conferência |
 | `recalculo_fio_b.py` | Conferência feita para o TCC: o efeito, nos cinco casos, da troca do Fio B de R$ 0,20 pelo da ANEEL |
 | `.github/workflows/atualizar-fio-b.yml` | A tarefa automática do Fio B |
+| `.github/workflows/renovar-tabela-sol.yml`, `teste/comparar_tabela_sol.py` | A renovação da tabela de sol e a comparação da tabela nova com a atual |
 | `teste/` | Os programas de conferência e os resultados deles |
 | `resultados/plataforma/` | A tela de resultado dos cinco casos de validação do TCC, em PDF |
 | `resultados/pvsyst/` | Os relatórios das simulações no PVsyst 8.1.5, com todos os parâmetros |
@@ -79,6 +80,10 @@ Ele programa as equações de novo a partir do texto, sem chamar o motor, e comp
 O Fio B muda quando a ANEEL aprova o reajuste de cada distribuidora, e a ANEEL só publica o valor novo poucos dias antes de ele valer. Por isso não dá para saber o valor com antecedência. O que dá para fazer é buscar logo depois que ele sai.
 
 Duas vezes por semana, a tarefa `.github/workflows/atualizar-fio-b.yml` roda o `atualizar_dados_aneel.py` num computador do GitHub. Se algum valor mudou e todas as conferências passaram, ela grava os arquivos novos no repositório, e o site é republicado sozinho. Se alguma coisa der errado, nada é gravado e o site continua com os valores anteriores. A tela de resultado avisa quando a vigência de um valor terminou.
+
+## Renovação da tabela de sol
+
+A NASA atualiza de tempos em tempos o período das médias de sol (em 2026 passou de 2001-2020 para 2001-2025). Uma vez por ano (1º de março), ou a qualquer hora pelo botão "Run workflow" da aba Actions, a tarefa `.github/workflows/renovar-tabela-sol.yml` monta a tabela de novo e a compara com a atual (`teste/comparar_tabela_sol.py`). Se nada mudou, nada é gravado. Se algo mudou, a tabela nova vai para um ramo separado e a tarefa abre um aviso no repositório: como a tabela muda o número de painéis, ela só chega ao site depois da conferência completa do motor e da atualização dos textos que citam o período.
 
 ## Banco opcional e contador de acessos
 

@@ -1,0 +1,196 @@
+# Renovacao da tabela de sol dos municipios - fase 4, B1, passo (2).
+# Criada em 08/11/2026.
+#
+# O QUE FAZ: remonta a tabela de sol (sol_municipios.csv e
+# sol_municipios_info.json) do mesmo jeito da montagem de 06/11/2026 e
+# compara com a que esta no site (teste/comparar_tabela_sol.py):
+#  - se NADA mudou, nao grava nada (execucao verde);
+#  - se ALGO mudou (a NASA lancou um periodo novo, ou o Wikidata mudou a
+#    maioria de algum municipio), grava a tabela nova num RAMO NOVO
+#    (sol-renovado-AAAA-MM-DD-N) e abre um "issue" no repositorio avisando.
+#    NUNCA grava no main: a tabela muda o numero de paineis, entao passa pela
+#    revisao completa (conferir_equacoes_3_3.py, 10 casos, telas) e pelos
+#    textos que citam o periodo, e so vai ao site com o "pode" da aluna;
+#  - se uma conferencia REPROVAR, nao grava nada e a execucao fica vermelha
+#    (o GitHub manda e-mail).
+#
+# POR QUE NAO GRAVA DIRETO NO MAIN, COMO A DO FIO B: o Fio B tem data para
+# valer (vigencia da ANEEL); o sol nao tem pressa. E quando a NASA muda o
+# periodo (ex.: 2001-2025 -> 2001-2026), os textos do site (Entenda,
+# Metodologia, Limitacoes, README) tambem precisam mudar.
+#
+# AS FONTES: a sede do IBGE (BC250 versao 2025) e a lista kelvins ficam nas
+# versoes FIXAS (a sede de um municipio nao muda de lugar; trocar de versao e
+# decisao a parte, com a sha256 nova aqui e no montar_tabela_sol.py). O
+# Wikidata e a NASA POWER sao consultados de novo.
+#
+# QUANDO RODA: uma vez por ano sozinha (1o de marco) e, a qualquer hora, pelo
+# botao: aba "Actions" -> "Renovar tabela de sol" -> "Run workflow".
+# Leva ~30 min (~550 pedidos a NASA, um por quadrado de 1 grau).
+
+name: Renovar tabela de sol
+
+on:
+  schedule:
+    # 1o de marco, 11:17 UTC = 08:17 em Brasilia. O minuto 17 evita a hora
+    # cheia, quando o GitHub atrasa as tarefas agendadas.
+    - cron: "17 11 1 3 *"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # para gravar o ramo novo (nunca o main)
+  issues: write     # para abrir o aviso de que ha um ramo novo para revisar
+
+concurrency:
+  group: renovar-tabela-sol
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash     # com pipefail: um erro antes do "| tee" para a execucao
+
+jobs:
+  renovar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Baixar o repositorio
+        uses: actions/checkout@v7
+
+      - name: Preparar o Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Instalar as bibliotecas
+        run: python -m pip install --quiet -r requirements.txt
+
+      - name: Baixar a BC250 2025 do IBGE (versao fixa)
+        # Se o IBGE tirar este arquivo do ar, a execucao fica vermelha aqui:
+        # ai e preciso escolher uma versao nova da BC250 (decisao a parte).
+        run: |
+          base=https://geoftp.ibge.gov.br/cartas_e_mapas/bases_cartograficas_continuas/bc250/versao2025/geopackage
+          curl -sS --fail -m 1500 -o "$RUNNER_TEMP/bc250.zip" -w "HTTP %{http_code}, %{size_download} bytes\n" "$base/bc250_gpkg_2026-03-03.zip"
+          echo "ff223482c743b81fff6b422378e6ada9406abedcff3f9768afb7cbef1da80781  $RUNNER_TEMP/bc250.zip" | sha256sum -c
+          unzip -o -q "$RUNNER_TEMP/bc250.zip" -d "$RUNNER_TEMP/bc250"
+          rm "$RUNNER_TEMP/bc250.zip"
+
+      - name: Baixar a lista kelvins (versao fixa) e consultar o Wikidata
+        run: |
+          curl -sS --fail -m 60 -o "$RUNNER_TEMP/kelvins.csv" \
+            https://raw.githubusercontent.com/kelvins/municipios-brasileiros/503e2f70bbf1b4b7ec0b1f68b09086ccc38fe861/csv/municipios.csv
+          echo "22bd03d004361329f69ddfa3f6c99cd53012aa53972a172e10b141288ad0b1fe  $RUNNER_TEMP/kelvins.csv" | sha256sum -c
+          cat > "$RUNNER_TEMP/consulta.rq" <<'EOF'
+          SELECT ?item ?ibge ?coord ?rank WHERE {
+            ?item wdt:P1585 ?ibge ;
+                  p:P625 ?st .
+            ?st ps:P625 ?coord ;
+                wikibase:rank ?rank .
+            FILTER(?rank != wikibase:DeprecatedRank)
+          }
+          EOF
+          echo "WIKIDATA_CONSULTADO_EM=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+          curl -sS -m 300 --fail -G "https://query.wikidata.org/sparql" \
+            --data-urlencode "query@$RUNNER_TEMP/consulta.rq" \
+            -H "Accept: text/csv" \
+            -H "User-Agent: quantos-paineis/1.1 (+https://quantospaineis.com.br/contato)" \
+            -o "$RUNNER_TEMP/wikidata.csv" -w "Wikidata: HTTP %{http_code}, %{size_download} bytes\n"
+          wc -l "$RUNNER_TEMP/wikidata.csv"
+
+      - name: Montar a tabela nova (montar_tabela_sol.py, com as conferencias dele)
+        run: |
+          python montar_tabela_sol.py "$RUNNER_TEMP/bc250/bc250_2026-03-03.gpkg" \
+            "$RUNNER_TEMP/kelvins.csv" "$RUNNER_TEMP/wikidata.csv" "$RUNNER_TEMP/saida" \
+            | tee "$RUNNER_TEMP/saida_montagem.txt"
+          rm -rf "$RUNNER_TEMP/bc250"
+
+      - name: Comparar com a tabela do site (teste/comparar_tabela_sol.py)
+        id: comparar
+        # Codigo 0 = nada mudou; 2 = algo mudou (vai para um ramo novo);
+        # qualquer outro = reprovado (a execucao fica vermelha).
+        run: |
+          set +e
+          python teste/comparar_tabela_sol.py sol_municipios.csv sol_municipios_info.json \
+            "$RUNNER_TEMP/saida/sol_municipios.csv" "$RUNNER_TEMP/saida/sol_municipios_info.json" \
+            > "$RUNNER_TEMP/relatorio.txt" 2>&1
+          codigo=$?
+          set -e
+          cat "$RUNNER_TEMP/relatorio.txt"
+          case $codigo in
+            0) echo "mudou=nao" >> "$GITHUB_OUTPUT" ;;
+            2) echo "mudou=sim" >> "$GITHUB_OUTPUT" ;;
+            *) echo "REPROVADO (codigo $codigo). Nada foi gravado."; exit 1 ;;
+          esac
+
+      - name: Conferir as equacoes do motor (teste/conferir_equacoes_3_3.py)
+        if: steps.comparar.outputs.mudou == 'sim'
+        # Mesmo cuidado da tarefa do Fio B: o programa nao termina com codigo
+        # de erro quando reprova; a linha final tem de ser "RESULTADO: OK".
+        run: |
+          cp "$RUNNER_TEMP/saida/sol_municipios.csv" "$RUNNER_TEMP/saida/sol_municipios_info.json" .
+          python teste/conferir_equacoes_3_3.py > "$RUNNER_TEMP/saida_equacoes.txt"
+          tail -n 20 "$RUNNER_TEMP/saida_equacoes.txt"
+          grep -qx "RESULTADO: OK" "$RUNNER_TEMP/saida_equacoes.txt"
+
+      - name: Gravar a tabela nova num ramo novo e avisar
+        if: steps.comparar.outputs.mudou == 'sim'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RAMO="sol-renovado-$(date -u +%Y-%m-%d)-${GITHUB_RUN_NUMBER}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$RAMO"
+          cp "$RUNNER_TEMP/saida/sol_municipios.csv" "$RUNNER_TEMP/saida/sol_municipios_info.json" .
+          git add -- sol_municipios.csv sol_municipios_info.json
+          git diff --cached --stat
+          {
+            echo "Tabela de sol: renovacao ($(date -u +%Y-%m-%d)) - NAO ESTA NO SITE"
+            echo
+            echo "Feita pela tarefa .github/workflows/renovar-tabela-sol.yml"
+            echo "(execucao ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})."
+            echo "So vai ao main depois da revisao completa e do \"pode\" da aluna."
+            echo
+            cat "$RUNNER_TEMP/relatorio.txt"
+          } > "$RUNNER_TEMP/mensagem.txt"
+          git commit -q -F "$RUNNER_TEMP/mensagem.txt"
+          git push -u origin "$RAMO"
+          {
+            echo "A tarefa de renovacao montou uma tabela de sol DIFERENTE da que esta no site"
+            echo "e a gravou no ramo \`$RAMO\`. **O site nao mudou.**"
+            echo
+            echo "Proximo passo: pedir ao Claude a revisao do ramo (textos com o periodo da"
+            echo "NASA, conferir_equacoes_3_3.py, 10 casos, telas) antes do \"pode\" para o main."
+            echo
+            echo "Execucao: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/relatorio.txt"
+            echo '```'
+          } > "$RUNNER_TEMP/aviso.md"
+          gh issue create --title "Tabela de sol renovada: ramo $RAMO espera revisao" \
+            --body-file "$RUNNER_TEMP/aviso.md"
+          echo "RAMO_CRIADO=$RAMO" >> "$GITHUB_ENV"
+
+      - name: Resumo desta execucao
+        if: always()
+        run: |
+          {
+            echo "## Renovacao da tabela de sol - $(date -u +%Y-%m-%d)"
+            if [ -n "${RAMO_CRIADO:-}" ]; then
+              echo
+              echo "**Algo mudou: tabela nova no ramo \`$RAMO_CRIADO\` (o site NAO mudou).**"
+            fi
+            for ARQ in relatorio saida_montagem; do
+              if [ -f "$RUNNER_TEMP/$ARQ.txt" ]; then
+                echo
+                echo "### $ARQ"
+                echo '```'
+                cat "$RUNNER_TEMP/$ARQ.txt"
+                echo '```'
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
