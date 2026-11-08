@@ -1,0 +1,22 @@
+# FASE 4, A5 - TESTE. So existe no ramo fase4-a5-teste-nasa (nunca no main).
+# Roda quando este ramo recebe um envio. Busca temperatura e ceu limpo da
+# NASA POWER para os quadrados da tabela de sol e imprime no registro.
+name: A5 teste NASA (temperatura)
+on:
+  push:
+    branches: [fase4-a5-teste-nasa]
+permissions:
+  contents: read
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - run: python teste/a5_buscar_temperatura.py
