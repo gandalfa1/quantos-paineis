@@ -408,6 +408,19 @@
             <summary>O resultado da simulação é um orçamento fechado?</summary>
             <p>Não. A plataforma entrega uma estimativa técnica para ajudar você a avaliar a viabilidade do investimento — número de painéis, potência, economia esperada e tempo de retorno. O valor final pode variar conforme o telhado, a distância até o quadro de energia e o instalador escolhido, então vale sempre confirmar com um orçamento real antes de fechar negócio.</p>
         </details>
+
+        {#- FASE 4, ITENS 44 E 46 (10/11/2026) - avisos de escopo (apartamento e autoconsumo
+            remoto), textos aprovados pela aluna. So aviso: nenhuma conta muda. Regras: Lei
+            14.300/2022, art. 1o, II e VII, e art. 12, par. 1o. -#}
+        <details class="faq-item">
+            <summary>Moro em apartamento. A simulação serve para mim?</summary>
+            <p>Serve só como ideia. A plataforma calcula painéis instalados na própria casa, e apartamento quase nunca tem telhado próprio. Em prédio, o mais comum é o condomínio instalar os painéis no telhado e dividir a energia entre os apartamentos. Essa divisão a plataforma não calcula. Veja <a href="{{ url_for('pagina', nome='limitacoes', _anchor='sobre-a-sua-casa') }}">Limitações</a>.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>Posso instalar os painéis num endereço e abater a conta de outro?</summary>
+            <p>Pode, se as duas contas estiverem no mesmo nome (CPF ou CNPJ) e forem da mesma distribuidora. A plataforma não calcula esse caso: o número de painéis serve de ideia, mas a economia pode sair menor, porque a energia não é usada na hora e cada endereço continua pagando o valor mínimo da conta.</p>
+        </details>
     </div>
 
     {# FASE 1, PASSO 5 (30/09/2026) - links para as paginas de explicacao
