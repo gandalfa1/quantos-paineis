@@ -2227,21 +2227,43 @@ CATALOGO_INVERSORES = {
     # de 13,5 A e o MESMO de toda a linha MIN, de 2,5 kW a 10 kW. Subir a
     # potencia do inversor NAO compra corrente - por isso a segunda familia
     # e necessaria, e nao apenas um degrau maior da primeira.
-    "MIN7000TL-X": {
+    #
+    # NOMES DO REGISTRO INMETRO (fase 4, conferencia de 10/11/2026 na
+    # consulta oficial, registro.inmetro.gov.br; registro em
+    # claude/inmetro_conferencia_10-11.txt). Os degraus de 7,0, 7,5 e 8,0 kW
+    # tinham nomes que nao existem no registro ("MIN7000TL-X", "MIN7500TL-X"
+    # e "MIN8000TL-X"; a familia X nem tem modelo de 7,5 kW). Passam a ser
+    # os modelos registrados:
+    #   MIN7000TL-X(E) - 001469/2024 e 002809/2023, ATIVOS. Folha da familia
+    #     MIN 7000-10000TL-X (Growatt): 2 MPPTs com 1 e 2 strings; 13,5/27 A
+    #     de entrada; 16,9/33,8 A de curto; 600 V; MPPT de 60 a 550 V;
+    #     partida em 100 V.
+    #   MIN7500TL-X2 - 018116/2024, ATIVO. Folha MIN 7500~10000TL-X2 da
+    #     Growatt Brasil (br.growatt.com): 2 MPPTs, 1 string cada; 18 A de
+    #     entrada e 24 A de curto por MPPT; 600 V; MPPT de 60 a 550 V;
+    #     partida em 80 V.
+    #   MIN8000TL-X2 - 004375/2024, ATIVO. Mesma folha: 3 MPPTs, 1 string
+    #     cada; 18 A / 24 A; 600 V; 60-550 V; partida em 80 V.
+    # REGRA USADA: nenhum limite fica mais folgado do que era. Correntes,
+    # tensao maxima e partida continuam os numeros antigos da familia X
+    # (13,5 A, 16,9 A, 550 V, 100 V), que sao iguais ou mais apertados que
+    # os das folhas acima; o que muda e o numero de MPPTs (2 no (E) e no
+    # X2 de 7,5 kW), e a segunda string do MPPT B do (E) nao e usada.
+    "MIN7000TL-X(E)": {
         "potencia_kw": 7.0, "familia": "Growatt MIN", "classe_corrente": "baixa",
-        "mppts": 3, "strings_por_mppt": 1,
+        "mppts": 2, "strings_por_mppt": 1,
         "corrente_max_entrada_a": 13.5, "corrente_max_curto_a": 16.9,
         "tensao_max_v": 550.0, "mppt_min_v": 60.0, "mppt_max_v": 550.0,
         "tensao_partida_v": 100.0,
     },
-    "MIN7500TL-X": {
+    "MIN7500TL-X2": {
         "potencia_kw": 7.5, "familia": "Growatt MIN", "classe_corrente": "baixa",
-        "mppts": 3, "strings_por_mppt": 1,
+        "mppts": 2, "strings_por_mppt": 1,
         "corrente_max_entrada_a": 13.5, "corrente_max_curto_a": 16.9,
         "tensao_max_v": 550.0, "mppt_min_v": 60.0, "mppt_max_v": 550.0,
         "tensao_partida_v": 100.0,
     },
-    "MIN8000TL-X": {
+    "MIN8000TL-X2": {
         "potencia_kw": 8.0, "familia": "Growatt MIN", "classe_corrente": "baixa",
         "mppts": 3, "strings_por_mppt": 1,
         "corrente_max_entrada_a": 13.5, "corrente_max_curto_a": 16.9,
