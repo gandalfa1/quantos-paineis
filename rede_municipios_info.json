@@ -1,0 +1,833 @@
+{
+ "o_que_e": "Rede trifasica mais comum em cada municipio (127/220 V ou 220/380 V). Nao muda paineis, custo nem retorno: so a ordem dos dois modelos de inversor acima de 10 kW.",
+ "fonte": "ANEEL, Base de Dados Geografica da Distribuidora (BDGD), dados de 2025-12-31; Neoenergia Coelba, lista MUNICIPIOS X TENSAO.",
+ "data_bdgd": "2025-12-31",
+ "regra": {
+  "limiar": 0.95,
+  "minimo_casas": 30,
+  "conta": "unidades residenciais (CLAS_SUB RE*), qualquer numero de fases, ativas ou nao, em transformador com secundario trifasico que atende 2 ou mais unidades",
+  "tensoes": {
+   "127": "127/220",
+   "220": "127/220",
+   "380": "220/380"
+  },
+  "lista_da_distribuidora": "se discorda da BDGD, o municipio fica com as duas"
+ },
+ "contagem": {
+  "127/220": 2907,
+  "220/380": 2428,
+  "as duas": 236
+ },
+ "motivos": {
+  "bdgd": 5335,
+  "bdgd_mista": 229,
+  "lista_da_distribuidora_discorda": 6,
+  "sem_dado": 1
+ },
+ "distribuidoras_lidas": 99,
+ "distribuidoras_sem_casa_contada": [
+  "Coopera_5370"
+ ],
+ "casas_com_municipio_fora_da_lista": 5,
+ "lista_coelba": {
+  "sha256": "d465e8a7d95cd2ff04c5b2cddfee97bcd4637b986f614794573692dcf05df1fe",
+  "municipios": 418,
+  "concordam_com_a_bdgd": 359
+ },
+ "manifesto": [
+  {
+   "id": "75dd7b50622d4fef8a4644dd14f3b77e",
+   "rotulo": "Amazonas_Energia_7019",
+   "titulo": "Amazonas_Energia_7019_2025-12-31_V11_20260826-0005",
+   "bytes": -1,
+   "sha256": "584800f361b34e19b4822fa3b45d038db718939e66b214480d38a34c1863b29d",
+   "bytes_baixados": 347056521
+  },
+  {
+   "id": "d27c3a89f81d4975ba16b06030a97984",
+   "rotulo": "CEA_Equatorial_31",
+   "titulo": "CEA_Equatorial_31_2025-12-31_V11_20260821-0016",
+   "bytes": -1,
+   "sha256": "5fce8d9f44ca8b744bdb74f0198d4d9af9beb778a4215218d5bed30d0d413dd1",
+   "bytes_baixados": 87896407
+  },
+  {
+   "id": "60d304b0a6ba466a9ebbdb70f21a542d",
+   "rotulo": "CEEE_Equatorial_5707",
+   "titulo": "CEEE_Equatorial_5707_2025-12-31_V11_20260826-0037",
+   "bytes": -1,
+   "sha256": "be9a3ca358d7833322fb10782d70b9f055ed54fb87900406cb941cf95ce6f73f",
+   "bytes_baixados": 707183550
+  },
+  {
+   "id": "9a74b75af3634b06b0967b8acd882386",
+   "rotulo": "CPFL_Paulista_63",
+   "titulo": "CPFL_Paulista_63_2025-12-31_V11_20260822-0029",
+   "bytes": -1,
+   "sha256": "24a56433f429a9110ba6d6287fec55921a07798165c84a5a85a804b874c70ba4",
+   "bytes_baixados": 1310941799
+  },
+  {
+   "id": "75863ef447904bbdacc1435e7f47d43a",
+   "rotulo": "CPFL_Piratininga_2937",
+   "titulo": "CPFL_Piratininga_2937_2025-12-31_V11_20260823-1826",
+   "bytes": -1,
+   "sha256": "b983874267c3780f0360c497a23fa9f3555f85e35343e755e09d964f45a25ebd",
+   "bytes_baixados": 439656878
+  },
+  {
+   "id": "27d4c45e0074491d94bf6a911b286f84",
+   "rotulo": "CPFL_Santa_Cruz_69",
+   "titulo": "CPFL_Santa_Cruz_69_2025-12-31_V11_20260824-0928",
+   "bytes": -1,
+   "sha256": "9ef49a43c464871335f60071f66796529c47d55a41880d9d97154787904598db",
+   "bytes_baixados": 158923493
+  },
+  {
+   "id": "07ccb18515de444396ac1f05ef8fb4b8",
+   "rotulo": "Castro-Dis_11825",
+   "titulo": "Castro-Dis_11825_2025-12-31_V11_20260822-0905",
+   "bytes": -1,
+   "sha256": "e68103e50612e71fa799faf122e021bf04012b08f36a7277ffcf57f4c11ba7af",
+   "bytes_baixados": 1233700
+  },
+  {
+   "id": "9f4e8fe06934422fa1eb06781496e745",
+   "rotulo": "Cedrap_5381",
+   "titulo": "Cedrap_5381_2025-12-31_V11_20260823-1900",
+   "bytes": -1,
+   "sha256": "0b1d901a31f07861d1a4cac9bde7b9256a3bce518cb52cfddc523e1829819e77",
+   "bytes_baixados": 3314277
+  },
+  {
+   "id": "e978cdda3d9443a8b1ef371d565a57a5",
+   "rotulo": "Cedri_5366",
+   "titulo": "Cedri_5366_2025-12-31_V11_20260827-0131",
+   "bytes": -1,
+   "sha256": "e516e6ad1c6a1cd4031f9880c184eae9c57d4ce986ad62b722fe89e5f2ff5c42",
+   "bytes_baixados": 2003348
+  },
+  {
+   "id": "bb2591c4374d4438b61933c4ddec2027",
+   "rotulo": "Cegero_5356",
+   "titulo": "Cegero_5356_2025-12-31_V11_20260822-0909",
+   "bytes": -1,
+   "sha256": "5c0110bf416b0cb89379b474a53d02d9663c427b035c9a3c5f8d917b43e13e09",
+   "bytes_baixados": 2984035
+  },
+  {
+   "id": "6bb8589f785e4d6fbdbef075585241bf",
+   "rotulo": "Cejama_5372",
+   "titulo": "Cejama_5372_2025-12-31_V11_20260821-0029",
+   "bytes": -1,
+   "sha256": "4ce63b0620f02724912416800a35f3695a55afee281e2a5a089744c28acf6898",
+   "bytes_baixados": 2662069
+  },
+  {
+   "id": "e04687b14a2843faa045f68d7ade358a",
+   "rotulo": "Celesc-Dis_5697",
+   "titulo": "Celesc-Dis_5697_2025-12-31_V11_20260826-0038",
+   "bytes": -1,
+   "sha256": "8a83dc12bfe3395c85f2d7ded462d464d8f3bfb3e5e3c2feaa14b389133579b4",
+   "bytes_baixados": 1304078601
+  },
+  {
+   "id": "9e7247b4310e43a282c59fa451b6c8f5",
+   "rotulo": "Celetro_5343",
+   "titulo": "Celetro_5343_2025-12-31_V11_20260827-0131",
+   "bytes": -1,
+   "sha256": "b72d871391ecab63dfbbb855b96ef87f04642ca082a3317c3d61363af5c08688",
+   "bytes_baixados": 12397971
+  },
+  {
+   "id": "750dbf00391b43d2a21a2c92c8f04aa6",
+   "rotulo": "Cemig-D_4950",
+   "titulo": "Cemig-D_4950_2025-12-31_V11_20260821-0106",
+   "bytes": -1,
+   "sha256": "b08ed05ae5b6953c88d7bd0b08cea275cfe7b7810d01d495d793891d0d44a14b",
+   "bytes_baixados": 3974983724
+  },
+  {
+   "id": "70d885552ac4448f93d5e032852333af",
+   "rotulo": "Cemirim_7467",
+   "titulo": "Cemirim_7467_2025-12-31_V11_20260825-0912",
+   "bytes": -1,
+   "sha256": "d369be3cb5146d926561611f9c59facd75edd7476962ff13873842910ffd3e32",
+   "bytes_baixados": 6802021
+  },
+  {
+   "id": "d92b1d2d49e4498eb54755bf51acf22d",
+   "rotulo": "Ceprag_5367",
+   "titulo": "Ceprag_5367_2025-12-31_V11_20260724-0028",
+   "bytes": -1,
+   "sha256": "c9aedc3bf8f669c4f7feff3e99fe64ab332c7ba3a69d3ed192965d903f263b61",
+   "bytes_baixados": 7934008
+  },
+  {
+   "id": "83be9b978c884030b63c611b52a1e41d",
+   "rotulo": "Ceraca_6897",
+   "titulo": "Ceraca_6897_2025-12-31_V11_20260824-0916",
+   "bytes": -1,
+   "sha256": "c99c444242b7a8a413b3887571b38af11be5f43ef697569da4230bc72845786d",
+   "bytes_baixados": 6201935
+  },
+  {
+   "id": "4bd95c39d9594542831272b3504bf464",
+   "rotulo": "Ceral-Dis_4248",
+   "titulo": "Ceral-Dis_4248_2025-12-31_V11_20260824-0924",
+   "bytes": -1,
+   "sha256": "0cbf8581f723ecef93f269b2fc2bee7336157dc794ac8e3c108d547ce2e087af",
+   "bytes_baixados": 1007611
+  },
+  {
+   "id": "7db02f6282484a6ea87e9dfe17f873b8",
+   "rotulo": "Ceral_Anitapolis_5351",
+   "titulo": "Ceral_Anitapolis_5351_2025-12-31_V11_20260827-1805",
+   "bytes": -1,
+   "sha256": "f26076fa7049f0a69847d805844a15c863ae7c4bf730b5987c87bb1c411f7c8b",
+   "bytes_baixados": 1989507
+  },
+  {
+   "id": "71efcfb7e32847f38bc5ab0d71a9a11c",
+   "rotulo": "Ceral_Araruama_6603",
+   "titulo": "Ceral_Araruama_6603_2025-12-31_V11_20260822-0906",
+   "bytes": -1,
+   "sha256": "1b2d853694f56752262c63e750c86b0c0b7b59da1a9473624e50f0837da75af7",
+   "bytes_baixados": 3221072
+  },
+  {
+   "id": "478ba395b2724a6bb878bec948cc47ac",
+   "rotulo": "Cerbranorte_6898",
+   "titulo": "Cerbranorte_6898_2025-12-31_V11_20260830-0336",
+   "bytes": -1,
+   "sha256": "473bef6abfb63d1d152ed685bba9aab376382d11acf5b953da3c52c9a8d2e7c6",
+   "bytes_baixados": 7098605
+  },
+  {
+   "id": "65ef217d03e14cae9319566a865e81dd",
+   "rotulo": "Cercos_5377",
+   "titulo": "Cercos_5377_2025-12-31_V11_20260814-1802",
+   "bytes": -1,
+   "sha256": "5caba454774a760286e5ae0548385cc8169523ae4b70f73fd7515c0feef8155c",
+   "bytes_baixados": 2020807
+  },
+  {
+   "id": "29e4883108f64014ad93fdc36c534e28",
+   "rotulo": "Cerej_5352",
+   "titulo": "Cerej_5352_2025-12-31_V11_20260822-0907",
+   "bytes": -1,
+   "sha256": "14febda4b40a0f0ffd5131a4647ac36619ca4d62783a46e2396056cc97345801",
+   "bytes_baixados": 8574362
+  },
+  {
+   "id": "f45db320609b4cbfbe85596901a08e9c",
+   "rotulo": "Cerfox_504",
+   "titulo": "Cerfox_504_2025-12-31_V11_20260826-0020",
+   "bytes": -1,
+   "sha256": "1b176e69eea2e5432403bf84e66f81e5a563eba0a38a3ef0b31d0d6696caae93",
+   "bytes_baixados": 8133598
+  },
+  {
+   "id": "e0bf8240fca44b96af37665712302ba0",
+   "rotulo": "Cergal_5353",
+   "titulo": "Cergal_5353_2025-12-31_V11_20260827-0130",
+   "bytes": -1,
+   "sha256": "bf879e937c6d994ebdf3e1501f36bebdd485903e722df86f2c5cc7e749854080",
+   "bytes_baixados": 6083578
+  },
+  {
+   "id": "02f295067fb44dae8f1033883e46b131",
+   "rotulo": "Cergapa_5355",
+   "titulo": "Cergapa_5355_2025-12-31_V11_20260823-1901",
+   "bytes": -1,
+   "sha256": "c2eda5beeaf4f0398ddd5d6e972db77adac982ed40f3df85107543a07b21ad3e",
+   "bytes_baixados": 2205554
+  },
+  {
+   "id": "85f69c5f4e6146a494dff9f89ed46951",
+   "rotulo": "Cergral_5363",
+   "titulo": "Cergral_5363_2025-12-31_V11_20260821-0936",
+   "bytes": -1,
+   "sha256": "e90cf50991e42eff502d955631b91071b3c4ec6a216d2c3776a6f3a76693bc87",
+   "bytes_baixados": 2777156
+  },
+  {
+   "id": "98c79376fc62406aa26d4bdf959805dc",
+   "rotulo": "Ceriluz_2763",
+   "titulo": "Ceriluz_2763_2025-12-31_V11_20260823-1855",
+   "bytes": -1,
+   "sha256": "4ddf6152ad4fbf83b46f73318f64f04b959c2735f71077b0c5f9c653da874ba1",
+   "bytes_baixados": 8583995
+  },
+  {
+   "id": "4389c0d59afa4e03a81ae9f947b604eb",
+   "rotulo": "Cerim_5386",
+   "titulo": "Cerim_5386_2025-12-31_V11_20260826-0019",
+   "bytes": -1,
+   "sha256": "2048df1c8037bdb510e1a990695063788473b9dd35d0899172966e8092b227e5",
+   "bytes_baixados": 5894548
+  },
+  {
+   "id": "f555cfcf974c49ea865fcda4683e2666",
+   "rotulo": "Ceripa_5378",
+   "titulo": "Ceripa_5378_2025-12-31_V11_20260826-0018",
+   "bytes": -1,
+   "sha256": "8cf717b1c6f07608d0d1418174292deec49256c0bd63f31dd2cac18272d5db76",
+   "bytes_baixados": 9284060
+  },
+  {
+   "id": "eba5da7746244f21b55f33caba64d716",
+   "rotulo": "Ceris_5382",
+   "titulo": "Ceris_5382_2025-12-31_V11_20260826-0018",
+   "bytes": -1,
+   "sha256": "55c287b4f785572805c2a1fe067fe52fdac670970e35dccc4490f582816f5a1a",
+   "bytes_baixados": 2602476
+  },
+  {
+   "id": "b903ea8e7681427fa4fab638845aa13a",
+   "rotulo": "Cermc_6610",
+   "titulo": "Cermc_6610_2025-12-31_V11_20260823-1859",
+   "bytes": -1,
+   "sha256": "81da4638148e4e1ce49d3707934efbef48610c574bd37087da2a7dd9a759c59c",
+   "bytes_baixados": 1477161
+  },
+  {
+   "id": "23305ec9e0044fe0a15f5f696eed7bed",
+   "rotulo": "Cermissoes_2381",
+   "titulo": "Cermissoes_2381_2025-12-31_V11_20260815-0209",
+   "bytes": -1,
+   "sha256": "275e37de0d54d708555b3ed08c79d14b8a6dd410512e5d224dee51f6e8f1ba6d",
+   "bytes_baixados": 15426308
+  },
+  {
+   "id": "1463efbde4c746b38d757c3e360b014f",
+   "rotulo": "Cermoful_5364",
+   "titulo": "Cermoful_5364_2025-12-31_V11_20260827-1809",
+   "bytes": -1,
+   "sha256": "ee5d2f27e67f6e3c7993b7792c5ac41157ca132f5d1317f562673ad7f37f420a",
+   "bytes_baixados": 6164587
+  },
+  {
+   "id": "7221dd01b4954d9db7e02f0ceede22a4",
+   "rotulo": "Cernhe_6609",
+   "titulo": "Cernhe_6609_2025-12-31_V11_20260826-0017",
+   "bytes": -1,
+   "sha256": "7bd34f420031cbe232702d2831877fc77dcc18837749ed0bd5739f344ad56a9a",
+   "bytes_baixados": 2677480
+  },
+  {
+   "id": "5017aed0ca224ea299f8ef79741e54e1",
+   "rotulo": "Cerpalo_5365",
+   "titulo": "Cerpalo_5365_2025-12-31_V11_20260827-0130",
+   "bytes": -1,
+   "sha256": "f3f0cb02a6d273ec5a8ad22a869ebce8e1659ca119dfee5fd691ff23ab2fe26f",
+   "bytes_baixados": 5528670
+  },
+  {
+   "id": "64d310c9547c443887fd6c875fdba17e",
+   "rotulo": "Cerpro_5384",
+   "titulo": "Cerpro_5384_2025-12-31_V11_20260827-0130",
+   "bytes": -1,
+   "sha256": "25f8f730b729a09255c1521c8d26d488a75eb4c144a5867234d8784360506e62",
+   "bytes_baixados": 1564684
+  },
+  {
+   "id": "569cc77bb50a47a598a634fac8a3aef7",
+   "rotulo": "Cerrp_5385",
+   "titulo": "Cerrp_5385_2025-12-31_V11_20260826-0017",
+   "bytes": -1,
+   "sha256": "3dcfd0f13298a3fca977379dd7d8103cccad53073193d295fc1d8c23561fee18",
+   "bytes_baixados": 5441842
+  },
+  {
+   "id": "c735e0f76b674cdfbc75eaf3d18c5c04",
+   "rotulo": "Cersad_7883",
+   "titulo": "Cersad_7883_2025-12-31_V11_20260724-0031",
+   "bytes": -1,
+   "sha256": "674b635faba77c23af6f29a73f89cb0097e1a28185867cff26db2c56e9b6db61",
+   "bytes_baixados": 903024
+  },
+  {
+   "id": "e47fc740c78b48039c549e7dfc57bada",
+   "rotulo": "Cersul_5368",
+   "titulo": "Cersul_5368_2025-12-31_V11_20260821-0031",
+   "bytes": -1,
+   "sha256": "c33d7daebdcf375aba09fc252cf74d34bbbc8211398e5f3b10cbb8413c635257",
+   "bytes_baixados": 9512064
+  },
+  {
+   "id": "d45242f78ac141b0b896c3fe7b05e12b",
+   "rotulo": "Certaja_Energia_3223",
+   "titulo": "Certaja_Energia_3223_2025-12-31_V11_20260830-1418",
+   "bytes": -1,
+   "sha256": "7fd6edd82cc7af4b04813c7f8bf565e3cafb35d5ba1a48c0eaee61a18728ca77",
+   "bytes_baixados": 12982984
+  },
+  {
+   "id": "4539da264de84533bc371241a514400d",
+   "rotulo": "Certel_Energia_7371",
+   "titulo": "Certel_Energia_7371_2025-12-31_V11_20260821-0949",
+   "bytes": -1,
+   "sha256": "3c61dc3e38312f3aab1fc19bc9ad0c97eeb47f577200d8752665523383968802",
+   "bytes_baixados": 26648071
+  },
+  {
+   "id": "bb53870506c9430399ce67634fee17e9",
+   "rotulo": "Certhil_527",
+   "titulo": "Certhil_527_2025-12-31_V11_20260825-0917",
+   "bytes": -1,
+   "sha256": "6f7e90b3ceef874142fbbcf22690c63b04331696e4364523d3296f79095b1976",
+   "bytes_baixados": 5969974
+  },
+  {
+   "id": "6666637cb9954e0a9daa7f7b3dfde8e4",
+   "rotulo": "Certrel_5369",
+   "titulo": "Certrel_5369_2025-12-31_V11_20260827-1812",
+   "bytes": -1,
+   "sha256": "3d284fcd8c8b55de7364427386883459d27d07e97e99bbef87042e463d4c4115",
+   "bytes_baixados": 2439773
+  },
+  {
+   "id": "c3bfddb418404568bfa7aaf9d00fb136",
+   "rotulo": "Cervam_5375",
+   "titulo": "Cervam_5375_2025-12-31_V11_20260825-0912",
+   "bytes": -1,
+   "sha256": "10e9920e73a1f24e7c66f6adaf1cfa6ec3cf138bc296863195aff4bc3e05f8b5",
+   "bytes_baixados": 2176205
+  },
+  {
+   "id": "f00b2115671a4650b7d2c9f806231294",
+   "rotulo": "Cetril_5379",
+   "titulo": "Cetril_5379_2025-12-31_V11_20260822-0907",
+   "bytes": -1,
+   "sha256": "9c52b1820f0d5b0b5fbe627672eb0bb0e4178366c162d249c5c4ffa184decceb",
+   "bytes_baixados": 12404942
+  },
+  {
+   "id": "26f6d3e8e9f74d89921e74eed6213545",
+   "rotulo": "Chesp_103",
+   "titulo": "Chesp_103_2025-12-31_V11_20260826-0016",
+   "bytes": -1,
+   "sha256": "fdbd0addd8a6376fdce3c10571f957648ccd003a3b39fa6b21224535e83ba3f4",
+   "bytes_baixados": 14108327
+  },
+  {
+   "id": "082e3f3526254aafbca5ac8ade674e02",
+   "rotulo": "Cocel_82",
+   "titulo": "Cocel_82_2025-12-31_V11_20260826-0049",
+   "bytes": -1,
+   "sha256": "e38f1832e6f933576fecd46dcdf1a0ed97fdad9f8f66932d4b253707017dc5f9",
+   "bytes_baixados": 17779411
+  },
+  {
+   "id": "5d0f7ea5db5d48aeb365998fabaa9db7",
+   "rotulo": "Coopera_5370",
+   "titulo": "Coopera_5370_2025-12-31_V11_20260822-0914",
+   "bytes": -1,
+   "sha256": "5da0502b286b1ec7c8df898a56f2e8ecc1d2c896c139058436e9cfd9606732fb",
+   "bytes_baixados": 7860642
+  },
+  {
+   "id": "acfd8bc19135418b857a9df31546a767",
+   "rotulo": "Coopercocal_5371",
+   "titulo": "Coopercocal_5371_2025-12-31_V11_20260827-1803",
+   "bytes": -1,
+   "sha256": "4ac8f955140ed1b09c1a1090e2d96bd687bb2e977d2f2bb6d9fcdbf89f209c4e",
+   "bytes_baixados": 4903289
+  },
+  {
+   "id": "257d8db7726244699e96b1c369ee33b4",
+   "rotulo": "Cooperluz_3627",
+   "titulo": "Cooperluz_3627_2025-12-31_V11_20260823-1903",
+   "bytes": -1,
+   "sha256": "dc2bdf6757e3d37c0056b5f33ef61066aa99bf2d4f377816357390a59c3f986f",
+   "bytes_baixados": 9742077
+  },
+  {
+   "id": "5ae4d37c6cd9401db42aeeff9ef2ae33",
+   "rotulo": "Coopermila_5373",
+   "titulo": "Coopermila_5373_2025-12-31_V11_20260821-0007",
+   "bytes": -1,
+   "sha256": "89829db1fdfa5a07d82d8183cf979d3e404206994a0707b65387d69a3cbcc78f",
+   "bytes_baixados": 890472
+  },
+  {
+   "id": "325005059a3a4606ac5657a3893827e0",
+   "rotulo": "Coopernorte_5345",
+   "titulo": "Coopernorte_5345_2025-12-31_V11_20260815-0209",
+   "bytes": -1,
+   "sha256": "c133983e7d69b30e5813da177b643c4b08f763dedcda5ced264d79ca836e282b",
+   "bytes_baixados": 3188628
+  },
+  {
+   "id": "3bc6806896e843b6924697ff60e36a64",
+   "rotulo": "Coopersul_5346",
+   "titulo": "Coopersul_5346_2025-12-31_V11_20260826-0021",
+   "bytes": -1,
+   "sha256": "8da733f1c4ba007ced1989409f8730d870f3bdb331e8f9612c6de18f099c93fd",
+   "bytes_baixados": 3441498
+  },
+  {
+   "id": "02b5591ba172448396d2eada7085cc7f",
+   "rotulo": "Cooperzem_5374",
+   "titulo": "Cooperzem_5374_2025-12-31_V11_20260815-0208",
+   "bytes": -1,
+   "sha256": "5a277b5d35f46128bdef4c6144b35b0202a8ac30ef21bdd3bdd9f2dab9a66e3e",
+   "bytes_baixados": 4119013
+  },
+  {
+   "id": "1594a3ae1b4d442daa81d621c47f02fc",
+   "rotulo": "Coorsel_7016",
+   "titulo": "Coorsel_7016_2025-12-31_V11_20260821-0951",
+   "bytes": -1,
+   "sha256": "f88143f73ebe2ff165c12f4475be6cb3d0859901ff76a78b798fc27dc480427c",
+   "bytes_baixados": 4789941
+  },
+  {
+   "id": "5b9890585186452c8e78dfac89bf9519",
+   "rotulo": "Copel-Dis_2866",
+   "titulo": "Copel-Dis_2866_2025-12-31_V11_20260824-0942",
+   "bytes": -1,
+   "sha256": "1622efca2ada0c4fcd3588d7082ebb17956b1c8c0f4196553dadaf1cf51ffa07",
+   "bytes_baixados": 1526541514
+  },
+  {
+   "id": "fb3fa39c507d45e09abb2608cad0c884",
+   "rotulo": "Coprel_2351",
+   "titulo": "Coprel_2351_2025-12-31_V11_20260824-0917",
+   "bytes": -1,
+   "sha256": "1eaada1e8ffed58652071181224ebca23e63628946d8d7197a822434631aed23",
+   "bytes_baixados": 47296215
+  },
+  {
+   "id": "0d8ca0795ce9453fbe779fd69d0334ed",
+   "rotulo": "Creluz-D_598",
+   "titulo": "Creluz-D_598_2025-12-31_V11_20260723-1009",
+   "bytes": -1,
+   "sha256": "22d254802a145f94af3aa9359149335d1ae08d3f307849ae3f12ce2efd5ad3b9",
+   "bytes_baixados": 11600148
+  },
+  {
+   "id": "740a0f26c53f4cacac6ce9588b411e17",
+   "rotulo": "Creral_2783",
+   "titulo": "Creral_2783_2025-12-31_V11_20260826-0020",
+   "bytes": -1,
+   "sha256": "e4f9cabc371c530001e966c1d478bf56a675d670d36773af255beab0136b9094",
+   "bytes_baixados": 4477737
+  },
+  {
+   "id": "7ebf8b3ffa9145f0b3dbe626dac18f92",
+   "rotulo": "Dcelt_87",
+   "titulo": "Dcelt_87_2025-12-31_V11_20260825-0918",
+   "bytes": -1,
+   "sha256": "c1538280adc12b295966f270b54bd8770cdb2df298e51bcbde3ede3e97e30c44",
+   "bytes_baixados": 12185114
+  },
+  {
+   "id": "35dafef5fcb94c3485ceec799199373d",
+   "rotulo": "Demei_95",
+   "titulo": "Demei_95_2025-12-31_V11_20260830-1352",
+   "bytes": -1,
+   "sha256": "369bae73a3a60a3ff2a5f7ab3f3b2a83d9cd2c81f6697f1583a910090e80a0e9",
+   "bytes_baixados": 9007265
+  },
+  {
+   "id": "44ccd59a1cba4e019a258b3e58fea420",
+   "rotulo": "Dmed_51",
+   "titulo": "Dmed_51_2025-12-31_V11_20260823-1827",
+   "bytes": -1,
+   "sha256": "5a17276584484a2c6cd9eeb5f8b242972dbc7557d184c97d556609fa7c36b09e",
+   "bytes_baixados": 21114411
+  },
+  {
+   "id": "1929128a61ba4e10af33178c2d106013",
+   "rotulo": "EDP_ES_380",
+   "titulo": "EDP_ES_380_2025-12-31_V11_20260830-0341",
+   "bytes": -1,
+   "sha256": "dce112d5f00f03a25e4ae14bb6c8b144802b891f115586d9c914b5c4fd67e9db",
+   "bytes_baixados": 553968716
+  },
+  {
+   "id": "73847c48c58847a7ad6fa725d1d20d51",
+   "rotulo": "EDP_SP_391",
+   "titulo": "EDP_SP_391_2025-12-31_V11_20260830-0340",
+   "bytes": -1,
+   "sha256": "e98a3440b7da34339338e6cf96a169281947c8bbdf22c339dd15d0f5f87b8fa5",
+   "bytes_baixados": 566493366
+  },
+  {
+   "id": "04a736e95f114c32a56206957a492cba",
+   "rotulo": "Eflul_86",
+   "titulo": "Eflul_86_2025-12-31_V11_20260823-1830",
+   "bytes": -1,
+   "sha256": "35a071a48728cd3bf5dbd9aa960026c9f6290f04c3d4abea25038eae476df168",
+   "bytes_baixados": 3174969
+  },
+  {
+   "id": "22d8a085b8264dae8a77983de348fba6",
+   "rotulo": "Eletrocar_398",
+   "titulo": "Eletrocar_398_2025-12-31_V11_20260827-0134",
+   "bytes": -1,
+   "sha256": "795ffe1cc0313e362ba6d7d58e7a75ce636d1267bd040b1943844b19406c716c",
+   "bytes_baixados": 12244488
+  },
+  {
+   "id": "c57f0c3389a94f21af1e0df99eca2b4f",
+   "rotulo": "Enel_CE_39",
+   "titulo": "Enel_CE_39_2025-12-31_V11_20260826-0043",
+   "bytes": -1,
+   "sha256": "259ccadcaa909bfc4e408958f719974b7cdea5a37658719bf6e76328c9c4af34",
+   "bytes_baixados": 1545233375
+  },
+  {
+   "id": "32a52a0b29df4b82b9e63362bc927267",
+   "rotulo": "Enel_RJ_383",
+   "titulo": "Enel_RJ_383_2025-12-31_V11_20260827-0133",
+   "bytes": -1,
+   "sha256": "013f207c58c013dd92eae53d59e5f5446cb2bbf63e4eeb127dbc3b773a1280c1",
+   "bytes_baixados": 1011519298
+  },
+  {
+   "id": "837ab21a1e684f448df2f73d709b6fd9",
+   "rotulo": "Enel_SP_390",
+   "titulo": "Enel_SP_390_2025-12-31_V11_20260827-0135",
+   "bytes": -1,
+   "sha256": "7f20489b827a7e3cc5701a955461d56892f7de5f410b54d0dbcd9a038f1216ef",
+   "bytes_baixados": 1914923293
+  },
+  {
+   "id": "f422f058b473405d9eb39b005c2ba1b3",
+   "rotulo": "Energisa_AC_26",
+   "titulo": "Energisa_AC_26_2025-12-31_V11_20260825-2232",
+   "bytes": -1,
+   "sha256": "b3559a9ed7b76704932e122b7c2fef6ba8d61af5f93c5f7a0a1ba51d594b1cc6",
+   "bytes_baixados": 115530889
+  },
+  {
+   "id": "9a1ce360865f4358b31e9fb2d016aac9",
+   "rotulo": "Energisa_MS_404",
+   "titulo": "Energisa_MS_404_2025-12-31_V11_20260830-0339",
+   "bytes": -1,
+   "sha256": "e72ef258c71f450c14d947754bd34084a7fb0f176899cee1f7397a78d12c25e2",
+   "bytes_baixados": 479643028
+  },
+  {
+   "id": "02a120db1b5149709f8d371c21635adc",
+   "rotulo": "Energisa_MT_405",
+   "titulo": "Energisa_MT_405_2025-12-31_V11_20260827-0133",
+   "bytes": -1,
+   "sha256": "a069bada2fae3a783d4e3c9d0a684f3c848698cfbae7ab13b3739b050b18c391",
+   "bytes_baixados": 904199535
+  },
+  {
+   "id": "e4127432837e47b48c30c97a2b2dbdb5",
+   "rotulo": "Energisa_Minas_Rio_6585",
+   "titulo": "Energisa_Minas_Rio_6585_2025-12-31_V11_20260824-0939",
+   "bytes": -1,
+   "sha256": "ef61a6bcedafcec9858ebfc046dc12a837da5a469fbaa5401c0f136a219e0e0f",
+   "bytes_baixados": 188185002
+  },
+  {
+   "id": "fedab1bd01f849dfa5167c5ce4e92729",
+   "rotulo": "Energisa_PB_6600",
+   "titulo": "Energisa_PB_6600_2025-12-31_V11_20260827-0225",
+   "bytes": -1,
+   "sha256": "0ffd207c9e9ad2d82affa8749c8253f0637ce2aa5babffb51d1c7761120ee82f",
+   "bytes_baixados": 615215185
+  },
+  {
+   "id": "23404e39bdc14e92a4d0f087ad84e28b",
+   "rotulo": "Energisa_RO_369",
+   "titulo": "Energisa_RO_369_2025-12-31_V11_20260825-2228",
+   "bytes": -1,
+   "sha256": "6cb2cd24cfb77f2ecf82d0f1f0edc05875ca7720ef67728e1663237e10376d13",
+   "bytes_baixados": 329590628
+  },
+  {
+   "id": "6763d91cf46d4562966bd1ad0680f849",
+   "rotulo": "Energisa_SE_6587",
+   "titulo": "Energisa_SE_6587_2025-12-31_V11_20260824-0926",
+   "bytes": -1,
+   "sha256": "374a8a9b4c9a59f2ac61a8a99f88d8dc485fc1dcb0e5e72d6a27c6600ef9b2f9",
+   "bytes_baixados": 265656227
+  },
+  {
+   "id": "98af349591824f7fa42662bbda161b90",
+   "rotulo": "Energisa_Sul-Sudeste_5216",
+   "titulo": "Energisa_Sul-Sudeste_5216_2025-12-31_V11_20260823-1743",
+   "bytes": -1,
+   "sha256": "55b2c542d81e6711ec87d7650a51686299d44b1832792fc931817d0c53984137",
+   "bytes_baixados": 303666600
+  },
+  {
+   "id": "e9a7bd0056174a8da1a5662135056766",
+   "rotulo": "Energisa_TO_32",
+   "titulo": "Energisa_TO_32_2025-12-31_V11_20260824-0925",
+   "bytes": -1,
+   "sha256": "791821fb2d91ea797171d4aa9ec92429ec0ca700d2bb6b3c9710e0f93373b1c0",
+   "bytes_baixados": 329884036
+  },
+  {
+   "id": "cb77602aaeb34bcfa36b822a964dd1a8",
+   "rotulo": "Equatorial_AL_44",
+   "titulo": "Equatorial_AL_44_2025-12-31_V11_20260826-0037",
+   "bytes": -1,
+   "sha256": "8f69fea9972fa35246c741cd09721ceda124ed1d1067ac0006e571b84e1f28bc",
+   "bytes_baixados": 524525709
+  },
+  {
+   "id": "32ecb2c820a742bfbfa077af69c82245",
+   "rotulo": "Equatorial_GO_6072",
+   "titulo": "Equatorial_GO_6072_2025-12-31_V11_20260821-0952",
+   "bytes": -1,
+   "sha256": "216f85b9b602d83f07b227ea02441b76032b65eca3d429f1b542ef5079f8105c",
+   "bytes_baixados": 1152209637
+  },
+  {
+   "id": "0abd1d2ff8ec4ab8abedbc96979f0946",
+   "rotulo": "Equatorial_MA_37",
+   "titulo": "Equatorial_MA_37_2025-12-31_V11_20260815-0153",
+   "bytes": -1,
+   "sha256": "66b52a454b6d633e8f3bbd7eae46e7a4120eb59b2046e844f09fe95c6708106b",
+   "bytes_baixados": 1017796860
+  },
+  {
+   "id": "0c8dad27817e42aba122b55511e09359",
+   "rotulo": "Equatorial_PA_371",
+   "titulo": "Equatorial_PA_371_2025-12-31_V11_20260830-0340",
+   "bytes": -1,
+   "sha256": "c1a0dbe77e2099a924d31ca6aad4b710acde99cd2bf1e8926b1ec07944cb7add",
+   "bytes_baixados": 1333795902
+  },
+  {
+   "id": "2b040141e900476586c9bbda852cc264",
+   "rotulo": "Equatorial_PI_38",
+   "titulo": "Equatorial_PI_38_2025-12-31_V11_20260821-0952",
+   "bytes": -1,
+   "sha256": "a49ec3cca68abec84f3ce385b73c3005eaf46ec4b21fb5aa1d4be10681954456",
+   "bytes_baixados": 594101810
+  },
+  {
+   "id": "cd6c8ecb86c2427493cf4a0d129c2eb4",
+   "rotulo": "Forcel_83",
+   "titulo": "Forcel_83_2025-12-31_V11_20260823-1832",
+   "bytes": -1,
+   "sha256": "c72fd562fe0f375f7b7f6c69cc2bfc09d08c0fde2a3cbac54559e629b10a0f19",
+   "bytes_baixados": 3050832
+  },
+  {
+   "id": "bf846d18b9e84fa6991bd76af0fc9f44",
+   "rotulo": "Hidropan_399",
+   "titulo": "Hidropan_399_2025-12-31_V11_20260825-0904",
+   "bytes": -1,
+   "sha256": "f57f42d74773702273ffba791ed5b76168cf5863dd8008972fc3202a749ec41b",
+   "bytes_baixados": 5961516
+  },
+  {
+   "id": "3587012de8864d98ae8c4cb77902d4e3",
+   "rotulo": "Joao_Cesa_88",
+   "titulo": "Joao_Cesa_88_2025-12-31_V11_20260821-0951",
+   "bytes": -1,
+   "sha256": "51399f96b2a1395e5114bca88c3c9a3ab8ceed5caade28276a97fda250e8da7c",
+   "bytes_baixados": 1436209
+  },
+  {
+   "id": "430f90486174407aabe3b07f50ca6150",
+   "rotulo": "Light_382",
+   "titulo": "Light_382_2025-12-31_V11_20260824-0926",
+   "bytes": -1,
+   "sha256": "f5a569a8f83eb38706464b6fbdaef1cbe3ed275e238a5f95378c738fae8b0564",
+   "bytes_baixados": 1136097059
+  },
+  {
+   "id": "42482341e0d643eeab286de22fc0dff8",
+   "rotulo": "Mux_Energia_401",
+   "titulo": "Mux_Energia_401_2025-12-31_V11_20260822-0908",
+   "bytes": -1,
+   "sha256": "cd76b10227dd9b1e7f2ac24881d19dac598615fb50fdda447e070231e4982102",
+   "bytes_baixados": 3308306
+  },
+  {
+   "id": "b6bfc6df4fb44fb393a0c026cf688ced",
+   "rotulo": "Neoenergia_Brasilia_5160",
+   "titulo": "Neoenergia_Brasilia_5160_2025-12-31_V11_20260821-0031",
+   "bytes": -1,
+   "sha256": "1a2fecee669c5014f5d54d6706f7a1f787e9f9c6f66422148f9953c00cd83d34",
+   "bytes_baixados": 382388798
+  },
+  {
+   "id": "8ec3cae3b0ce4d3c8f6536eedf49c9f3",
+   "rotulo": "Neoenergia_Coelba_47",
+   "titulo": "Neoenergia_Coelba_47_2025-12-31_V11_20260824-0935",
+   "bytes": -1,
+   "sha256": "2a49171fdc86da86fdc5481c234b85f6aaeda35db24cd58cc087e6ca18b7a457",
+   "bytes_baixados": 2166677032
+  },
+  {
+   "id": "c48b4751afdf41c29923986308e15f44",
+   "rotulo": "Neoenergia_Cosern_40",
+   "titulo": "Neoenergia_Cosern_40_2025-12-31_V11_20260823-1857",
+   "bytes": -1,
+   "sha256": "9ffd6f8b9734dcfc7db82f209971025057f5fd0429c681f7c3d5d2def513765d",
+   "bytes_baixados": 471810767
+  },
+  {
+   "id": "0fe22aa2b53c4dacba9b106a10d1c452",
+   "rotulo": "Neoenergia_Elektro_385",
+   "titulo": "Neoenergia_Elektro_385_2025-12-31_V11_20260824-0929",
+   "bytes": -1,
+   "sha256": "ab1d12499552485cdce1aca92f3459bb73af882d2864a5133fd3c92833aa2a90",
+   "bytes_baixados": 1142409012
+  },
+  {
+   "id": "a36b00f67b394ff8977cbacb6d278901",
+   "rotulo": "Neoenergia_Pernambuco_43",
+   "titulo": "Neoenergia_Pernambuco_43_2025-12-31_V11_20260825-0915",
+   "bytes": -1,
+   "sha256": "91dbb17016a50b938753ba61f8d99c7d3ceb506a66b0681752359eb393b698e9",
+   "bytes_baixados": 1205556185
+  },
+  {
+   "id": "e3a518b754ff42fcaf0232003c0b1e9d",
+   "rotulo": "Nova_Palma_400",
+   "titulo": "Nova_Palma_400_2025-12-31_V11_20260823-1836",
+   "bytes": -1,
+   "sha256": "1742cd48698f01a040aeec50117e365d294876d9d689cb69247d555636321025",
+   "bytes_baixados": 6293535
+  },
+  {
+   "id": "19380ec7194a49409c429a149e2c50be",
+   "rotulo": "RGE_396",
+   "titulo": "RGE_396_2025-12-31_V11_20260821-0032",
+   "bytes": -1,
+   "sha256": "48b86175c59683f5639dd013e1708a2ef64648ede7771bf91302d7d40f000c68",
+   "bytes_baixados": 920692886
+  },
+  {
+   "id": "676f1716658f47a3b5c8fb8c44c702c0",
+   "rotulo": "Roraima_Energia_370",
+   "titulo": "Roraima_Energia_370_2025-12-31_V11_20260825-2228",
+   "bytes": -1,
+   "sha256": "c2f330b3e5797cd0f789e7b22a4aef4c69b70a1fbd29dd4c06bb30e9a36fe1b7",
+   "bytes_baixados": 90678640
+  },
+  {
+   "id": "7d14b859a5934148bde30b2430546b84",
+   "rotulo": "Santa_Maria_381",
+   "titulo": "Santa_Maria_381_2025-12-31_V11_20260826-0006",
+   "bytes": -1,
+   "sha256": "900461025f006fdc87c2ac7778f3125bb9b57c20cd432478b5370b842e43460c",
+   "bytes_baixados": 38091736
+  },
+  {
+   "id": "f7ef6c74ffe74311bb20ef0b83e4070e",
+   "rotulo": "Sulgipe_46",
+   "titulo": "Sulgipe_46_2025-12-31_V11_20260830-1351",
+   "bytes": -1,
+   "sha256": "d251b88838a8c42047471022a968af289387f175607ed62801da79de85fe7590",
+   "bytes_baixados": 53470273
+  }
+ ],
+ "csv_sha256": "258cb1fe16b9807720be6af148df493d91f0420283b71ea18c9e0d143e00a959",
+ "montada_em": "2026-11-11"
+}
