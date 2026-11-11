@@ -393,13 +393,22 @@
                 </span>
                 <span class="valor">{{ br(resultado.potencia_inversor_kw) }} kW</span>
             </li>
-            {% if resultado.inversor_modelo %}
+            {% if resultado.inversor_modelo and not resultado.inversores_por_tensao %}
             <li>
                 <span>Inversor indicado</span>
                 <span class="valor">{{ resultado.inversor_modelo }} (família {{ resultado.inversor_familia }})</span>
             </li>
-            {% endif %}
-        </ul>
+            {% endif %}{% if resultado.inversores_por_tensao %}{% for inv in resultado.inversores_por_tensao %}
+            <li>
+                <span>Inversor para rede de {{ inv.tensao_rede }}</span>
+                <span class="valor">{{ inv.modelo }} (família {{ inv.familia }})</span>
+            </li>{% endfor %}{% endif %}
+        </ul>{% if resultado.inversores_por_tensao %}
+        <p class="hint-fonte">Acima de 10 kW, o inversor é trifásico. Há dois tipos de rede trifásica no Brasil, e o instalador escolhe o modelo conforme a da sua casa. Os painéis foram conferidos nos dois.</p>{% endif %}{% if resultado.ligacao_trocada_para_trifasica %}
+        <div class="aviso-destaque" id="aviso-trifasica">{% if resultado.ligacao_original_informada %}
+            <p><strong>Este sistema precisa de ligação trifásica, e a sua é {{ nomes_ligacao.get(resultado.ligacao_original, resultado.ligacao_original) }}.</strong> Antes de instalar, é preciso pedir à distribuidora a troca para ligação trifásica. O custo da troca não está nesta conta, que já usa o valor mínimo da conta da ligação trifásica (100 kWh).</p>{% else %}
+            <p><strong>Consideramos ligação trifásica.</strong> Um sistema acima de 10 kW precisa dela. Se a sua casa ainda não tem ligação trifásica, é preciso pedir a troca à distribuidora, e o custo dela não está nesta conta.</p>{% endif %}
+        </div>{% endif %}
 
         {#- Pendencia 5 (reservada desde o T4). O texto usa o modelo que o
             motor escolheu, e nao so a marca: quando a familia for outra, a
@@ -414,10 +423,10 @@
                         Como os painéis são ligados
                         <span class="tip">
                             <button type="button" class="tip-btn" aria-label="O que é uma fileira de painéis?">i</button>
-                            <span class="tip-bubble">Os painéis são ligados em série, um atrás do outro, formando uma fileira (em inglês, <em>string</em>): as tensões se somam e a corrente é a de um painel só. Quando a fileira ficaria longa demais, os painéis são divididos em mais de uma, cada uma numa entrada própria do inversor.</span>
+                            <span class="tip-bubble">Os painéis são ligados em série, um atrás do outro, formando uma fileira (em inglês, <em>string</em>): as tensões se somam e a corrente é a de um painel só. Quando a fileira ficaria longa demais, os painéis são divididos em mais de uma, cada uma numa entrada própria do inversor.{% if resultado.inversores_por_tensao %} Nos inversores maiores, duas fileiras iguais podem dividir a mesma entrada (ligadas em paralelo), e aí as correntes delas se somam.{% endif %}</span>
                         </span>
                     </span>
-                    <span class="valor">{% if resultado.arranjo_strings == 1 %}todos em série, numa só fileira{% else %}{{ resultado.arranjo_strings }} fileiras ({{ resultado.arranjo_modulos_por_string | join(" + ") }}){% endif %}</span>
+                    <span class="valor">{% if resultado.inversores_por_tensao %}{% for inv in resultado.inversores_por_tensao %}{% set pares = (inv.laudo.mppts_usados or []) | selectattr("strings", "gt", 1) | list | length %}{% if not loop.first %}<br>{% endif %}rede de {{ inv.tensao_rede }}: {{ inv.laudo.strings }} fileiras ({{ inv.laudo.modulos_por_string | join(" + ") }}){% if pares == 1 %}, duas delas na mesma entrada{% elif pares > 1 %}, de duas em duas nas entradas{% endif %}{% endfor %}{% elif resultado.arranjo_strings == 1 %}todos em série, numa só fileira{% else %}{{ resultado.arranjo_strings }} fileiras ({{ resultado.arranjo_modulos_por_string | join(" + ") }}){% endif %}</span>
                 </li>
                 {% endif %}
                 <li>
@@ -490,7 +499,8 @@
                         <span>Tensão de trabalho do arranjo no calor ({{ br(resultado.temperatura_maxima_celula_c, 0) }} °C na célula), contra o mínimo do inversor</span>
                         <span class="valor">{{ br(resultado.arranjo_tensao_mpp_a_quente_v, 1) }} V — {{ "aprovada" if laudo.verificacao_4_tensao_minima else "reprovada" }}</span>
                     </li>
-                </ul>
+                </ul>{% if resultado.inversores_por_tensao %}
+                <p>Os números acima são os do inversor para rede de {{ resultado.inversores_por_tensao[0].tensao_rede }} ({{ resultado.inversores_por_tensao[0].modelo }}). {% for inv in resultado.inversores_por_tensao[1:] %}O de {{ inv.tensao_rede }} ({{ inv.modelo }}) também passou nas quatro verificações, com fileiras de {{ inv.laudo.modulos_por_string | join(" + ") }} painéis. {% endfor %}{% set ns = namespace(paralelo=false) %}{% for inv in resultado.inversores_por_tensao %}{% if (inv.laudo.mppts_usados or []) | selectattr("strings", "gt", 1) | list %}{% set ns.paralelo = true %}{% endif %}{% endfor %}{% if ns.paralelo %}Quando duas fileiras dividem a mesma entrada do inversor, as correntes delas se somam, e é a soma que a plataforma compara com o limite.{% endif %}</p>{% endif %}
                 {% if resultado.modulo_escolhido_pela_plataforma %}
                 <p><strong>Por que este painel.</strong> Entre os painéis compatíveis, a plataforma escolhe o de menor corrente de operação. A corrente é o que mais limita a ligação com o inversor, e ela não diminui em sistemas maiores — em série, a corrente da fileira é a de um painel só.</p>
                 {% endif %}
@@ -675,13 +685,13 @@
             presumida, e o texto nao pode afirmar que a conta "foi cobrada pelo
             minimo" - numa casa monofasica (30 kWh) talvez nao tenha sido. -#}
         {%- if resultado.tarifa_pelo_minimo %}
-        {% set minimo_conta = resultado.consumo_faturado_kwh | round | int %}
+        {% set minimo_conta = resultado.consumo_faturado_kwh | round | int %}{% set lig_conta = resultado.ligacao_original if resultado.ligacao_trocada_para_trifasica else resultado.tipo_ligacao %}{% set lig_conta_informada = resultado.ligacao_original_informada if resultado.ligacao_trocada_para_trifasica else resultado.tipo_ligacao_informado %}
         <div class="aviso-destaque" id="aviso-conta-minimo">
-            <p><strong>A conta que você usou {% if resultado.tipo_ligacao_informado or resultado.consumo_da_fatura_kwh < 30 %}é{% else %}pode ser{% endif %} de um mês com consumo abaixo do mínimo da distribuidora.</strong> Para um resultado mais preciso, refaça a simulação com a conta de um mês de consumo normal.</p>
+            <p><strong>A conta que você usou {% if lig_conta_informada or resultado.consumo_da_fatura_kwh < 30 %}é{% else %}pode ser{% endif %} de um mês com consumo abaixo do mínimo da distribuidora.</strong> Para um resultado mais preciso, refaça a simulação com a conta de um mês de consumo normal.</p>
             <details class="nota-mais">
             <summary>Entenda</summary>
             <div>
-            <p>O consumo dessa conta foi de {{ kwh_digitado(resultado.consumo_da_fatura_kwh) }} kWh. {% if resultado.tipo_ligacao_informado %}Na ligação {{ nomes_ligacao.get(resultado.tipo_ligacao, resultado.tipo_ligacao) }}, a distribuidora cobra no mínimo {{ minimo_conta }} kWh por mês (art. 291 da Resolução ANEEL nº 1.000/2021): nos meses em que a casa consome menos que isso, a conta cobra o mínimo, e não o consumo. Por isso a tarifa foi calculada dividindo o valor da conta por {{ minimo_conta }} kWh, e não por {{ kwh_digitado(resultado.consumo_da_fatura_kwh) }} kWh — senão ela sairia maior do que é, e a economia também.{% else %}Isso fica abaixo de {{ minimo_conta }} kWh, o mínimo da ligação bifásica, que consideramos quando o tipo de ligação não é informado (art. 291 da Resolução ANEEL nº 1.000/2021). Se a sua casa for bifásica, nesse mês a conta cobrou o mínimo, e não o consumo — por isso a tarifa foi calculada dividindo o valor da conta por {{ minimo_conta }} kWh. Se for monofásica, o mínimo é de 30 kWh: informe o tipo de ligação na seção 3 do formulário para a conta sair certa.{% endif %}</p>
+            <p>O consumo dessa conta foi de {{ kwh_digitado(resultado.consumo_da_fatura_kwh) }} kWh. {% if lig_conta_informada %}Na ligação {{ nomes_ligacao.get(lig_conta, lig_conta) }}, a distribuidora cobra no mínimo {{ minimo_conta }} kWh por mês (art. 291 da Resolução ANEEL nº 1.000/2021): nos meses em que a casa consome menos que isso, a conta cobra o mínimo, e não o consumo. Por isso a tarifa foi calculada dividindo o valor da conta por {{ minimo_conta }} kWh, e não por {{ kwh_digitado(resultado.consumo_da_fatura_kwh) }} kWh — senão ela sairia maior do que é, e a economia também.{% else %}Isso fica abaixo de {{ minimo_conta }} kWh, o mínimo da ligação bifásica, que consideramos quando o tipo de ligação não é informado (art. 291 da Resolução ANEEL nº 1.000/2021). Se a sua casa for bifásica, nesse mês a conta cobrou o mínimo, e não o consumo — por isso a tarifa foi calculada dividindo o valor da conta por {{ minimo_conta }} kWh. Se for monofásica, o mínimo é de 30 kWh: informe o tipo de ligação na seção 3 do formulário para a conta sair certa.{% endif %}</p>
             </div>
             </details>
         </div>
