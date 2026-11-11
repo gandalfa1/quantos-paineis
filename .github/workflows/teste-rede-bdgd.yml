@@ -9,6 +9,7 @@ name: Teste rede BDGD
 on:
   push:
     branches: [fase4-rede-teste-bdgd]
+    paths: [teste/rede_bdgd_teste.py]
 
 permissions:
   contents: read

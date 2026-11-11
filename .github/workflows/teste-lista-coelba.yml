@@ -1,0 +1,32 @@
+# TESTE (fase 4, rede por cidade, 11/11/2026) - so roda neste ramo, nunca no main.
+# Baixa a lista "MUNICIPIOS X TENSAO" da Neoenergia Coelba (PDF publico) e escreve
+# o texto no registro da execucao (gzip + base64), para comparar com a BDGD.
+
+name: Teste lista Coelba
+
+on:
+  push:
+    branches: [fase4-rede-teste-bdgd]
+    paths: [.github/workflows/teste-lista-coelba.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  lista:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Baixar e extrair o texto
+        run: |
+          curl -sS -L --fail -m 300 -A "Mozilla/5.0" -o coelba.pdf -w "HTTP %{http_code}, %{size_download} bytes\n" \
+            "https://www.neoenergia.com/documents/d/bahia/planilha-tensao-fornecimento-neoenergia-coelba-pdf"
+          sha256sum coelba.pdf
+          file coelba.pdf
+          (command -v pdftotext || sudo apt-get install -y -qq poppler-utils) >/dev/null
+          pdfinfo coelba.pdf || true
+          pdftotext -layout coelba.pdf coelba.txt
+          wc -l coelba.txt
+          echo "=====INICIO_COELBA====="
+          gzip -9c coelba.txt | base64 -w 100
+          echo "=====FIM_COELBA====="
