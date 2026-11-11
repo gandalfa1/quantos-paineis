@@ -1,120 +1,115 @@
-"""Teste da BDGD (fase 4, rede por cidade, 10/11/2026) - SO NO RAMO DE TESTE.
+"""Teste da BDGD (fase 4, rede por cidade, 11/11/2026) - SO NO RAMO DE TESTE.
 
-Le a BDGD de UMA distribuidora (arquivo .gdb ja descompactado) e conta, por
+Le a BDGD de UMA distribuidora (pasta .gdb ja descompactada) e conta, por
 municipio (codigo IBGE), as unidades consumidoras de baixa tensao pela tensao
-SECUNDARIA do transformador que as atende. Nao mexe no site: so escreve um
-resumo no registro da tarefa do GitHub (gzip + base64 entre marcadores).
+de linha do secundario do transformador que as atende (UNTRMT.TEN_LIN_SE).
+Nao mexe no site: so escreve uma tabela compacta no registro da tarefa do
+GitHub (gzip + base64 entre marcadores), para a conta ser feita fora daqui.
 
-Uso: python teste/rede_bdgd_teste.py <pasta.gdb> <nome curto>
+Cada linha da tabela: mun;ten;fs3;res;nfas;multi;pos;ativo;n
+  ten   tensao de linha do secundario em volts (220 = rede 127/220,
+        380 = rede 220/380; outras = monofasicas a 3 fios etc.; ? = sem dado)
+  fs3   1 se o secundario do transformador tem as 3 fases (A, B e C)
+  res   1 se a classe/subclasse da unidade e residencial (CLAS_SUB comeca com RE)
+  nfas  numero de fases da ligacao da unidade (0 a 3, por FAS_CON)
+  multi 1 se o transformador atende 2 ou mais unidades de baixa tensao
+  pos   posse do transformador (UNTRMT.POS, como vem)
+  ativo 1 se a unidade esta ativa (SIT_ATIV = AT)
+
+Uso: python teste/rede_bdgd_teste.py <pasta.gdb> <rotulo>
 """
 import base64
-import collections
-import glob
 import gzip
-import io
 import sys
 
+import pandas as pd
 import pyogrio
 
-# Codigos da tabela TTEN da BDGD (em volts) usados na baixa tensao.
-TTEN = {"0": 0, "1": 110, "2": 115, "3": 120, "4": 121, "5": 125, "6": 127,
-        "7": 208, "8": 216, "9": 216.5, "10": 220, "11": 230, "12": 231,
-        "13": 240, "14": 254, "15": 380, "16": 400, "17": 440, "18": 480}
 
-
-def achar_camada(camadas, nome):
-    for c in camadas:
-        if c.upper() == nome.upper():
-            return c
+def achar_camada(camadas, *nomes):
+    for nome in nomes:
+        for c in camadas:
+            if c.upper() == nome.upper():
+                return c
     return None
 
 
+def ler(gdb, camada, colunas):
+    campos = list(pyogrio.read_info(gdb, layer=camada)["fields"])
+    faltam = [c for c in colunas if c not in campos]
+    usar = [c for c in colunas if c in campos]
+    df = pyogrio.read_dataframe(gdb, layer=camada, read_geometry=False, columns=usar)
+    for c in faltam:
+        df[c] = None
+    if faltam:
+        print(f"AVISO: {camada} sem os campos {faltam}")
+    return df
+
+
+def n_fases(serie):
+    s = serie.fillna("").astype(str).str.upper()
+    return (s.str.contains("A").astype(int) + s.str.contains("B").astype(int)
+            + s.str.contains("C").astype(int))
+
+
+def volts(serie):
+    v = pd.to_numeric(serie, errors="coerce")
+    v = v.where(v >= 100, v * 1000)  # kV -> V (BT em 0,22/0,38; MT em 13,8 etc.)
+    return v.round().astype("Int64").astype(str).replace("<NA>", "?")
+
+
 def main():
-    gdb, nome = sys.argv[1], sys.argv[2]
+    gdb, rotulo = sys.argv[1], sys.argv[2]
     camadas = [c[0] for c in pyogrio.list_layers(gdb)]
-    print("CAMADAS:", ", ".join(sorted(camadas)))
-    for alvo in ("UCBT_tab", "UCBT", "EQTRMT", "UNTRMT", "TTEN"):
-        c = achar_camada(camadas, alvo)
-        if c:
-            info = pyogrio.read_info(gdb, layer=c)
-            print(f"CAMPOS {c} ({info['features']} linhas):", ", ".join(info["fields"]))
+    lay_uc = achar_camada(camadas, "UCBT_tab", "UCBT")
+    lay_un = achar_camada(camadas, "UNTRMT")
+    print("CAMADAS USADAS:", lay_uc, lay_un)
 
-    lay_uc = achar_camada(camadas, "UCBT_tab") or achar_camada(camadas, "UCBT")
-    lay_eq = achar_camada(camadas, "EQTRMT")
-    uc = pyogrio.read_dataframe(gdb, layer=lay_uc, read_geometry=False,
-                                columns=["MUN", "FAS_CON", "TEN_FORN", "UNI_TR_MT"])
-    eq = pyogrio.read_dataframe(gdb, layer=lay_eq, read_geometry=False,
-                                columns=["UNI_TR_MT", "TEN_SEC", "FAS_CON"])
-    un = pyogrio.read_dataframe(gdb, layer=achar_camada(camadas, "UNTRMT"), read_geometry=False,
-                                columns=["COD_ID", "TEN_LIN_SE", "FAS_CON_S", "MUN"])
-    print(f"UC lidas: {len(uc)}; EQTRMT lidos: {len(eq)}; UNTRMT lidos: {len(un)}")
+    uc = ler(gdb, lay_uc, ["MUN", "FAS_CON", "UNI_TR_MT", "CLAS_SUB", "SIT_ATIV"])
+    un = ler(gdb, lay_un, ["COD_ID", "TEN_LIN_SE", "FAS_CON_S", "POS"])
+    print(f"UC lidas: {len(uc)}; transformadores lidos: {len(un)}")
+    print("CLAS_SUB:", uc["CLAS_SUB"].astype(str).value_counts().head(25).to_dict())
+    print("SIT_ATIV:", uc["SIT_ATIV"].astype(str).value_counts().to_dict())
+    print("POS:", un["POS"].astype(str).value_counts().to_dict())
+    print("TEN_LIN_SE (bruto):", un["TEN_LIN_SE"].astype(str).value_counts().head(15).to_dict())
 
-    # Tensao de linha do secundario de cada transformador (UNTRMT.TEN_LIN_SE, em kV)
-    sec = {}
-    for u, t in zip(un["COD_ID"].astype(str), un["TEN_LIN_SE"]):
-        try:
-            sec[u] = str(round(float(t) * 1000))
-        except (TypeError, ValueError):
-            sec[u] = "?"
-    # Conferencia cruzada com o codigo TEN_SEC do equipamento
-    cruz = collections.Counter()
-    for u, t in zip(eq["UNI_TR_MT"].astype(str), eq["TEN_SEC"].astype(str)):
-        cruz[(sec.get(u, "sem_un"), TTEN.get(t, t))] += 1
-    print("TEN_LIN_SE (V) x TEN_SEC do equipamento (V):", dict(cruz.most_common(15)))
+    uc["UNI_TR_MT"] = uc["UNI_TR_MT"].astype(str)
+    un["COD_ID"] = un["COD_ID"].astype(str)
+    un = un.drop_duplicates("COD_ID")
+    por_trafo = uc.groupby("UNI_TR_MT").size().rename("n_uc_trafo")
 
-    # Transformadores por municipio e tensao de linha (so os de secundario com 3 fases)
-    tr_mun = collections.defaultdict(collections.Counter)
-    for m, t, f in zip(un["MUN"].astype(str), un["TEN_LIN_SE"], un["FAS_CON_S"].astype(str)):
-        if len(set(f.upper()) & {"A", "B", "C"}) == 3:
-            try:
-                tr_mun[m][str(round(float(t) * 1000))] += 1
-            except (TypeError, ValueError):
-                tr_mun[m]["?"] += 1
-    print("\nTRANSFORMADORES TRIFASICOS POR MUNICIPIO (tensao de linha do secundario):")
-    for m in sorted(tr_mun):
-        print(f"  {m}: " + ", ".join(f"{k} V: {v}" for k, v in tr_mun[m].most_common()))
+    un["ten"] = volts(un["TEN_LIN_SE"])
+    un["fs3"] = (n_fases(un["FAS_CON_S"]) == 3).astype(int)
+    un["pos"] = un["POS"].fillna("?").astype(str)
+    df = uc.merge(un[["COD_ID", "ten", "fs3", "pos"]], how="left",
+                  left_on="UNI_TR_MT", right_on="COD_ID")
+    sem = df["ten"].isna().sum()
+    print(f"UC sem transformador achado: {sem} ({100 * sem / max(len(df), 1):.2f}%)")
+    df["ten"] = df["ten"].fillna("?")
+    df["fs3"] = df["fs3"].fillna(0).astype(int)
+    df["pos"] = df["pos"].fillna("?")
+    df = df.join(por_trafo, on="UNI_TR_MT")
+    df["multi"] = (df["n_uc_trafo"].fillna(0) >= 2).astype(int)
+    df["res"] = df["CLAS_SUB"].fillna("").astype(str).str.upper().str.startswith("RE").astype(int)
+    df["nfas"] = n_fases(df["FAS_CON"])
+    df["ativo"] = (df["SIT_ATIV"].fillna("").astype(str).str.upper() == "AT").astype(int)
+    df["mun"] = df["MUN"].fillna("?").astype(str).str.replace(r"\.0$", "", regex=True)
 
-    cont = collections.Counter()
-    sem_trafo = 0
-    for mun, fas, tf, tr in zip(uc["MUN"].astype(str), uc["FAS_CON"].astype(str),
-                                uc["TEN_FORN"].astype(str), uc["UNI_TR_MT"].astype(str)):
-        ts = sec.get(tr)
-        if ts is None:
-            sem_trafo += 1
-            ts = "?"
-        cont[(mun, fas, tf, ts)] += 1
-    print(f"UC sem transformador achado: {sem_trafo}")
+    chave = ["mun", "ten", "fs3", "res", "nfas", "multi", "pos", "ativo"]
+    tab = df.groupby(chave, dropna=False).size().reset_index(name="n")
+    print("Tensao de linha (V) -> UC:", tab.groupby("ten")["n"].sum().sort_values(ascending=False).head(10).to_dict())
+    alvo = tab[(tab.res == 1) & (tab.nfas >= 2) & (tab.fs3 == 1) & (tab.multi == 1) & (tab.ativo == 1)]
+    print("Residenciais bi/tri ativas em trafo trifasico com 2+ UC, por tensao:",
+          alvo.groupby("ten")["n"].sum().sort_values(ascending=False).head(6).to_dict())
+    print(f"Municipios: {tab['mun'].nunique()}; linhas da tabela: {len(tab)}")
 
-    # Resumo geral dos codigos
-    geral_sec = collections.Counter()
-    geral_forn = collections.Counter()
-    for (mun, fas, tf, ts), n in cont.items():
-        geral_sec[ts] += n
-        geral_forn[tf] += n
-    print("Tensao de linha do transformador (V) ->", dict(geral_sec.most_common()))
-    print("TEN_FORN (tensao de fornecimento da UC) ->", {k: (TTEN.get(k, k), v) for k, v in geral_forn.most_common()})
-
-    # Por municipio: unidades TRIFASICAS (3 fases) pela tensao do transformador
-    tri = collections.defaultdict(collections.Counter)
-    for (mun, fas, tf, ts), n in cont.items():
-        letras = set(fas.upper()) & {"A", "B", "C"}
-        if len(letras) == 3:
-            tri[mun][ts] += n
-    print("\nPOR MUNICIPIO (so UC trifasicas; tensao secundaria do transformador):")
-    for mun in sorted(tri):
-        partes = ", ".join(f"{k} V: {v}" for k, v in tri[mun].most_common())
-        print(f"  {mun}: {partes}")
-
-    # Tudo, compactado, para ler pela nuvem
-    buf = io.StringIO()
-    buf.write("mun;fas_con;ten_forn;ten_sec;n\n")
-    for (mun, fas, tf, ts), n in sorted(cont.items()):
-        buf.write(f"{mun};{fas};{tf};{ts};{n}\n")
-    dado = base64.b64encode(gzip.compress(buf.getvalue().encode("utf-8"))).decode()
-    print(f"=====INICIO_REDE_{nome}=====")
+    texto = "mun;ten;fs3;res;nfas;multi;pos;ativo;n\n" + "\n".join(
+        ";".join(str(x) for x in r) for r in tab[chave + ["n"]].itertuples(index=False)) + "\n"
+    dado = base64.b64encode(gzip.compress(texto.encode("utf-8"), 9)).decode()
+    print(f"=====INICIO_REDE_{rotulo}=====")
     for i in range(0, len(dado), 100):
         print(dado[i:i + 100])
-    print(f"=====FIM_REDE_{nome}=====")
+    print(f"=====FIM_REDE_{rotulo}=====")
 
 
 if __name__ == "__main__":
