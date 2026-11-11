@@ -27,7 +27,7 @@ jobs:
           python-version: "3.12"
 
       - name: Instalar bibliotecas
-        run: python -m pip install --quiet pyogrio pandas
+        run: python -m pip install --quiet pyogrio pandas geopandas
 
       - name: Baixar a BDGD da Energisa MT (2025-12-31)
         run: |

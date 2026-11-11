@@ -44,17 +44,35 @@ def main():
     uc = pyogrio.read_dataframe(gdb, layer=lay_uc, read_geometry=False,
                                 columns=["MUN", "FAS_CON", "TEN_FORN", "UNI_TR_MT"])
     eq = pyogrio.read_dataframe(gdb, layer=lay_eq, read_geometry=False,
-                                columns=["UNI_TR_MT", "TEN_PRI", "TEN_SEC", "FAS_CON_P", "FAS_CON_S"])
-    print(f"UC lidas: {len(uc)}; EQTRMT lidos: {len(eq)}")
+                                columns=["UNI_TR_MT", "TEN_SEC", "FAS_CON"])
+    un = pyogrio.read_dataframe(gdb, layer=achar_camada(camadas, "UNTRMT"), read_geometry=False,
+                                columns=["COD_ID", "TEN_LIN_SE", "FAS_CON_S", "MUN"])
+    print(f"UC lidas: {len(uc)}; EQTRMT lidos: {len(eq)}; UNTRMT lidos: {len(un)}")
 
-    # Um transformador (UNTRMT) pode ter mais de um equipamento (banco).
+    # Tensao de linha do secundario de cada transformador (UNTRMT.TEN_LIN_SE, em kV)
     sec = {}
-    conflito = 0
+    for u, t in zip(un["COD_ID"].astype(str), un["TEN_LIN_SE"]):
+        try:
+            sec[u] = str(round(float(t) * 1000))
+        except (TypeError, ValueError):
+            sec[u] = "?"
+    # Conferencia cruzada com o codigo TEN_SEC do equipamento
+    cruz = collections.Counter()
     for u, t in zip(eq["UNI_TR_MT"].astype(str), eq["TEN_SEC"].astype(str)):
-        if u in sec and sec[u] != t:
-            conflito += 1
-        sec.setdefault(u, t)
-    print(f"Transformadores distintos: {len(sec)}; com TEN_SEC diferente entre equipamentos: {conflito}")
+        cruz[(sec.get(u, "sem_un"), TTEN.get(t, t))] += 1
+    print("TEN_LIN_SE (V) x TEN_SEC do equipamento (V):", dict(cruz.most_common(15)))
+
+    # Transformadores por municipio e tensao de linha (so os de secundario com 3 fases)
+    tr_mun = collections.defaultdict(collections.Counter)
+    for m, t, f in zip(un["MUN"].astype(str), un["TEN_LIN_SE"], un["FAS_CON_S"].astype(str)):
+        if len(set(f.upper()) & {"A", "B", "C"}) == 3:
+            try:
+                tr_mun[m][str(round(float(t) * 1000))] += 1
+            except (TypeError, ValueError):
+                tr_mun[m]["?"] += 1
+    print("\nTRANSFORMADORES TRIFASICOS POR MUNICIPIO (tensao de linha do secundario):")
+    for m in sorted(tr_mun):
+        print(f"  {m}: " + ", ".join(f"{k} V: {v}" for k, v in tr_mun[m].most_common()))
 
     cont = collections.Counter()
     sem_trafo = 0
@@ -73,7 +91,7 @@ def main():
     for (mun, fas, tf, ts), n in cont.items():
         geral_sec[ts] += n
         geral_forn[tf] += n
-    print("TEN_SEC (tensao secundaria do transformador) ->", {k: (TTEN.get(k, k), v) for k, v in geral_sec.most_common()})
+    print("Tensao de linha do transformador (V) ->", dict(geral_sec.most_common()))
     print("TEN_FORN (tensao de fornecimento da UC) ->", {k: (TTEN.get(k, k), v) for k, v in geral_forn.most_common()})
 
     # Por municipio: unidades TRIFASICAS (3 fases) pela tensao do transformador
@@ -84,7 +102,7 @@ def main():
             tri[mun][ts] += n
     print("\nPOR MUNICIPIO (so UC trifasicas; tensao secundaria do transformador):")
     for mun in sorted(tri):
-        partes = ", ".join(f"{TTEN.get(k, k)} V: {v}" for k, v in tri[mun].most_common())
+        partes = ", ".join(f"{k} V: {v}" for k, v in tri[mun].most_common())
         print(f"  {mun}: {partes}")
 
     # Tudo, compactado, para ler pela nuvem
