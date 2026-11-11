@@ -66,7 +66,7 @@ jobs:
           df -h "$RUNNER_TEMP" | tail -1
 
       - name: Instalar bibliotecas
-        run: python -m pip install --quiet pyogrio pandas pyarrow
+        run: python -m pip install --quiet pyogrio pandas pyarrow geopandas
 
       - name: Baixar a BDGD
         run: |
