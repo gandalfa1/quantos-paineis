@@ -56,6 +56,7 @@ pasta), digite:
 """
 
 import csv
+import itertools
 import json
 import math
 import os
@@ -1921,8 +1922,25 @@ def potencia_inversor(potencia_instalada_kwp, fdi=0.80):
 #     ao INMETRO;
 # (b) a grade depende da MARCA. Adotou-se a Growatt por ser a marca usada
 #     na validacao com o PVsyst.
+#
+# DEGRAUS TRIFASICOS (fase 4, item 7, 10/11/2026). Acima de 10 kW a grade
+# continua em 12, 15, 20 e 25 kW: os degraus que tem modelo com registro
+# Inmetro ATIVO nas DUAS tensoes de rede trifasica do Brasil, 127/220 V e
+# 220/380 V (consulta oficial de 10/11/2026; registro em
+# claude/item7_passo1_10-11.txt). 25 kW e o TETO decidido pela aluna: acima
+# disso as distribuidoras pedem estudo de rede e o sistema sai do porte
+# residencial. Ate 10 kW nada mudou.
 GRADE_INVERSORES_KW = [1.0, 1.5, 2.0, 2.5, 3.0, 4.2, 5.0, 6.0,
-                       7.0, 7.5, 8.0, 9.0, 10.0]
+                       7.0, 7.5, 8.0, 9.0, 10.0,
+                       12.0, 15.0, 20.0, 25.0]
+
+# Ate aqui a grade e de inversores MONOFASICOS (220 V). Acima, os degraus
+# sao TRIFASICOS: a casa precisa de ligacao trifasica (ver simulacao.py) e
+# cada degrau tem UM modelo de referencia para cada tensao de rede. Nao ha
+# regra nacional de "kW por fase" (REN ANEEL 1.000/2021, arts. 24 e 31: quem
+# decide e a norma da distribuidora); 10 kW e onde, na pratica, as normas
+# lidas passam para a trifasica.
+LIMITE_MONOFASICO_KW = 10.0
 
 FABRICANTE_REFERENCIA_INVERSOR = "Growatt (modelos com certificacao INMETRO)"
 
@@ -1933,11 +1951,11 @@ def potencia_inversor_comercial(potencia_calculada_kw):
 
     Ex.: 2,14 kW calculado -> inversor de 2,5 kW.
 
-    Acima do maior degrau da grade (10 kW) nao ha modelo monofasico de
-    referencia: a funcao devolve a propria potencia calculada e marca
-    "fora_da_grade", para a tela avisar que aquele porte exige consulta a
-    um projetista (sistema trifasico ou mais de um inversor). Isso esta
-    fora do escopo residencial tipico deste trabalho.
+    Acima do maior degrau da grade (25 kW desde o item 7 da fase 4; antes,
+    10 kW) nao ha modelo de referencia: a funcao devolve a propria potencia
+    calculada e marca "fora_da_grade", para a tela avisar que aquele porte
+    exige projeto profissional. Isso esta fora do escopo residencial deste
+    trabalho.
     """
     for degrau in GRADE_INVERSORES_KW:
         if degrau >= potencia_calculada_kw:
@@ -2334,6 +2352,110 @@ CATALOGO_INVERSORES = {
         "tensao_max_v": 550.0, "mppt_min_v": 70.0, "mppt_max_v": 500.0,
         "tensao_partida_v": 80.0,
     },
+    # --- TRIFASICOS, acima de 10 kW (fase 4, item 7, 10/11/2026) ---------
+    # UM modelo por tensao de rede em cada degrau (decisao da aluna, 10/11):
+    # "tensao_rede" diz em qual rede ele liga. Growatt onde ha registro; no
+    # degrau de 12 kW em 127/220 V a Growatt nao tem modelo registrado, e
+    # entra a Deye. O arranjo so e aprovado se passar nos DOIS modelos do
+    # degrau (ver escolher_inversor_compativel): quem instala escolhe o da
+    # tensao da casa, e o resultado tem de valer para qualquer um deles.
+    #
+    # Registros Inmetro ATIVOS (consulta oficial, 10/11/2026) e folhas
+    # conferidas pela IMAGEM em 10/11/2026 (claude/item7_passo3a_folhas_10-11.txt).
+    # Regra de sempre: nenhum limite mais folgado que a folha - quando duas
+    # edicoes oficiais discordam, vale o numero mais apertado.
+    #
+    # STRINGS EM PARALELO. Estes modelos (menos os MOD) aceitam 2 strings no
+    # mesmo MPPT. As duas ficam em paralelo: as correntes SE SOMAM, e as
+    # strings precisam ter o mesmo numero de modulos. Ver
+    # verificar_compatibilidade_paralelo(). "corrente_max_string_a" e o
+    # limite POR STRING que a folha da (so as Growatt MID dao: 16 A).
+    #
+    # Deye SUN-12K-G02-LV - 005558/2021. Folhas Deye 06/2021 e 04/2023:
+    # 800 V; partida 250 V; MPPT 200-700 V; 32+32 A; curto 48+48 A; 2 MPPT;
+    # strings por MPPT 2 (2021) ou 3 (2023) -> 2.
+    "SUN-12K-G02-LV": {
+        "potencia_kw": 12.0, "familia": "Deye G02-LV", "classe_corrente": "alta",
+        "tensao_rede": "127/220 V", "registro_inmetro": "005558/2021",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 48.0,
+        "tensao_max_v": 800.0, "mppt_min_v": 200.0, "mppt_max_v": 700.0,
+        "tensao_partida_v": 250.0,
+    },
+    # Growatt MOD 12/15KTL3-X2(Pro) - 019288/2024 e 019299/2024. Ficha
+    # Growatt Brasil 11/2024: 1100 V; partida 160 V; MPPT 140-1000 V;
+    # 2 MPPT x 1 string; 20 A; curto 25 A; 220/380 V.
+    "MOD12KTL3-X2(Pro)": {
+        "potencia_kw": 12.0, "familia": "Growatt MOD X2", "classe_corrente": "alta",
+        "tensao_rede": "220/380 V", "registro_inmetro": "019288/2024",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 20.0, "corrente_max_curto_a": 25.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 140.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 160.0,
+    },
+    "MOD15KTL3-X2(Pro)": {
+        "potencia_kw": 15.0, "familia": "Growatt MOD X2", "classe_corrente": "alta",
+        "tensao_rede": "220/380 V", "registro_inmetro": "019299/2024",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 20.0, "corrente_max_curto_a": 25.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 140.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 160.0,
+    },
+    # Growatt MID 15/20/25KTL3-XL2 - 000700, 000888 e 000896/2025. Ficha
+    # Growatt Brasil 06/2025 (sem a linha de tensao maxima) e manual PT
+    # 12/2024, secao 17.1: 800 V; partida 200 V; MPP 200-800 V; 4 MPPT x 2
+    # strings; 32 A e curto 40 A por MPPT; 127/220 V. Capa: "Ate 16A de
+    # corrente de entrada" (por string).
+    "MID15KTL3-XL2": {
+        "potencia_kw": 15.0, "familia": "Growatt MID XL2", "classe_corrente": "alta",
+        "tensao_rede": "127/220 V", "registro_inmetro": "000700/2025",
+        "mppts": 4, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 800.0, "mppt_min_v": 200.0, "mppt_max_v": 800.0,
+        "tensao_partida_v": 200.0,
+    },
+    "MID20KTL3-XL2": {
+        "potencia_kw": 20.0, "familia": "Growatt MID XL2", "classe_corrente": "alta",
+        "tensao_rede": "127/220 V", "registro_inmetro": "000888/2025",
+        "mppts": 4, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 800.0, "mppt_min_v": 200.0, "mppt_max_v": 800.0,
+        "tensao_partida_v": 200.0,
+    },
+    "MID25KTL3-XL2": {
+        "potencia_kw": 25.0, "familia": "Growatt MID XL2", "classe_corrente": "alta",
+        "tensao_rede": "127/220 V", "registro_inmetro": "000896/2025",
+        "mppts": 4, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 800.0, "mppt_min_v": 200.0, "mppt_max_v": 800.0,
+        "tensao_partida_v": 200.0,
+    },
+    # Growatt MID 20/25KTL3-X2 - 002241/2025 e 002243/2025. Ficha Growatt
+    # Brasil 11/2024: 1100 V; partida 200 V; MPPT 200-1000 V; 2 MPPT x 2
+    # strings; 32 A e curto 40 A por MPPT (no de 25 kW, 32/36 A e 40/45 A:
+    # vale o menor); 220/380 V. Capa: "Corrente maxima de entrada de string
+    # 16A".
+    "MID20KTL3-X2": {
+        "potencia_kw": 20.0, "familia": "Growatt MID X2", "classe_corrente": "alta",
+        "tensao_rede": "220/380 V", "registro_inmetro": "002241/2025",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 200.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 200.0,
+    },
+    "MID25KTL3-X2": {
+        "potencia_kw": 25.0, "familia": "Growatt MID X2", "classe_corrente": "alta",
+        "tensao_rede": "220/380 V", "registro_inmetro": "002243/2025",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 200.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 200.0,
+    },
 }
 
 
@@ -2502,6 +2624,12 @@ def verificar_compatibilidade(n_modulos, chave_modulo, nome_inversor):
     """
     modulo = CATALOGO_MODULOS[chave_modulo]
     inversor = CATALOGO_INVERSORES[nome_inversor]
+    # Fase 4, item 7 (10/11/2026): inversor que aceita mais de uma string no
+    # mesmo MPPT vai pela conta com strings em paralelo, abaixo. Todos os
+    # inversores ate 10 kW tem 1 string por MPPT no catalogo e seguem por
+    # este caminho, que nao mudou.
+    if inversor["strings_por_mppt"] > 1:
+        return verificar_compatibilidade_paralelo(n_modulos, chave_modulo, nome_inversor)
     limites = limites_de_modulos_por_string(modulo, inversor)
     max_strings = inversor["mppts"] * inversor["strings_por_mppt"]
 
@@ -2570,6 +2698,174 @@ def verificar_compatibilidade(n_modulos, chave_modulo, nome_inversor):
     }
 
 
+# ---------------------------------------------------------------------
+# STRINGS EM PARALELO NO MESMO MPPT (fase 4, item 7, 10/11/2026)
+# ---------------------------------------------------------------------
+# Os inversores trifasicos acima de 10 kW aceitam 2 strings em cada MPPT.
+# As duas ficam em PARALELO, e isso muda a conta da corrente:
+#
+#   - a TENSAO do MPPT continua sendo a de UMA string (por isso as strings
+#     do mesmo MPPT precisam ter o MESMO numero de modulos: em paralelo,
+#     strings de tensoes diferentes se puxariam uma a outra);
+#   - a CORRENTE do MPPT passa a ser a SOMA das strings: k strings dao k
+#     vezes a corrente de um modulo.
+#
+# Sem esta conta, o motor compararia a corrente de UMA string com o limite
+# do MPPT inteiro e aprovaria arranjos que passam do limite - e a frase
+# "a corrente nao melhora com sistema maior", que vale para strings em
+# serie, deixaria de ser verdade aqui: com strings em paralelo a corrente
+# do MPPT CRESCE com o numero de strings.
+#
+# AS VERIFICACOES SAO AS MESMAS QUATRO, aplicadas ao MPPT mais carregado:
+#   1. k x Isc a quente <= curto-circuito maximo do MPPT (sem tolerancia);
+#   2. k x Imp <= 1,10 x corrente maxima de entrada do MPPT, e, quando a
+#      folha da um limite por string, Imp <= 1,10 x esse limite (o mesmo
+#      criterio de desempenho da verificacao 2 de sempre);
+#   3. tensao a frio da string mais longa <= tensao maxima;
+#   4. Vmp a quente da string mais curta >= piso do MPPT.
+#
+# COMO DIVIDE. Como na funcao de sempre, usa o MENOR numero de strings que
+# funcione; as strings sao espalhadas pelos MPPTs o mais por igual possivel
+# (so poe 2 no mesmo MPPT quando todos ja tem 1), e cada MPPT pode ter um
+# comprimento proprio.
+def dividir_arranjo_em_mppts(n_modulos, modulo, inversor):
+    """
+    Divide n modulos em strings, agrupadas por MPPT. Devolve a lista de
+    MPPTs usados, cada um como {"strings": k, "modulos_por_string": L}, ou
+    None quando nao ha divisao valida.
+
+    So existe para inversores com mais de uma string por MPPT.
+    """
+    limites = limites_de_modulos_por_string(modulo, inversor)
+    k_max = strings_por_mppt_permitidas_pela_corrente(modulo, inversor)
+    if k_max == 0:
+        return None
+    mppts = inversor["mppts"]
+
+    for total in range(1, mppts * k_max + 1):
+        q, r = divmod(total, mppts)
+        grupos = [g for g in [q + 1] * r + [q] * (mppts - r) if g > 0]
+        base = n_modulos // total
+        if base == 0:
+            continue
+        opcoes = [L for L in range(base - 1, base + 3)
+                  if limites["minimo"] <= L <= limites["maximo"]]
+        melhor = None
+        for comprimentos in itertools.product(opcoes, repeat=len(grupos)):
+            if sum(k * L for k, L in zip(grupos, comprimentos)) != n_modulos:
+                continue
+            chave = (max(comprimentos) - min(comprimentos),
+                     tuple(-L for L in comprimentos))
+            if melhor is None or chave < melhor[0]:
+                melhor = (chave, comprimentos)
+        if melhor is not None:
+            return [{"strings": k, "modulos_por_string": L}
+                    for k, L in zip(grupos, melhor[1])]
+    return None
+
+
+def strings_por_mppt_permitidas_pela_corrente(modulo, inversor):
+    """
+    Quantas strings, no maximo, cabem em paralelo num MPPT sem passar dos
+    limites de corrente (verificacoes 1 e 2), ate o que a folha permite.
+    Devolve 0 quando nem uma string cabe.
+    """
+    isc_quente = isc_na_temperatura_maxima(modulo)
+    limite_string = inversor.get("corrente_max_string_a")
+    if limite_string and modulo["imp"] / limite_string - 1 > EXCESSO_CORRENTE_ACEITAVEL:
+        return 0
+    k_max = 0
+    for k in range(1, inversor["strings_por_mppt"] + 1):
+        if (k * isc_quente <= inversor["corrente_max_curto_a"]
+                and k * modulo["imp"] / inversor["corrente_max_entrada_a"] - 1
+                <= EXCESSO_CORRENTE_ACEITAVEL):
+            k_max = k
+    return k_max
+
+
+def verificar_compatibilidade_paralelo(n_modulos, chave_modulo, nome_inversor):
+    """
+    As quatro verificacoes para inversor com strings em paralelo no mesmo
+    MPPT. Devolve o mesmo dicionario de verificar_compatibilidade(), com
+    tres campos a mais: "mppts_usados" (strings e comprimento de cada MPPT),
+    "corrente_operacao_mppt_a" e "corrente_curto_mppt_a" (as do MPPT mais
+    carregado).
+    """
+    modulo = CATALOGO_MODULOS[chave_modulo]
+    inversor = CATALOGO_INVERSORES[nome_inversor]
+    limites = limites_de_modulos_por_string(modulo, inversor)
+    isc_quente = isc_na_temperatura_maxima(modulo)
+    limite_string = inversor.get("corrente_max_string_a")
+    k_max = strings_por_mppt_permitidas_pela_corrente(modulo, inversor)
+    grupos = dividir_arranjo_em_mppts(n_modulos, modulo, inversor)
+
+    # O MPPT mais carregado. Sem divisao valida, a corrente e avaliada com
+    # uma string so, como na funcao de sempre.
+    k = max(g["strings"] for g in grupos) if grupos else 1
+    corrente_operacao = k * modulo["imp"]
+    corrente_curto = k * isc_quente
+    excessos = [corrente_operacao / inversor["corrente_max_entrada_a"] - 1]
+    if limite_string:
+        excessos.append(modulo["imp"] / limite_string - 1)
+    excesso = max(excessos)
+    v1 = corrente_curto <= inversor["corrente_max_curto_a"]
+    v2 = excesso <= EXCESSO_CORRENTE_ACEITAVEL
+    maximo = limites["maximo"] * inversor["mppts"] * k_max
+
+    if grupos is None:
+        poucos = n_modulos < limites["minimo"]
+        return {
+            "aprovado": False,
+            "strings": None,
+            "modulos_por_string": None,
+            "mppts_usados": None,
+            "verificacao_1_curto_circuito": v1,
+            "verificacao_2_corrente_entrada": v2,
+            "verificacao_3_tensao_maxima": None,
+            "verificacao_4_tensao_minima": None,
+            "excesso_corrente": excesso,
+            "isc_a_quente_a": isc_quente,
+            "corrente_operacao_mppt_a": corrente_operacao,
+            "corrente_curto_mppt_a": corrente_curto,
+            "tensao_maxima_a_frio_v": None,
+            "tensao_mpp_a_quente_v": None,
+            "limites_por_string": limites,
+            "minimo_de_modulos": limites["minimo"] if poucos else None,
+            "maximo_de_modulos": maximo,
+            "motivo": "poucos_modulos" if poucos else "muitos_modulos",
+        }
+
+    comprimentos = [g["modulos_por_string"] for g in grupos]
+    strings = sorted([g["modulos_por_string"] for g in grupos
+                      for _ in range(g["strings"])], reverse=True)
+    tensao_frio = max(comprimentos) * voc_na_temperatura_minima(modulo)
+    tensao_quente = min(comprimentos) * vmp_na_temperatura_maxima(modulo)
+    v3 = tensao_frio <= inversor["tensao_max_v"]
+    v4 = tensao_quente >= inversor["mppt_min_v"]
+
+    return {
+        "aprovado": bool(v1 and v2 and v3 and v4),
+        "strings": len(strings),
+        "modulos_por_string": strings,
+        "mppts_usados": grupos,
+        "verificacao_1_curto_circuito": v1,
+        "verificacao_2_corrente_entrada": v2,
+        "verificacao_3_tensao_maxima": v3,
+        "verificacao_4_tensao_minima": v4,
+        "excesso_corrente": excesso,
+        "isc_a_quente_a": isc_quente,
+        "corrente_operacao_mppt_a": corrente_operacao,
+        "corrente_curto_mppt_a": corrente_curto,
+        "tensao_maxima_a_frio_v": tensao_frio,
+        "tensao_mpp_a_quente_v": tensao_quente,
+        "acima_da_tensao_de_partida": tensao_quente >= inversor["tensao_partida_v"],
+        "limites_por_string": limites,
+        "minimo_de_modulos": limites["minimo"],
+        "maximo_de_modulos": maximo,
+        "motivo": "",
+    }
+
+
 def modelos_no_degrau(potencia_inversor_kw):
     """
     Modelos do catalogo que ocupam aquele degrau da grade INMETRO.
@@ -2599,6 +2895,9 @@ def escolher_inversor_compativel(n_modulos, chave_modulo, potencia_inversor_kw):
     numero de modulos. Quando e None, o par modulo+degrau nao tem conserto
     naquele porte - e o caso do modulo de 210 mm em sistema pequeno.
     """
+    if potencia_inversor_kw > LIMITE_MONOFASICO_KW + 1e-9:
+        return _escolher_inversor_trifasico(n_modulos, chave_modulo, potencia_inversor_kw)
+
     reprovados = []
     minimos = []
 
@@ -2624,6 +2923,56 @@ def escolher_inversor_compativel(n_modulos, chave_modulo, potencia_inversor_kw):
         "laudo": None,
         "reprovados": reprovados,
         "minimo_de_modulos_sugerido": min(minimos) if minimos else None,
+    }
+
+
+def _escolher_inversor_trifasico(n_modulos, chave_modulo, potencia_inversor_kw):
+    """
+    Degraus trifasicos (acima de 10 kW; fase 4, item 7). Cada degrau tem um
+    modelo de referencia por tensao de rede, e a tela mostra os dois: o
+    instalador escolhe conforme a rede da casa. Por isso o arranjo so e
+    aprovado se passar em TODOS os modelos do degrau - vale o limite mais
+    apertado entre eles (decisao da aluna, 10/11/2026).
+
+    Devolve o mesmo dicionario de escolher_inversor_compativel(). O
+    "inversor" e o modelo de 127/220 V (o primeiro da lista); os dois vem em
+    "inversores_por_tensao", cada um com o seu laudo.
+    """
+    nomes = sorted(modelos_no_degrau(potencia_inversor_kw),
+                   key=lambda n: (CATALOGO_INVERSORES[n]["tensao_rede"] != "127/220 V",
+                                  not CATALOGO_INVERSORES[n]["familia"].startswith("Growatt")))
+    laudos = [(nome, verificar_compatibilidade(n_modulos, chave_modulo, nome)) for nome in nomes]
+    reprovados = [(nome, laudo) for nome, laudo in laudos if not laudo["aprovado"]]
+
+    if laudos and not reprovados:
+        return {
+            "inversor": nomes[0],
+            "laudo": laudos[0][1],
+            "reprovados": [],
+            "minimo_de_modulos_sugerido": None,
+            "inversores_por_tensao": [
+                {"modelo": nome, "tensao_rede": CATALOGO_INVERSORES[nome]["tensao_rede"],
+                 "familia": CATALOGO_INVERSORES[nome]["familia"], "laudo": laudo}
+                for nome, laudo in laudos],
+        }
+
+    # Tem conserto subindo o numero de modulos so se TODOS os reprovados
+    # reprovaram por poucos modulos com a corrente em ordem; o arranjo
+    # precisa entao do MAIOR dos minimos, para passar em todos.
+    minimos = []
+    for _nome, laudo in reprovados:
+        if (laudo["verificacao_1_curto_circuito"]
+                and laudo["verificacao_2_corrente_entrada"]
+                and laudo["motivo"] == "poucos_modulos"):
+            minimos.append(laudo["minimo_de_modulos"])
+        else:
+            minimos = None
+            break
+    return {
+        "inversor": None,
+        "laudo": None,
+        "reprovados": reprovados,
+        "minimo_de_modulos_sugerido": max(minimos) if minimos else None,
     }
 
 
@@ -2697,6 +3046,9 @@ def dimensionar_arranjo(n_modulos_por_energia, chave_modulo, fdi=0.80):
                 "inversor_comercial": comercial,
                 "laudo": escolha["laudo"],
                 "reprovados": escolha["reprovados"],
+                # Fase 4, item 7: so nos degraus trifasicos (os dois
+                # modelos, um por tensao de rede). None ate 10 kW.
+                "inversores_por_tensao": escolha.get("inversores_por_tensao"),
                 "motivo": "",
             }
 

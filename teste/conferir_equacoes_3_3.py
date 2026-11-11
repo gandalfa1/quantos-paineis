@@ -58,6 +58,14 @@ da conta pelo MAIOR entre o consumo da conta e o custo de disponibilidade
 e 291). eq2 abaixo segue essa regra; a varredura ganhou contas de mes abaixo
 do minimo; e um erro plantado novo (a Equacao 2 sem o minimo) - 14 ao todo.
 
+FASE 4, ITEM 7 (10/11/2026): inversores trifasicos de 12 a 25 kW. O texto
+ganhou os degraus novos (DEGRAUS), a regra da ligacao trifasica acima de
+10 kW (com a tarifa ainda pela ligacao de hoje), a conferencia da ligacao
+eletrica de cada inversor mostrado - com STRINGS EM PARALELO no mesmo MPPT,
+pela conta do texto (conferir_arranjo) - e testes diretos com inversores
+ficticios (testes_strings_em_paralelo). A varredura vai ate 4.700 kWh/mes.
+Erros plantados: 22.
+
 Roda sem internet: a geocodificacao e a NASA POWER sao substituidas por
 dubles que devolvem o estado e os 12 valores de HSP informados no teste.
 
@@ -138,7 +146,9 @@ DIAS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 TD = 0.80                     # taxa de desempenho (Equacoes 5 e 8)
 FDI = 0.80                    # fator de dimensionamento do inversor (Eq. 7)
 P_MOD = 0.600                 # kWp, modulo Jinko de 600 Wp (secao 3.2)
-DEGRAUS = [1.0, 1.5, 2.0, 2.5, 3.0, 4.2, 5.0, 6.0, 7.0, 7.5, 8.0, 9.0, 10.0]  # 1,0 kW: fase 4, 03/11/2026
+DEGRAUS = [1.0, 1.5, 2.0, 2.5, 3.0, 4.2, 5.0, 6.0, 7.0, 7.5, 8.0, 9.0, 10.0,  # 1,0 kW: fase 4, 03/11/2026
+           12.0, 15.0, 20.0, 25.0]   # trifasicos: fase 4, item 7, 10/11/2026
+LIMITE_MONOFASICO = 10.0      # kW: acima, inversor trifasico e ligacao trifasica (item 7)
 C_DISP = {"monofasica": 30.0, "bifasica": 50.0, "trifasica": 100.0}
 P_FIO_B_2026 = 0.60           # Lei 14.300/2022, art. 27, IV
 SISTEMA = [(2, 3.44), (4, 2.66), (8, 2.21), (12, 2.04), (30, 1.91)]   # R$/Wp
@@ -183,7 +193,7 @@ def eq7(P_inst):
     for g in DEGRAUS:
         if g >= FDI * P_inst - 1e-12:
             return g
-    return None               # acima de 10 kW: nao ha degrau na grade
+    return None               # acima de 25 kW: nao ha degrau na grade (item 7)
 
 
 def eq8(P_inst, H):
@@ -355,9 +365,14 @@ def fio_b_da_tabela_aneel():
 # ---------------------------------------------------------------------------
 # Uma simulacao pelas equacoes do texto
 # ---------------------------------------------------------------------------
-def pelas_equacoes(C_meses, V_fat, C_fat, ligacao, uf, H, fio_b_uf, mediana):
+def pelas_equacoes(C_meses, V_fat, C_fat, ligacao, uf, H, fio_b_uf, mediana,
+                   ligacao_da_conta=None):
     C_disp = C_DISP.get(ligacao, C_DISP["bifasica"])     # sem tipo: bifasica
-    T = eq2(V_fat, C_fat, C_disp)
+    # Item 7: com a troca para a trifasica, a conta informada ainda e da
+    # ligacao de hoje, e a Equacao 2 usa o minimo dela.
+    C_disp_conta = (C_DISP.get(ligacao_da_conta, C_DISP["bifasica"])
+                    if ligacao_da_conta is not None else C_disp)
+    T = eq2(V_fat, C_fat, C_disp_conta)
     F_B = fio_b_uf.get(uf, mediana)
     f, v = eq3(F_B, P_FIO_B_2026, T)
     H_ano = eq1(H)
@@ -407,6 +422,151 @@ def perto(a, b, rel=1e-9, absol=1e-6):
     return abs(a - b) <= max(absol, rel * max(abs(a), abs(b)))
 
 
+# ---------------------------------------------------------------------------
+# FASE 4, ITEM 7 (10/11/2026): a ligacao eletrica do arranjo, pelo texto
+# ---------------------------------------------------------------------------
+# As quatro verificacoes da secao 3.4, com STRINGS EM PARALELO no mesmo MPPT
+# (inversores trifasicos acima de 10 kW): no MPPT com k strings de L modulos,
+#   k x Isc a 70 C <= curto maximo do MPPT;   k x Imp <= 1,10 x corrente do MPPT;
+#   Imp <= 1,10 x limite por string (quando a folha da);
+#   L x Voc a 0 C <= tensao maxima;   L x Vmp a 70 C >= piso do MPPT.
+# Os LIMITES vem do catalogo (sao dados de folha); as CONTAS sao as do texto.
+def _modulo_pelo_nome(nome):
+    return next(m for m in calculo.CATALOGO_MODULOS.values() if m["nome"] == nome)
+
+
+def arranjo_valido_pelo_texto(n, mod, inv, grupos, corrente_informada=None):
+    """Lista de problemas do arranjo (vazia = valido pelo texto)."""
+    erros = []
+    voc_frio = mod["voc"] * (1 + mod["coef_voc"] / 100 * (0 - 25))
+    vmp_quente = mod["vmp"] * (1 + (mod["coef_pmax"] - mod["coef_isc"]) / 100 * (70 - 25))
+    isc_quente = mod["isc"] * (1 + mod["coef_isc"] / 100 * (70 - 25))
+    if sum(g["strings"] * g["modulos_por_string"] for g in grupos) != n:
+        erros.append("strings nao somam o numero de modulos")
+    if len(grupos) > inv["mppts"]:
+        erros.append("mais MPPTs do que o inversor tem")
+    for g in grupos:
+        k, L = g["strings"], g["modulos_por_string"]
+        if k > inv["strings_por_mppt"]:
+            erros.append(f"{k} strings num MPPT que aceita {inv['strings_por_mppt']}")
+        if k * isc_quente > inv["corrente_max_curto_a"] + 1e-9:
+            erros.append(f"curto do MPPT {k * isc_quente:.2f} A acima de {inv['corrente_max_curto_a']}")
+        if k * mod["imp"] / inv["corrente_max_entrada_a"] - 1 > 0.10 + 1e-12:
+            erros.append(f"corrente do MPPT {k * mod['imp']:.2f} A acima da tolerancia")
+        if inv.get("corrente_max_string_a") and mod["imp"] / inv["corrente_max_string_a"] - 1 > 0.10 + 1e-12:
+            erros.append("corrente da string acima do limite por string")
+        if L * voc_frio > inv["tensao_max_v"] + 1e-9:
+            erros.append(f"tensao a frio {L * voc_frio:.0f} V acima de {inv['tensao_max_v']}")
+        if L * vmp_quente < inv["mppt_min_v"] - 1e-9:
+            erros.append(f"tensao a quente {L * vmp_quente:.0f} V abaixo do MPPT")
+    if corrente_informada is not None and grupos:
+        k = max(g["strings"] for g in grupos)
+        if not perto(corrente_informada, k * mod["imp"]):
+            erros.append(f"corrente do MPPT informada {corrente_informada} != {k} x Imp")
+    return erros
+
+
+def _grupos_do_laudo(laudo):
+    return laudo.get("mppts_usados") or [{"strings": 1, "modulos_por_string": L}
+                                         for L in laudo["modulos_por_string"]]
+
+
+def conferir_arranjo(res):
+    """Confere, pelo texto, a ligacao de cada inversor mostrado no resultado."""
+    erros = []
+    if not res.get("arranjo_aprovado") or not res.get("inversor_modelo"):
+        return erros
+    mod = _modulo_pelo_nome(res["modulo_modelo"])
+    trifasico = res["potencia_inversor_kw"] > LIMITE_MONOFASICO
+    if trifasico:
+        mostrados = res.get("inversores_por_tensao") or []
+        tensoes = sorted(x["tensao_rede"] for x in mostrados)
+        if tensoes != ["127/220 V", "220/380 V"]:
+            erros.append(f"degrau trifasico sem um modelo por tensao: {tensoes}")
+        pares = [(x["modelo"], x["laudo"]) for x in mostrados]
+    else:
+        if res.get("inversores_por_tensao"):
+            erros.append("modelos por tensao num degrau monofasico")
+        pares = [(res["inversor_modelo"], res["arranjo_laudo"])]
+    for nome, laudo in pares:
+        inv = calculo.CATALOGO_INVERSORES[nome]
+        if abs(inv["potencia_kw"] - res["potencia_inversor_kw"]) > 1e-9:
+            erros.append(f"{nome} nao e do degrau de {res['potencia_inversor_kw']} kW")
+        erros += [f"{nome}: {e}" for e in arranjo_valido_pelo_texto(
+            res["numero_paineis"], mod, inv, _grupos_do_laudo(laudo),
+            laudo.get("corrente_operacao_mppt_a"))]
+    return erros
+
+
+# Inversores FICTICIOS, so para o teste (potencia 99 kW: nunca entram num
+# degrau da grade). Existem para que os erros plantados das strings em paralelo
+# tenham onde aparecer: com o Jinko e os inversores reais, 2 strings em
+# paralelo sempre cabem na corrente, e um motor que esquecesse de somar as
+# correntes daria o mesmo resultado.
+FICTICIOS = {
+    "FICTICIO-3-STRINGS": {   # 3 strings de Jinko passam do MPPT; 2 cabem
+        "potencia_kw": 99.0, "familia": "teste", "classe_corrente": "alta",
+        "tensao_rede": "127/220 V", "mppts": 2, "strings_por_mppt": 3,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "tensao_max_v": 800.0, "mppt_min_v": 200.0, "mppt_max_v": 800.0,
+        "tensao_partida_v": 200.0},
+    "FICTICIO-LIMITE-STRING": {   # 12 A por string: o Jinko (13,62 A) nunca cabe
+        "potencia_kw": 99.0, "familia": "teste", "classe_corrente": "alta",
+        "tensao_rede": "127/220 V", "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 40.0, "corrente_max_curto_a": 60.0,
+        "corrente_max_string_a": 12.0,
+        "tensao_max_v": 800.0, "mppt_min_v": 200.0, "mppt_max_v": 800.0,
+        "tensao_partida_v": 200.0},
+}
+FICTICIO_DEGRAU_12 = {   # um 3o modelo no degrau de 12 kW que NENHUM arranjo aprova
+    "potencia_kw": 12.0, "familia": "teste", "classe_corrente": "baixa",
+    "tensao_rede": "220/380 V", "mppts": 1, "strings_por_mppt": 1,
+    "corrente_max_entrada_a": 5.0, "corrente_max_curto_a": 6.0,
+    "tensao_max_v": 1100.0, "mppt_min_v": 140.0, "mppt_max_v": 1000.0,
+    "tensao_partida_v": 160.0}
+
+
+def testes_strings_em_paralelo():
+    """Testes diretos da ligacao com strings em paralelo e da regra dos dois
+    modelos por degrau trifasico. Devolve a lista de falhas."""
+    falhas = []
+    cat = calculo.CATALOGO_INVERSORES
+    cat.update(FICTICIOS)
+    try:
+        paralelos = [n for n, inv in cat.items() if inv["strings_por_mppt"] > 1]
+        for chave, mod in calculo.CATALOGO_MODULOS.items():
+            for nome in paralelos:
+                for n in range(1, 81):
+                    laudo = calculo.verificar_compatibilidade(n, chave, nome)
+                    if laudo["aprovado"]:
+                        falhas += [f"paralelo {chave}/{nome}/{n}: {e}" for e in arranjo_valido_pelo_texto(
+                            n, mod, cat[nome], _grupos_do_laudo(laudo),
+                            laudo.get("corrente_operacao_mppt_a"))]
+        # O ficticio de 3 strings precisa aprovar ate 2 x 2 x 14 = 56 Jinko e
+        # reprovar acima (a 3a string em paralelo passaria da corrente).
+        for n, esperado in ((40, True), (56, True), (57, False), (70, False)):
+            if calculo.verificar_compatibilidade(n, "jinko_600", "FICTICIO-3-STRINGS")["aprovado"] != esperado:
+                falhas.append(f"FICTICIO-3-STRINGS com {n} Jinko: esperado aprovado={esperado}")
+        if any(calculo.verificar_compatibilidade(n, "jinko_600", "FICTICIO-LIMITE-STRING")["aprovado"]
+               for n in range(1, 81)):
+            falhas.append("FICTICIO-LIMITE-STRING aprovou o Jinko acima do limite por string")
+    finally:
+        for nome in FICTICIOS:
+            cat.pop(nome, None)
+    # Degrau trifasico: o arranjo so vale se passar em TODOS os modelos dele
+    cat["FICTICIO-12K"] = FICTICIO_DEGRAU_12
+    try:
+        escolha = calculo.escolher_inversor_compativel(21, "jinko_600", 12.0)
+        if escolha["inversor"] is not None:
+            falhas.append("degrau de 12 kW aprovado com um modelo do degrau reprovando")
+    finally:
+        cat.pop("FICTICIO-12K", None)
+    escolha = calculo.escolher_inversor_compativel(21, "jinko_600", 12.0)
+    if escolha["inversor"] is None or len(escolha.get("inversores_por_tensao") or []) != 2:
+        falhas.append("degrau de 12 kW real sem os dois modelos aprovados")
+    return falhas
+
+
 def comparar(entrada, fio_b_uf, mediana, motor=None):
     """Roda o motor e as equacoes; devolve a lista de divergencias."""
     motor = motor or simulacao.simular
@@ -420,6 +580,19 @@ def comparar(entrada, fio_b_uf, mediana, motor=None):
     res = motor(**kwargs)
     eq = pelas_equacoes(C_meses, V_fat, C_fat, ligacao, uf, H, fio_b_uf, mediana)
     erros = []
+    # FASE 4, ITEM 7 (10/11/2026), pelo texto: acima de 10 kW de inversor a
+    # casa precisa de ligacao trifasica, e a conta e feita com o minimo da
+    # trifasica (100 kWh), qualquer que seja a ligacao informada.
+    trocou = False
+    if "P_inst" in eq and ligacao != "trifasica":
+        p_inv = eq7(eq["P_inst"])
+        if p_inv is None or p_inv > LIMITE_MONOFASICO:
+            eq = pelas_equacoes(C_meses, V_fat, C_fat, "trifasica", uf, H, fio_b_uf, mediana,
+                                ligacao_da_conta=ligacao or "bifasica")
+            trocou = True
+    if not res.get("erro") and bool(res.get("ligacao_trocada_para_trifasica")) != trocou:
+        erros.append(f"ligacao: motor trocou para trifasica={res.get('ligacao_trocada_para_trifasica')}"
+                     f" texto={trocou}")
 
     def conf(nome, a, b):
         if a is None or b is None or not perto(a, b):
@@ -437,7 +610,7 @@ def comparar(entrada, fio_b_uf, mediana, motor=None):
         # Pelo texto: acima de 10 kW nao ha degrau. O sistema pedido pela
         # energia (Eq. 6) precisa estar acima do maior degrau.
         if eq7(eq["P_inst"]) is not None:
-            erros.append(f"guarda acima de 10 kW acionada com P_inst={eq['P_inst']:.2f} kWp, "
+            erros.append(f"guarda acima de 25 kW acionada com P_inst={eq['P_inst']:.2f} kWp, "
                          f"que a grade atende")
         return erros, res, eq
 
@@ -457,6 +630,8 @@ def comparar(entrada, fio_b_uf, mediana, motor=None):
         completar(eq, N_final, H)
         conf("P_inst (Eq. 6)", res["potencia_instalada_kwp"], eq["P_inst_final"])
         conf("P_inv (Eq. 7)", res["potencia_inversor_kw"], eq["P_inv"])
+        conf("C_disp (minimo da ligacao)", res["piso_disponibilidade_kwh"], eq["C_disp"])
+        erros += conferir_arranjo(res)
         for (mes, g_motor), g_txt in zip(res["geracao_por_mes_kwh"].items(), eq["G_m"]):
             conf(f"G_{mes} (Eq. 8)", g_motor, g_txt)
         conf("G_ano (Eq. 8)", res["geracao_anual_kwh"], eq["G_ano"])
@@ -600,6 +775,14 @@ def varredura():
                     piso = C_DISP.get(lig, C_DISP["bifasica"])
                     for c_fat in (10.0, 0.6 * piso):
                         yield (C, max(c_fat, piso) * tarifa, c_fat, lig, uf, PERFIS[uf], "media")
+            # FASE 4, ITEM 7 (10/11/2026): de 1.700 a 4.700 kWh/mes, os degraus
+            # trifasicos (12 a 25 kW) e o teto de 25 kW. Passo maior, para o
+            # tempo da conferencia nao explodir.
+            for consumo in range(1700, 4701, 100):
+                C = [float(consumo)] * 12
+                yield (C, consumo * tarifa, consumo, lig, uf, PERFIS[uf], "media")
+                Cm = [consumo * (1 + 0.35 * math.sin(2 * math.pi * m / 12)) for m in range(12)]
+                yield (Cm, Cm[4] * tarifa, Cm[4], lig, uf, PERFIS[uf], "mensal")
 
 
 def rodar(motor=None, mostrar=True, parar_em=None):
@@ -618,6 +801,8 @@ def rodar(motor=None, mostrar=True, parar_em=None):
             falhas.append(f"Fio B de {uf}: motor={calculo.FIO_B_POR_UF[uf]['fio_b']} ANEEL={valor}")
     if not perto(calculo.FIO_B_PADRAO_REAIS_POR_KWH, mediana, rel=1e-5):
         falhas.append("mediana do Fio B diferente")
+    # 0b) item 7: strings em paralelo e os dois modelos por degrau trifasico
+    falhas += testes_strings_em_paralelo()
     # 1) casos resolvidos a mao (numeros da tela de 23/09/2026)
     for nome, uf, consumo, eco, custo, pb, n_mod, inv in CASOS_OFICIAIS:
         H = PERFIS[uf]
@@ -679,6 +864,42 @@ def erros_plantados():
     def sem_minimo(C, P=0.0, T=None, f=0.0):
         return max(C, 0.0)
 
+    orig_par = calculo.verificar_compatibilidade_paralelo
+    orig_uma_vez = simulacao._simular_uma_vez
+
+    def _com_inversor_alterado(alterar):
+        """Roda a verificacao com strings em paralelo com o inversor alterado."""
+        def verificar(n, chave, nome):
+            inv = calculo.CATALOGO_INVERSORES[nome]
+            guardado = dict(inv)
+            alterar(inv)
+            try:
+                return orig_par(n, chave, nome)
+            finally:
+                inv.clear()
+                inv.update(guardado)
+        return verificar
+
+    def _sem_somar(inv):          # corrente do MPPT como se fosse de UMA string
+        inv["corrente_max_entrada_a"] *= inv["strings_por_mppt"]
+        inv["corrente_max_curto_a"] *= inv["strings_por_mppt"]
+
+    def _sem_limite_string(inv):
+        inv.pop("corrente_max_string_a", None)
+
+    def _trifasico_com_um_modelo(n, chave, kw):     # aprova se UM modelo passa
+        for nome in calculo.modelos_no_degrau(kw):
+            laudo = calculo.verificar_compatibilidade(n, chave, nome)
+            if laudo["aprovado"]:
+                return {"inversor": nome, "laudo": laudo, "reprovados": [],
+                        "minimo_de_modulos_sugerido": None,
+                        "inversores_por_tensao": [
+                            {"modelo": m, "tensao_rede": calculo.CATALOGO_INVERSORES[m]["tensao_rede"],
+                             "familia": "", "laudo": calculo.verificar_compatibilidade(n, chave, m)}
+                            for m in calculo.modelos_no_degrau(kw)]}
+        return {"inversor": None, "laudo": None, "reprovados": [],
+                "minimo_de_modulos_sugerido": None}
+
     mutacoes = {
         "regra antiga do minimo (em energia)": ("calculo", "compensavel_do_mes", regra_antiga),
         "minimo ignorado": ("calculo", "compensavel_do_mes", sem_minimo),
@@ -727,6 +948,21 @@ def erros_plantados():
                                         "fora_da_grade": False})(
                 max([g for g in calculo.GRADE_INVERSORES_KW if g <= kw] or [calculo.GRADE_INVERSORES_KW[0]]))
             if kw <= 10 else orig["potencia_inversor_comercial"](kw)),
+        # Fase 4, item 7 (10/11/2026): inversores trifasicos e strings em paralelo
+        "strings em paralelo sem somar a corrente": (
+            "calculo", "verificar_compatibilidade_paralelo", _com_inversor_alterado(_sem_somar)),
+        "limite de corrente por string ignorado": (
+            "calculo", "verificar_compatibilidade_paralelo", _com_inversor_alterado(_sem_limite_string)),
+        "degrau trifasico aprovado com um modelo so": (
+            "calculo", "_escolher_inversor_trifasico", _trifasico_com_um_modelo),
+        "ligacao trifasica esquecida acima de 10 kW": (
+            "simulacao", "_precisa_de_trifasica", lambda r, f: False),
+        # Achado da revisao do item 7 (10/11/2026): com a troca para a
+        # trifasica, a tarifa de uma conta abaixo do minimo saia dividida pelo
+        # minimo da trifasica (100 kWh), e nao pelo da ligacao de hoje.
+        "tarifa da troca pelo minimo da trifasica": (
+            "simulacao", "_simular_uma_vez",
+            lambda **k: orig_uma_vez(**dict(k, piso_da_conta_kwh=None))),
     }
     detectadas = 0
     for nome, (modulo, funcao, nova) in mutacoes.items():

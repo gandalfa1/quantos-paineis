@@ -121,6 +121,9 @@ from calculo import (
     # 365 (Achado B). Agora ha um calendario so, em um lugar so.
     DIAS_NO_MES,
     NOMES_MESES,
+    # Fase 4, item 7 (10/11/2026): acima deste porte o inversor e trifasico.
+    LIMITE_MONOFASICO_KW,
+    GRADE_INVERSORES_KW,
 )
 
 # Opcoes de painel - AGORA SO PARA REPRODUZIR CASO DE TESTE (T15/T12,
@@ -277,6 +280,85 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
             cobrancas_nao_energia_reais=None, distribuidora_cnpj=None,
             perfil_simultaneidade=None):
     """
+    Funcao principal: recebe os dados do usuario e devolve o resultado. A
+    conta inteira esta em _simular_uma_vez(), logo abaixo.
+
+    LIGACAO TRIFASICA ACIMA DE 10 kW (fase 4, item 7, 10/11/2026). Acima de
+    10 kW o inversor e trifasico, e a casa precisa de ligacao trifasica - e o
+    minimo da conta da trifasica e de 100 kWh (art. 291 da REN ANEEL
+    1.000/2021), e nao os 30 ou 50 kWh da mono e da bifasica. Por isso,
+    quando a primeira conta pede mais de 10 kW e a ligacao usada nao e a
+    trifasica, a conta e REFEITA com a ligacao trifasica (decisao da aluna,
+    10/11/2026):
+      - ligacao nao informada: presume-se a trifasica, e a tela avisa;
+      - informada mono ou bifasica: o resultado sai mesmo assim, com o aviso
+        de que a casa precisa trocar para a trifasica e de que o custo da
+        troca nao esta na conta.
+    Os campos "ligacao_original" e "ligacao_original_informada" guardam o
+    que a pessoa tinha informado (ou o que foi presumido). Ate 10 kW nada
+    muda: o resultado e o da primeira conta, sem tirar nem por.
+    MEDIDO (passo 2, 10/11/2026): nas 1.149 simulacoes acima de 10 kW sem
+    ligacao trifasica, a troca nao mudou painel nem retorno - nesse porte o
+    Fio B cobrado ja passa do minimo da conta (art. 655-I).
+    """
+    argumentos = dict(
+        cidade=cidade, consumo_medio_kwh=consumo_medio_kwh,
+        valor_fatura_reais=valor_fatura_reais, opcao_painel=opcao_painel,
+        td=td, fdi=fdi, fio_b=fio_b, percentual_fio_b=percentual_fio_b,
+        piso_disponibilidade_kwh=piso_disponibilidade_kwh,
+        tipo_ligacao=tipo_ligacao, consumo_por_mes_kwh=consumo_por_mes_kwh,
+        consumo_da_fatura_kwh=consumo_da_fatura_kwh,
+        cobrancas_nao_energia_reais=cobrancas_nao_energia_reais,
+        distribuidora_cnpj=distribuidora_cnpj,
+        perfil_simultaneidade=perfil_simultaneidade)
+    resultado = _simular_uma_vez(**argumentos)
+
+    ligacao_usada = resultado.get("tipo_ligacao")
+    if ligacao_usada in (None, "trifasica") or not _precisa_de_trifasica(resultado, fdi):
+        return resultado
+
+    # A tarifa continua saindo da conta de HOJE, com o minimo da ligacao de
+    # hoje (ver piso_da_conta_kwh em _simular_uma_vez). So o FUTURO - o
+    # minimo da conta com os paineis - passa a ser o da trifasica.
+    piso_de_hoje = piso_disponibilidade(tipo_ligacao)["piso_kwh"]
+    refeito = _simular_uma_vez(**dict(argumentos, tipo_ligacao="trifasica",
+                                      piso_da_conta_kwh=piso_de_hoje))
+    refeito["ligacao_trocada_para_trifasica"] = True
+    refeito["ligacao_original"] = ligacao_usada
+    refeito["ligacao_original_informada"] = resultado.get("tipo_ligacao_informado", False)
+    return refeito
+
+
+def _precisa_de_trifasica(resultado, fdi):
+    """
+    True quando o sistema passa do porte monofasico (10 kW de inversor):
+    com inversor indicado, pela potencia dele; sem arranjo (acima de 25 kW),
+    pela potencia calculada do inversor (kWp x FDI).
+    """
+    if resultado.get("motivo_inviabilidade") == "sem_arranjo_valido":
+        return resultado["potencia_instalada_kwp"] * fdi > LIMITE_MONOFASICO_KW + 1e-9
+    if resultado.get("erro"):
+        return False
+    return resultado["potencia_inversor_kw"] > LIMITE_MONOFASICO_KW + 1e-9
+
+
+def _simular_uma_vez(cidade, consumo_medio_kwh, valor_fatura_reais,
+            opcao_painel=None,
+            td=0.80, fdi=0.80, fio_b=None,
+            percentual_fio_b=None,
+            piso_disponibilidade_kwh=None,
+            tipo_ligacao=None,
+            consumo_por_mes_kwh=None, consumo_da_fatura_kwh=None,
+            cobrancas_nao_energia_reais=None, distribuidora_cnpj=None,
+            perfil_simultaneidade=None, piso_da_conta_kwh=None):
+    """
+    piso_da_conta_kwh (fase 4, item 7, 10/11/2026): so simular() usa. Quando
+    a conta e refeita com a ligacao trifasica, a conta de luz INFORMADA
+    continua sendo da ligacao de hoje: se ela e de um mes abaixo do minimo,
+    foi cobrada pelo minimo da ligacao de HOJE (30 ou 50 kWh), e e por ele
+    que a tarifa (Equacao 2) tem de ser calculada. Em None, vale o minimo da
+    propria conta (o de sempre).
+
     Funcao principal do protótipo: recebe os dados do usuario (o que vai
     vir do formulario do site) e devolve um dicionario com todos os
     resultados - numero de paineis, potencias, geracao mes a mes, economia
@@ -499,8 +581,9 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
     # da bifasica presumida (50 kWh): numa casa monofasica isso so pode deixar
     # a tarifa um pouco MENOR (lado conservador), e a tela avisa.
     # Acima do minimo (todos os 5 casos de validacao) nada muda, bit a bit.
-    consumo_faturado_kwh = consumo_faturado_da_conta(consumo_de_referencia,
-                                                     piso_disponibilidade_kwh)
+    consumo_faturado_kwh = consumo_faturado_da_conta(
+        consumo_de_referencia,
+        piso_disponibilidade_kwh if piso_da_conta_kwh is None else piso_da_conta_kwh)
     tarifa_pelo_minimo = consumo_faturado_kwh > consumo_de_referencia
     tarifa = tarifa_total(valor_de_energia, consumo_faturado_kwh)
 
@@ -732,6 +815,14 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
     # numero que nao da para comprar.
     if escolha_automatica and not aprovados:
         pior = arranjos[0]
+        # FASE 4, ITEM 7 (10/11/2026): com os degraus trifasicos ate 25 kW,
+        # esta guarda so e alcancada ACIMA de 25 kW de inversor. O texto
+        # antigo dizia "linha trifasica, em 380 V", o que estava errado para
+        # as redes de 127/220 V, onde ha inversor trifasico de 220 V - e
+        # agora a plataforma dimensiona esse porte. Texto curto, para o
+        # leigo (pedido da aluna, 04/11).
+        acima_do_teto = (pior["potencia_instalada_kwp"] * fdi
+                         > GRADE_INVERSORES_KW[-1] + 1e-9)
         return {
             # Bloco corrido pelo mesmo motivo das guardas do T18: a caixa
             # de aviso do resultado.html nao preserva quebra de linha.
@@ -740,14 +831,15 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
                 # da explicacao tecnica, a hipotese mais comum: numero digitado errado.
                 f"Você informou um consumo de {f'{consumo_medio_kwh:,.0f}'.replace(',', '.')} kWh por mês. "
                 f"Se o número foi digitado errado, volte e corrija. Se está certo: o sistema "
-                f"precisaria de cerca de {_numero(pior['potencia_instalada_kwp'])} kWp, "
-                f"e para esse porte não há inversor monofásico no catálogo da "
-                f"plataforma. Acima de mais ou menos 10 kW os fabricantes passam para a "
-                f"linha trifásica, em 380 V, que exige ligação trifásica na casa. "
-                f"{'Como a sua ligação já é trifásica, o caminho existe e passa por um inversor trifásico' if tipo_ligacao_usado == 'trifasica' else 'O primeiro passo é verificar com a distribuidora se a sua ligação suporta essa potência (art. 31 da Resolução ANEEL nº 1.000/2021)'}, "
-                f"e um sistema desse tamanho precisa de projeto assinado por "
-                f"profissional habilitado — está fora do que esta simulação, que é "
-                f"residencial, consegue dimensionar com honestidade."
+                f"precisaria de cerca de {_numero(pior['potencia_instalada_kwp'])} kWp"
+                + (f", acima do maior inversor que esta simulação indica "
+                   f"({_numero(GRADE_INVERSORES_KW[-1], 0)} kW). Um sistema desse tamanho já "
+                   f"passa do porte residencial: a distribuidora costuma pedir um estudo da "
+                   f"rede, e ele precisa de projeto feito por profissional habilitado."
+                   if acima_do_teto else
+                   f", e não encontramos um painel e um inversor de referência que funcionem "
+                   f"juntos nesse porte. Um sistema assim precisa de projeto feito por "
+                   f"profissional habilitado.")
             ),
             "inviavel": True,
             "motivo_inviabilidade": "sem_arranjo_valido",
@@ -1091,6 +1183,18 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         "inversor_classe_corrente": (
             CATALOGO_INVERSORES[arranjo["inversor"]]["classe_corrente"]
             if arranjo["inversor"] else None),
+        # FASE 4, ITEM 7 (10/11/2026): acima de 10 kW o inversor e
+        # trifasico, e o degrau tem um modelo por tensao de rede (127/220 V e
+        # 220/380 V). "inversor_modelo" acima e o de 127/220 V; os dois vem
+        # aqui, cada um com o seu laudo (a divisao em strings pode ser
+        # diferente de um para o outro). None ate 10 kW.
+        "inversor_trifasico": pot_inversor > LIMITE_MONOFASICO_KW + 1e-9,
+        "inversores_por_tensao": arranjo.get("inversores_por_tensao"),
+        # Preenchidos por simular() quando a conta foi refeita com a ligacao
+        # trifasica (ver a docstring de simular).
+        "ligacao_trocada_para_trifasica": False,
+        "ligacao_original": None,
+        "ligacao_original_informada": None,
         # O ARRANJO. E isto que faltava: a plataforma dizia "5 paineis" e
         # nao dizia COMO eles se ligam.
         "arranjo_aprovado": arranjo["aprovado"],
@@ -1207,6 +1311,11 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         # ficou abaixo do minimo da ligacao e a tarifa saiu do minimo (ver o
         # bloco da Equacao 6). A tela PRECISA avisar.
         "tarifa_pelo_minimo": tarifa_pelo_minimo,
+        # Fase 4, item 7: o minimo pelo qual a conta informada foi cobrada
+        # (o da ligacao de hoje, mesmo quando a conta foi refeita com a
+        # trifasica). Igual ao piso_disponibilidade_kwh nos demais casos.
+        "piso_da_conta_kwh": (piso_disponibilidade_kwh if piso_da_conta_kwh is None
+                              else piso_da_conta_kwh),
         "consumo_faturado_kwh": consumo_faturado_kwh,
         "consumo_medio_mensal_kwh": consumo_medio_kwh,
         "consumo_por_mes_kwh": consumo_por_mes_kwh,
