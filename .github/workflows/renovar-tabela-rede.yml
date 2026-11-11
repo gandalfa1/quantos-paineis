@@ -1,0 +1,293 @@
+# Montagem e renovacao da tabela de rede dos municipios - fase 4, rede por cidade.
+# Criada em 11/11/2026.
+#
+# O QUE FAZ: monta a tabela rede_municipios.csv (rede trifasica mais comum de
+# cada municipio: 127/220 V ou 220/380 V) a partir da BDGD que a ANEEL publica
+# para cada distribuidora, e da lista da Neoenergia Coelba. A tabela so muda a
+# ORDEM dos dois modelos de inversor acima de 10 kW: nao mexe em paineis,
+# custo nem retorno.
+#  1. "lista": acha no ArcGIS Online (dono aneel_aneel) os arquivos da BDGD
+#     mais recente (dados de 31/12 do ano anterior; se ainda nao saiu, do ano
+#     antes dele). Exige de 90 a 110 distribuidoras.
+#  2. "contar": uma tarefa por distribuidora (12 ao mesmo tempo): baixa o
+#     arquivo (ate ~1,5 GB), conta as unidades por municipio e tensao
+#     (contar_bdgd_rede.py) e entrega a tabela compacta como artefato.
+#  3. "montar": junta tudo, baixa a lista da Coelba, aplica a regra aprovada
+#     pela aluna (montar_tabela_rede.py, com as conferencias dele) e compara
+#     com a tabela do repositorio (teste/comparar_tabela_rede.py):
+#      - se NADA mudou, nao grava nada (execucao verde);
+#      - se ALGO mudou, grava num RAMO NOVO (rede-renovada-AAAA-MM-DD-N) e abre
+#        um "issue" avisando. NUNCA grava no main: so vai ao site depois da
+#        revisao e do "pode" da aluna;
+#      - se uma conferencia REPROVAR (ou faltar uma distribuidora), nao grava
+#        nada e a execucao fica vermelha (o GitHub manda e-mail).
+#
+# QUANDO RODA: uma vez por ano sozinha (1o de outubro - a ANEEL publica a BDGD
+# de 31/12 por volta do fim de agosto) e, a qualquer hora, pelo botao: aba
+# "Actions" -> "Renovar tabela de rede" -> "Run workflow". Leva ~40 min.
+# Enquanto esta no ramo fase4-rede-tabela (antes do main), roda quando este
+# arquivo ou os scripts mudam e grava a tabela no PROPRIO ramo, sem issue.
+
+name: Renovar tabela de rede
+
+on:
+  schedule:
+    # 1o de outubro, 13:41 UTC = 10:41 em Brasilia (minuto fora da hora cheia).
+    - cron: "41 13 1 10 *"
+  workflow_dispatch:
+  push:
+    branches: [fase4-rede-tabela]
+    paths:
+      - .github/workflows/renovar-tabela-rede.yml
+      - contar_bdgd_rede.py
+      - montar_tabela_rede.py
+      - teste/comparar_tabela_rede.py
+
+permissions:
+  contents: write   # para gravar o ramo novo (nunca o main)
+  issues: write     # para abrir o aviso de que ha um ramo novo para revisar
+
+concurrency:
+  group: renovar-tabela-rede
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  lista:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      itens: ${{ steps.busca.outputs.itens }}
+      data: ${{ steps.busca.outputs.data }}
+    steps:
+      - name: Achar os arquivos da BDGD mais recente
+        id: busca
+        run: |
+          python3 - <<'EOF'
+          import datetime, json, os, urllib.parse, urllib.request
+          hoje = datetime.date.today()
+          for ano in (hoje.year - 1, hoje.year - 2):
+              data = f"{ano}-12-31"
+              q = urllib.parse.quote(f"BDGD {data} owner:aneel_aneel")
+              url = f"https://www.arcgis.com/sharing/rest/search?q={q}&num=100&sortField=title&f=json"
+              with urllib.request.urlopen(url, timeout=120) as r:
+                  d = json.load(r)
+              itens = [x for x in d.get("results", [])
+                       if x.get("owner") == "aneel_aneel" and f"_{data}" in x.get("title", "")
+                       and x.get("type") == "File Geodatabase"]
+              print(f"{data}: total na busca {d.get('total')}, arquivos {len(itens)}, nextStart {d.get('nextStart')}")
+              if len(itens) >= 90:
+                  break
+          else:
+              raise SystemExit("REPROVADO: nenhuma BDGD recente com 90 ou mais distribuidoras")
+          if len(itens) > 110 or d.get("nextStart", -1) != -1:
+              raise SystemExit(f"REPROVADO: {len(itens)} arquivos (ou busca com mais de uma pagina)")
+          # Um arquivo por distribuidora: se houver duas versoes, vale a mais nova.
+          por_rotulo = {}
+          for x in itens:
+              rotulo = x["title"].split(f"_{data}")[0]
+              if rotulo not in por_rotulo or x.get("modified", 0) > por_rotulo[rotulo].get("modified", 0):
+                  por_rotulo[rotulo] = x
+          saida = [{"id": x["id"], "rotulo": r, "titulo": x["title"], "bytes": x.get("size")}
+                   for r, x in sorted(por_rotulo.items())]
+          for s in saida:
+              print(f"ITEM {s['id']} | {s['titulo']} | {s['bytes']} bytes")
+          print("distribuidoras:", len(saida))
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write("itens=" + json.dumps(saida) + "\n")
+              f.write("data=" + data + "\n")
+          EOF
+
+  contar:
+    needs: lista
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        item: ${{ fromJson(needs.lista.outputs.itens) }}
+    name: ${{ matrix.item.rotulo }}
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Liberar disco
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
+          df -h "$RUNNER_TEMP" | tail -1
+
+      - name: Instalar bibliotecas
+        run: python -m pip install --quiet pyogrio pandas pyarrow geopandas
+
+      - name: Baixar a BDGD
+        run: |
+          curl -sS -L --fail --retry 3 --retry-delay 20 -m 5400 -o "$RUNNER_TEMP/bdgd.zip" \
+            -w "HTTP %{http_code}, %{size_download} bytes\n" \
+            "https://www.arcgis.com/sharing/rest/content/items/${{ matrix.item.id }}/data"
+          sha=$(sha256sum "$RUNNER_TEMP/bdgd.zip" | cut -d' ' -f1)
+          tam=$(stat -c %s "$RUNNER_TEMP/bdgd.zip")
+          echo "sha256 $sha"
+          mkdir -p saida
+          printf '{"rotulo": "%s", "id": "%s", "sha256": "%s", "bytes_baixados": %s}\n' \
+            "${{ matrix.item.rotulo }}" "${{ matrix.item.id }}" "$sha" "$tam" > "saida/${{ matrix.item.rotulo }}.json"
+          unzip -o -q "$RUNNER_TEMP/bdgd.zip" -d "$RUNNER_TEMP/bdgd"
+          rm "$RUNNER_TEMP/bdgd.zip"
+          df -h "$RUNNER_TEMP" | tail -1
+
+      - name: Contar por municipio
+        run: |
+          gdb=$(find "$RUNNER_TEMP/bdgd" -maxdepth 3 -name "*.gdb" -type d | head -1)
+          python contar_bdgd_rede.py "$gdb" "saida/${{ matrix.item.rotulo }}.csv"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tabela-${{ matrix.item.rotulo }}
+          path: saida/
+          retention-days: 7
+          if-no-files-found: error
+
+  montar:
+    needs: [lista, contar]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUNBUFFERED: "1"
+      ITENS: ${{ needs.lista.outputs.itens }}
+      DATA_BDGD: ${{ needs.lista.outputs.data }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Instalar biblioteca do PDF
+        run: python -m pip install --quiet pypdf
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: tabela-*
+          path: ${{ runner.temp }}/tabelas
+          merge-multiple: true
+
+      - name: Montar o manifesto (lista esperada + sha256 de cada arquivo baixado)
+        run: |
+          python3 - <<'EOF'
+          import json, os
+          pasta = os.path.join(os.environ["RUNNER_TEMP"], "tabelas")
+          manifesto = []
+          for item in json.loads(os.environ["ITENS"]):
+              meta = os.path.join(pasta, item["rotulo"] + ".json")
+              if os.path.exists(meta):
+                  item.update(json.load(open(meta)))
+                  os.remove(meta)
+              manifesto.append(item)
+          json.dump(manifesto, open(os.path.join(os.environ["RUNNER_TEMP"], "manifesto.json"), "w"), indent=1)
+          print(len(manifesto), "distribuidoras no manifesto;", len(os.listdir(pasta)), "tabelas")
+          EOF
+
+      - name: Baixar a lista da Neoenergia Coelba
+        run: |
+          curl -sS -L --fail --retry 3 -m 300 -A "Mozilla/5.0" -o "$RUNNER_TEMP/coelba.pdf" \
+            -w "HTTP %{http_code}, %{size_download} bytes\n" \
+            "https://www.neoenergia.com/documents/d/bahia/planilha-tensao-fornecimento-neoenergia-coelba-pdf"
+          sha256sum "$RUNNER_TEMP/coelba.pdf"
+
+      - name: Montar a tabela nova (montar_tabela_rede.py, com as conferencias dele)
+        run: |
+          python montar_tabela_rede.py --tabelas "$RUNNER_TEMP/tabelas" --coelba "$RUNNER_TEMP/coelba.pdf" \
+            --manifesto "$RUNNER_TEMP/manifesto.json" --data-bdgd "$DATA_BDGD" --saida "$RUNNER_TEMP/saida" \
+            | tee "$RUNNER_TEMP/saida_montagem.txt"
+
+      - name: Comparar com a tabela do repositorio (teste/comparar_tabela_rede.py)
+        id: comparar
+        # Codigo 0 = nada mudou; 2 = algo mudou; qualquer outro = reprovado.
+        run: |
+          set +e
+          python teste/comparar_tabela_rede.py rede_municipios.csv "$RUNNER_TEMP/saida/rede_municipios.csv" \
+            > "$RUNNER_TEMP/relatorio.txt" 2>&1
+          codigo=$?
+          set -e
+          cat "$RUNNER_TEMP/relatorio.txt"
+          case $codigo in
+            0) echo "mudou=nao" >> "$GITHUB_OUTPUT" ;;
+            2) echo "mudou=sim" >> "$GITHUB_OUTPUT" ;;
+            *) echo "REPROVADO (codigo $codigo). Nada foi gravado."; exit 1 ;;
+          esac
+
+      - name: Gravar a tabela (ramo novo + aviso; no ramo de teste, no proprio ramo)
+        if: steps.comparar.outputs.mudou == 'sim'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            RAMO="$GITHUB_REF_NAME"
+          else
+            RAMO="rede-renovada-$(date -u +%Y-%m-%d)-${GITHUB_RUN_NUMBER}"
+            git switch -c "$RAMO"
+          fi
+          if [ "$RAMO" = "main" ]; then echo "NUNCA no main"; exit 1; fi
+          cp "$RUNNER_TEMP/saida/rede_municipios.csv" "$RUNNER_TEMP/saida/rede_municipios_info.json" .
+          git add -- rede_municipios.csv rede_municipios_info.json
+          git diff --cached --stat
+          {
+            echo "Tabela de rede: montagem/renovacao ($(date -u +%Y-%m-%d), BDGD $DATA_BDGD) - NAO ESTA NO SITE"
+            echo
+            echo "Feita pela tarefa .github/workflows/renovar-tabela-rede.yml"
+            echo "(execucao ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})."
+            echo "So vai ao main depois da revisao e do \"pode\" da aluna."
+            echo
+            cat "$RUNNER_TEMP/relatorio.txt"
+          } > "$RUNNER_TEMP/mensagem.txt"
+          git commit -q -F "$RUNNER_TEMP/mensagem.txt"
+          git push -u origin "HEAD:refs/heads/$RAMO"
+          if [ "$GITHUB_EVENT_NAME" != "push" ]; then
+            {
+              echo "A tarefa de renovacao montou uma tabela de rede DIFERENTE da que esta no site"
+              echo "e a gravou no ramo \`$RAMO\`. **O site nao mudou.**"
+              echo
+              echo "Proximo passo: pedir ao Claude a revisao do ramo antes do \"pode\" para o main."
+              echo
+              echo "Execucao: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+              echo
+              echo '```'
+              cat "$RUNNER_TEMP/relatorio.txt"
+              echo '```'
+            } > "$RUNNER_TEMP/aviso.md"
+            gh issue create --title "Tabela de rede renovada: ramo $RAMO espera revisao" \
+              --body-file "$RUNNER_TEMP/aviso.md"
+          fi
+          echo "RAMO_CRIADO=$RAMO" >> "$GITHUB_ENV"
+
+      - name: Resumo desta execucao
+        if: always()
+        run: |
+          {
+            echo "## Tabela de rede - $(date -u +%Y-%m-%d) (BDGD $DATA_BDGD)"
+            if [ -n "${RAMO_CRIADO:-}" ]; then
+              echo
+              echo "**Tabela gravada no ramo \`$RAMO_CRIADO\` (o site NAO mudou).**"
+            fi
+            for ARQ in relatorio saida_montagem; do
+              if [ -f "$RUNNER_TEMP/$ARQ.txt" ]; then
+                echo
+                echo "### $ARQ"
+                echo '```'
+                cat "$RUNNER_TEMP/$ARQ.txt"
+                echo '```'
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
