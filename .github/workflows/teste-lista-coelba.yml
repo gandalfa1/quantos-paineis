@@ -23,10 +23,6 @@ jobs:
             "https://www.neoenergia.com/documents/d/bahia/planilha-tensao-fornecimento-neoenergia-coelba-pdf"
           sha256sum coelba.pdf
           file coelba.pdf
-          (command -v pdftotext || sudo apt-get install -y -qq poppler-utils) >/dev/null
-          pdfinfo coelba.pdf || true
-          pdftotext -layout coelba.pdf coelba.txt
-          wc -l coelba.txt
           echo "=====INICIO_COELBA====="
-          gzip -9c coelba.txt | base64 -w 100
+          gzip -9c coelba.pdf | base64 -w 100
           echo "=====FIM_COELBA====="
