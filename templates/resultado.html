@@ -398,17 +398,13 @@
                 <span>Inversor indicado</span>
                 <span class="valor">{{ resultado.inversor_modelo }} (família {{ resultado.inversor_familia }})</span>
             </li>
-            {% endif %}{% if resultado.inversores_por_tensao %}
-            <li>
-                <span>Inversor</span>
-                <span class="valor">trifásico</span>
-            </li>{% endif %}
+            {% endif %}
         </ul>{% if resultado.inversores_por_tensao %}
         {#- Pedido da aluna (11/11/2026): acima de 10 kW, os modelos, a frase da
             rede e o aviso da ligacao trifasica ficam recolhidos ("a tela fica
             muito poluida"). O aviso do custo da troca virou uma frase curta
             aqui dentro, no lugar do quadro laranja. -#}
-        <details class="nota-mais" id="inversores-modelos">
+        <details class="nota-mais nota-destaque" id="inversores-modelos">
             <summary>Ver os modelos de inversor</summary>
             <ul class="resultado-lista">{% for inv in resultado.inversores_por_tensao | sort(attribute="tensao_rede", reverse=(resultado.rede_da_cidade == "220/380")) %}
                 <li>

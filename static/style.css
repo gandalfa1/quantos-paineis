@@ -1434,6 +1434,19 @@ table.tabela-retorno .retorno-meses { color: var(--color-text-muted); font-size:
 .aviso-destaque .nota-mais { margin-top: 4px; }
 .aviso-destaque .nota-mais > summary { padding: 2px 0; }
 .aviso-destaque .nota-mais > div { margin-top: 6px; }
+/* (11/11/2026, pedido da aluna) "Ver os modelos de inversor", acima de
+   10 kW, e mais importante que as outras notas recolhidas: vira um botao
+   largo, com borda e fundo claro, para chamar o clique. So o resultado
+   acima de 10 kW usa esta classe. */
+.nota-destaque { margin-top: 14px; }
+.nota-destaque > summary {
+    display: flex; width: 100%; box-sizing: border-box;
+    font-size: 0.95rem; font-weight: 700;
+    padding: 10px 14px; border: 1.5px solid var(--color-primary);
+    border-radius: 10px; background: rgba(242, 96, 12, 0.07);
+}
+.nota-destaque > summary:hover { background: rgba(242, 96, 12, 0.13); }
+.nota-destaque[open] > summary { margin-bottom: 6px; }
 .aviso-destaque .nota-mais > div p + p { margin-top: 8px; }
 .nota-fontes { margin-top: 20px; padding-top: 8px; border-top: 1px solid var(--color-border); }
 .nota-fontes .nota-fonte { margin: 6px 0 0; padding-top: 0; border-top: none; }
