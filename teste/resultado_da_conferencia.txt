@@ -1,27 +1,36 @@
-Saida do teste/conferir_equacoes_3_3.py - rodado em 28/10/2026 (Python 3.13, sem internet),
-na versao publicada do site. A saida da versao do TCC (15.744 simulacoes, 10 erros plantados)
-continua na tag v1.0-tcc.
+Saida do teste/conferir_equacoes_3_3.py - rodado em 11/11/2026 (Python 3.13), na versao
+publicada do site (main c27bec9). A saida da versao do artigo (a) (31.488 simulacoes, 14 erros
+plantados) continua na tag v1.2-artigo-rbens; a da versao do TCC (15.744 simulacoes, 10 erros
+plantados), na tag v1.0-tcc.
 
 === 1 e 2: casos resolvidos a mao e varredura ===
-Simulacoes da varredura: 31488
-Resultados: {'sem_energia_compensavel': 864, 'payback_acima_da_vida_util': 565, 'normal': 26844, 'sem_arranjo_valido': 3215}
+Simulacoes da varredura: 33472
+Resultados: {'sem_energia_compensavel': 864, 'payback_acima_da_vida_util': 803, 'normal': 31245, 'sem_arranjo_valido': 560}
 Divergencias: 0
 
 === 3: erros plantados ===
-  DETECTADO: regra antiga do minimo (em energia) (28291 divergencias)
-  DETECTADO: minimo ignorado (6710 divergencias)
-  DETECTADO: HSP pela media simples (26854 divergencias)
-  DETECTADO: ano de 360 dias (26849 divergencias)
-  DETECTADO: Fio B sem o percentual (26936 divergencias)
-  DETECTADO: servico fixo esquecido abaixo de 2 kWp (3609 divergencias)
-  DETECTADO: payback em anos no lugar de meses (27414 divergencias)
-  DETECTADO: retorno com o Fio B de hoje para sempre (25490 divergencias)
-  DETECTADO: retorno sem a degradacao (5124 divergencias)
-  DETECTADO: escalada do Fio B um ano adiantada (25447 divergencias)
-  DETECTADO: geracao sem a TD (26909 divergencias)
-  DETECTADO: modulos arredondados para baixo (25984 divergencias)
-  DETECTADO: tarifa pelo consumo da conta abaixo do minimo (13737 divergencias)
-  DETECTADO: inversor arredondado para baixo (23808 divergencias)
-Erros plantados detectados: 14 de 14
+  DETECTADO: regra antiga do minimo (em energia) (pelo menos 82 divergencias)
+  DETECTADO: minimo ignorado (pelo menos 50 divergencias)
+  DETECTADO: HSP pela media simples (pelo menos 50 divergencias)
+  DETECTADO: ano de 360 dias (pelo menos 50 divergencias)
+  DETECTADO: Fio B sem o percentual (pelo menos 50 divergencias)
+  DETECTADO: servico fixo esquecido abaixo de 2 kWp (pelo menos 50 divergencias)
+  DETECTADO: payback em anos no lugar de meses (pelo menos 50 divergencias)
+  DETECTADO: retorno com o Fio B de hoje para sempre (pelo menos 52 divergencias)
+  DETECTADO: retorno sem a degradacao (pelo menos 50 divergencias)
+  DETECTADO: retorno sem a manutencao (pelo menos 50 divergencias)
+  DETECTADO: troca do inversor esquecida (pelo menos 50 divergencias)
+  DETECTADO: pior caso calculado com o Fio B (pelo menos 50 divergencias)
+  DETECTADO: escalada do Fio B um ano adiantada (pelo menos 50 divergencias)
+  DETECTADO: geracao sem a TD (pelo menos 79 divergencias)
+  DETECTADO: modulos arredondados para baixo (pelo menos 50 divergencias)
+  DETECTADO: tarifa pelo consumo da conta abaixo do minimo (pelo menos 50 divergencias)
+  DETECTADO: inversor arredondado para baixo (pelo menos 50 divergencias)
+  DETECTADO: strings em paralelo sem somar a corrente (pelo menos 130 divergencias)
+  DETECTADO: limite de corrente por string ignorado (pelo menos 278 divergencias)
+  DETECTADO: degrau trifasico aprovado com um modelo so (1 divergencias)
+  DETECTADO: ligacao trifasica esquecida acima de 10 kW (pelo menos 50 divergencias)
+  DETECTADO: tarifa da troca pelo minimo da trifasica (pelo menos 50 divergencias)
+Erros plantados detectados: 22 de 22
 
 RESULTADO: OK
