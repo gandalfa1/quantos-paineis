@@ -398,17 +398,27 @@
                 <span>Inversor indicado</span>
                 <span class="valor">{{ resultado.inversor_modelo }} (família {{ resultado.inversor_familia }})</span>
             </li>
-            {% endif %}{% if resultado.inversores_por_tensao %}{% for inv in resultado.inversores_por_tensao | sort(attribute="tensao_rede", reverse=(resultado.rede_da_cidade == "220/380")) %}
+            {% endif %}{% if resultado.inversores_por_tensao %}
             <li>
-                <span>Inversor para rede de {{ inv.tensao_rede }}</span>
-                <span class="valor">{{ inv.modelo }} (família {{ inv.familia }})</span>
-            </li>{% endfor %}{% endif %}
+                <span>Inversor</span>
+                <span class="valor">trifásico</span>
+            </li>{% endif %}
         </ul>{% if resultado.inversores_por_tensao %}
-        <p class="hint-fonte">{% if resultado.rede_da_cidade %}Acima de 10 kW, o inversor é trifásico, e há dois tipos de rede. Na sua cidade, a mais comum é a de {{ resultado.rede_da_cidade }} V, por isso esse modelo vem primeiro. Confirme com a distribuidora qual é a da sua casa. Os painéis servem nos dois.{% else %}Acima de 10 kW, o inversor é trifásico. Há dois tipos de rede trifásica no Brasil, e o instalador escolhe o modelo conforme a da sua casa. Os painéis foram conferidos nos dois.{% endif %}</p>{% endif %}{% if resultado.ligacao_trocada_para_trifasica %}
-        <div class="aviso-destaque" id="aviso-trifasica">{% if resultado.ligacao_original_informada %}
-            <p><strong>Este sistema precisa de ligação trifásica, e a sua é {{ nomes_ligacao.get(resultado.ligacao_original, resultado.ligacao_original) }}.</strong> Antes de instalar, é preciso pedir à distribuidora a troca para ligação trifásica. O custo da troca não está nesta conta, que já usa o valor mínimo da conta da ligação trifásica (100 kWh).</p>{% else %}
-            <p><strong>Consideramos ligação trifásica.</strong> Um sistema acima de 10 kW precisa dela. Se a sua casa ainda não tem ligação trifásica, é preciso pedir a troca à distribuidora, e o custo dela não está nesta conta.</p>{% endif %}
-        </div>{% endif %}
+        {#- Pedido da aluna (11/11/2026): acima de 10 kW, os modelos, a frase da
+            rede e o aviso da ligacao trifasica ficam recolhidos ("a tela fica
+            muito poluida"). O aviso do custo da troca virou uma frase curta
+            aqui dentro, no lugar do quadro laranja. -#}
+        <details class="nota-mais" id="inversores-modelos">
+            <summary>Ver os modelos de inversor</summary>
+            <ul class="resultado-lista">{% for inv in resultado.inversores_por_tensao | sort(attribute="tensao_rede", reverse=(resultado.rede_da_cidade == "220/380")) %}
+                <li>
+                    <span>Para rede de {{ inv.tensao_rede }}</span>
+                    <span class="valor">{{ inv.modelo }} (família {{ inv.familia }})</span>
+                </li>{% endfor %}
+            </ul>
+            <p class="hint-fonte">{% if resultado.rede_da_cidade %}Há dois tipos de rede trifásica. Na sua cidade, a mais comum é a de {{ resultado.rede_da_cidade }} V, por isso esse modelo vem primeiro. Confirme com a distribuidora qual é a da sua casa.{% else %}Há dois tipos de rede trifásica, e o instalador escolhe o modelo conforme a da sua casa.{% endif %} Os painéis servem nos dois.</p>{% if resultado.ligacao_trocada_para_trifasica %}
+            <p class="hint-fonte">{% if resultado.ligacao_original_informada %}Precisa de ligação trifásica, e a sua é {{ nomes_ligacao.get(resultado.ligacao_original, resultado.ligacao_original) }}. A troca é pedida à distribuidora, e o custo dela não está nesta conta.{% else %}Precisa de ligação trifásica. Se a sua não é, a troca é pedida à distribuidora, e o custo dela não está nesta conta.{% endif %}</p>{% endif %}
+        </details>{% endif %}
 
         {#- Pendencia 5 (reservada desde o T4). O texto usa o modelo que o
             motor escolheu, e nao so a marca: quando a familia for outra, a
