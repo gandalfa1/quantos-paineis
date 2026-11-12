@@ -1261,6 +1261,26 @@
             <summary>Posso confiar 100% nesse resultado para fechar um contrato?</summary>
             <p>Use o resultado como uma referência de viabilidade, não como orçamento definitivo. Fatores como sombreamento do telhado, orientação solar, distância até o quadro de energia e o instalador escolhido podem alterar o valor final — por isso vale pedir orçamento a pelo menos três empresas antes de decidir. Quanto o resultado pode variar está em <a href="{{ url_for('pagina', nome='precisao') }}">Quão preciso é o resultado</a>.</p>
         </details>
+
+        {#- FASE 4, ITEM 27 (11/11/2026, decisao da aluna): o que conferir no orcamento do
+            instalador. So texto; nenhuma conta muda. Fontes: PRODIST Modulo 3 (certificado
+            ou registro Inmetro do inversor; formulario, memorial e diagrama pedidos pelas
+            distribuidoras) e o escopo da ABNT NBR 16690 (condutores, protecoes, manobra,
+            aterramento). A chave CC pode vir dentro do inversor; fusivel so com 3+ strings
+            em paralelo (raro aqui), por isso fica fora. Sem prometer ART (deixou de ser
+            obrigatoria no formulario do PRODIST). -#}
+        <details class="faq-item">
+            <summary>O que conferir no orçamento do instalador?</summary>
+            <p>Peça que o orçamento traga, por escrito:</p>
+            <ul>
+                <li>a potência dos painéis (kWp) e a do inversor, para comparar com esta simulação e entre as empresas;</li>
+                <li>o modelo do inversor, com registro no Inmetro (a distribuidora pede esse registro para ligar o sistema);</li>
+                <li>as proteções: uma chave para desligar os painéis (às vezes ela já vem dentro do inversor), o DPS, que protege contra surtos de raios, e o disjuntor;</li>
+                <li>os cabos e o aterramento dos painéis e da estrutura;</li>
+                <li>o projeto e o pedido de ligação à distribuidora, feitos por um profissional habilitado.</li>
+            </ul>
+            <p>Esses itens estão na norma de instalação de painéis (ABNT NBR 16690) e nas regras da ANEEL para ligar o sistema à rede.</p>
+        </details>
     </div>
 
     <p class="apoio-discreto no-print">Esta simulação foi útil? O Quantos Painéis é gratuito e mantido por contribuições voluntárias. <a href="{{ url_for('pagina', nome='apoie') }}">Apoie o projeto</a>.</p>

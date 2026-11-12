@@ -955,6 +955,16 @@ table.tabela-retorno .retorno-meses { color: var(--color-text-muted); font-size:
   font-size: 0.92rem;
 }
 
+/* Fase 4, item 27 (11/11/2026): lista dentro de uma resposta do FAQ, com o mesmo
+   texto do paragrafo. So a pergunta "O que conferir no orcamento do instalador?" usa. */
+.faq-item ul {
+  margin: -8px 4px 16px;
+  padding-left: 22px;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+}
+.faq-item li { margin-bottom: 4px; }
+
 /* ---------- Erro ---------- */
 .erro-box {
   background: #FFF1EC;
