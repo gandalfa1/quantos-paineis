@@ -37,6 +37,7 @@ data); os numeros oficiais sao os do artigo.
 import geocoding
 import nasa_power
 import sol_municipios
+import rede_municipios
 from geocoding import buscar_coordenadas, municipio_da_lista, ErroNominatim
 from nasa_power import buscar_hsp_mensal, ErroNasaPower
 from calculo import (
@@ -1190,6 +1191,13 @@ def _simular_uma_vez(cidade, consumo_medio_kwh, valor_fatura_reais,
         # diferente de um para o outro). None ate 10 kW.
         "inversor_trifasico": pot_inversor > LIMITE_MONOFASICO_KW + 1e-9,
         "inversores_por_tensao": arranjo.get("inversores_por_tensao"),
+        # FASE 4, REDE POR CIDADE (11/11/2026): rede trifasica mais comum no
+        # municipio ("127/220" ou "220/380"; tabela rede_municipios.csv, da
+        # BDGD da ANEEL). So muda a ORDEM dos dois modelos acima e uma frase
+        # na tela; nao entra em nenhuma conta. None ate 10 kW, quando a cidade
+        # tem as duas redes, sem dado ou com a tabela desligada.
+        "rede_da_cidade": (rede_municipios.rede_do_municipio(coordenadas.get("codigo_ibge"))
+                           if arranjo.get("inversores_por_tensao") else None),
         # Preenchidos por simular() quando a conta foi refeita com a ligacao
         # trifasica (ver a docstring de simular).
         "ligacao_trocada_para_trifasica": False,

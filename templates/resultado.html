@@ -398,13 +398,13 @@
                 <span>Inversor indicado</span>
                 <span class="valor">{{ resultado.inversor_modelo }} (família {{ resultado.inversor_familia }})</span>
             </li>
-            {% endif %}{% if resultado.inversores_por_tensao %}{% for inv in resultado.inversores_por_tensao %}
+            {% endif %}{% if resultado.inversores_por_tensao %}{% for inv in resultado.inversores_por_tensao | sort(attribute="tensao_rede", reverse=(resultado.rede_da_cidade == "220/380")) %}
             <li>
                 <span>Inversor para rede de {{ inv.tensao_rede }}</span>
                 <span class="valor">{{ inv.modelo }} (família {{ inv.familia }})</span>
             </li>{% endfor %}{% endif %}
         </ul>{% if resultado.inversores_por_tensao %}
-        <p class="hint-fonte">Acima de 10 kW, o inversor é trifásico. Há dois tipos de rede trifásica no Brasil, e o instalador escolhe o modelo conforme a da sua casa. Os painéis foram conferidos nos dois.</p>{% endif %}{% if resultado.ligacao_trocada_para_trifasica %}
+        <p class="hint-fonte">{% if resultado.rede_da_cidade %}Acima de 10 kW, o inversor é trifásico. Há dois tipos de rede trifásica no Brasil. Na sua cidade, a mais comum é a de {{ resultado.rede_da_cidade }} V, por isso esse modelo aparece primeiro, mas confirme com a distribuidora qual é a da sua casa. Os painéis foram conferidos nos dois.{% else %}Acima de 10 kW, o inversor é trifásico. Há dois tipos de rede trifásica no Brasil, e o instalador escolhe o modelo conforme a da sua casa. Os painéis foram conferidos nos dois.{% endif %}</p>{% endif %}{% if resultado.ligacao_trocada_para_trifasica %}
         <div class="aviso-destaque" id="aviso-trifasica">{% if resultado.ligacao_original_informada %}
             <p><strong>Este sistema precisa de ligação trifásica, e a sua é {{ nomes_ligacao.get(resultado.ligacao_original, resultado.ligacao_original) }}.</strong> Antes de instalar, é preciso pedir à distribuidora a troca para ligação trifásica. O custo da troca não está nesta conta, que já usa o valor mínimo da conta da ligação trifásica (100 kWh).</p>{% else %}
             <p><strong>Consideramos ligação trifásica.</strong> Um sistema acima de 10 kW precisa dela. Se a sua casa ainda não tem ligação trifásica, é preciso pedir a troca à distribuidora, e o custo dela não está nesta conta.</p>{% endif %}
@@ -426,7 +426,7 @@
                             <span class="tip-bubble">Os painéis são ligados em série, um atrás do outro, formando uma fileira (em inglês, <em>string</em>): as tensões se somam e a corrente é a de um painel só. Quando a fileira ficaria longa demais, os painéis são divididos em mais de uma, cada uma numa entrada própria do inversor.{% if resultado.inversores_por_tensao %} Nos inversores maiores, duas fileiras iguais podem dividir a mesma entrada (ligadas em paralelo), e aí as correntes delas se somam.{% endif %}</span>
                         </span>
                     </span>
-                    <span class="valor">{% if resultado.inversores_por_tensao %}{% for inv in resultado.inversores_por_tensao %}{% set pares = (inv.laudo.mppts_usados or []) | selectattr("strings", "gt", 1) | list | length %}{% if not loop.first %}<br>{% endif %}rede de {{ inv.tensao_rede }}: {{ inv.laudo.strings }} fileiras ({{ inv.laudo.modulos_por_string | join(" + ") }}){% if pares == 1 %}, duas delas na mesma entrada{% elif pares > 1 %}, de duas em duas nas entradas{% endif %}{% endfor %}{% elif resultado.arranjo_strings == 1 %}todos em série, numa só fileira{% else %}{{ resultado.arranjo_strings }} fileiras ({{ resultado.arranjo_modulos_por_string | join(" + ") }}){% endif %}</span>
+                    <span class="valor">{% if resultado.inversores_por_tensao %}{% for inv in resultado.inversores_por_tensao | sort(attribute="tensao_rede", reverse=(resultado.rede_da_cidade == "220/380")) %}{% set pares = (inv.laudo.mppts_usados or []) | selectattr("strings", "gt", 1) | list | length %}{% if not loop.first %}<br>{% endif %}rede de {{ inv.tensao_rede }}: {{ inv.laudo.strings }} fileiras ({{ inv.laudo.modulos_por_string | join(" + ") }}){% if pares == 1 %}, duas delas na mesma entrada{% elif pares > 1 %}, de duas em duas nas entradas{% endif %}{% endfor %}{% elif resultado.arranjo_strings == 1 %}todos em série, numa só fileira{% else %}{{ resultado.arranjo_strings }} fileiras ({{ resultado.arranjo_modulos_por_string | join(" + ") }}){% endif %}</span>
                 </li>
                 {% endif %}
                 <li>
