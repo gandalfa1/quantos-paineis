@@ -131,6 +131,11 @@
 <td>Folhas de dados dos fabricantes</td>
 <td>Painéis: Jinko Solar (600 Wp) e Trina Solar (550 e 670 Wp). Inversores monofásicos: Growatt MIC e MIN (de 1,0 a 10 kW) e Deye G05 (de 4,2 a 7,5 kW, para os painéis de corrente alta). Inversores trifásicos (12, 15, 20 e 25 kW): Growatt MID XL2 e Deye G02-LV, para rede de 127/220 V, e Growatt MOD X2 e MID X2, para rede de 220/380 V. Todos com registro ativo no Inmetro.</td>
 </tr>
+<tr>
+<th scope="row">Rede trifásica da cidade</th>
+<td>ANEEL (dados das distribuidoras, 2025)</td>
+<td>Usada só acima de 10 kW, para escolher qual inversor aparece primeiro. Se 95% das casas da cidade estão numa rede, ela é a da cidade; se não, os dois aparecem como antes. Não muda painéis, custo nem retorno.</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -149,7 +154,7 @@
 <li><strong>Quanto da conta dá para abater:</strong> a distribuidora sempre cobra um mínimo por mês, chamado custo de disponibilidade. Ele equivale a 30, 50 ou 100 kWh, conforme a ligação seja monofásica, bifásica ou trifásica (Resolução ANEEL nº 1.000/2021, art. 291). Com painéis, a conta não pode ficar abaixo desse mínimo, mas a parte do Fio B que continua sendo cobrada conta para atingi-lo (art. 655-I). Por isso, quanto maiores o consumo e o Fio B, mais do consumo pode ser abatido, às vezes ele inteiro. Quando o mínimo segura uma parte, a plataforma dimensiona o sistema só para o que dá para abater, porque painel a mais não traz economia. Se não sobrar nada para abater, ela não indica sistema e explica o motivo. (Eq. 4)</li>
 <li><strong>Potência dos painéis:</strong> é a energia por dia dividida pelas horas de sol e por <strong>0,80</strong>. Esse 0,80 é a <strong>taxa de desempenho</strong>, a fração da energia do sol que chega à sua casa depois das perdas (calor, sujeira, cabos, inversor). O valor é o limite superior da faixa de 70% a 80% do <em>Manual de Engenharia para Sistemas Fotovoltaicos</em> do CEPEL-CRESESB. (Eq. 5)</li>
 <li><strong>Número de painéis:</strong> é essa potência dividida pela potência de um painel, com arredondamento <strong>para cima</strong>. (Eq. 6)</li>
-<li><strong>Inversor:</strong> é o menor modelo do catálogo (1,0; 1,5; 2,0; 2,5; 3,0; 4,2; 5,0; 6,0; 7,0; 7,5; 8,0; 9,0 ou 10 kW, monofásicos; 12, 15, 20 ou 25 kW, trifásicos) que tenha pelo menos 80% da potência dos painéis. Nos trifásicos há um modelo para cada tipo de rede (127/220 V e 220/380 V), e os painéis precisam servir nos dois. Acima de 25 kW, o sistema sai do porte residencial, e a plataforma não indica sistema. (Eq. 7)</li>
+<li><strong>Inversor:</strong> é o menor modelo do catálogo (1,0; 1,5; 2,0; 2,5; 3,0; 4,2; 5,0; 6,0; 7,0; 7,5; 8,0; 9,0 ou 10 kW, monofásicos; 12, 15, 20 ou 25 kW, trifásicos) que tenha pelo menos 80% da potência dos painéis. Nos trifásicos há um modelo para cada tipo de rede (127/220 V e 220/380 V), e os painéis precisam servir nos dois. O da rede mais comum na cidade aparece primeiro. Acima de 25 kW, o sistema sai do porte residencial, e a plataforma não indica sistema. (Eq. 7)</li>
 <li>
 <p><strong>Verificação elétrica:</strong> a compatibilidade entre painéis e inversor é um requisito de projeto tratado pela ABNT NBR 16690:2019. A plataforma faz essa verificação com os limites das folhas de dados, usando critérios adaptados do Manual do CEPEL-CRESESB e de Baars (2022). Os painéis são testados com as células a 0 °C (inverno) e a 70 °C (verão), em quatro verificações:</p>
 <ul>
@@ -274,6 +279,7 @@
 <li>ABNT. NBR 16690: instalações elétricas de arranjos fotovoltaicos: requisitos de projeto. 2019.</li>
 <li>ANEEL. Relatório de Análise de Impacto Regulatório nº 0004/2018-SRD/SCG/SMA/ANEEL: revisão das regras aplicáveis à micro e minigeração distribuída. Brasília, 6 dez. 2018.</li>
 <li>ANEEL. Resolução Normativa nº 1.000, de 7 de dezembro de 2021.</li>
+<li>ANEEL. Base de Dados Geográfica da Distribuidora (BDGD), dados de 31 dez. 2025.</li>
 <li>ANEEL. Componentes tarifárias. Portal de Dados Abertos, 2026. Licença ODbL.</li>
 <li>ANEEL. Indicadores coletivos de continuidade (DEC e FEC). Portal de Dados Abertos, 2026. Licença ODbL.</li>
 <li>ANEEL. IndQual Município. Portal de Dados Abertos, 2026. Licença ODbL.</li>
@@ -289,6 +295,7 @@
 <li>IBGE. Base Cartográfica Contínua do Brasil, escala 1:250.000 – BC250. Versão 2025. Fonte: IBGE/DGC.</li>
 <li>KELVINS. municipios-brasileiros. GitHub, licença MIT.</li>
 <li>NASA. POWER: Prediction Of Worldwide Energy Resources. Climatology API, v2.10.0 (comparação com o PVsyst) e v2.10.1 (tabela de sol).</li>
+<li>NEOENERGIA COELBA. Municípios x tensão de fornecimento.</li>
 <li>OpenStreetMap / Nominatim. © OpenStreetMap contributors, licença ODbL.</li>
 <li>PINHO, J. T.; GALDINO, M. A. (org.). Manual de engenharia para sistemas fotovoltaicos. CEPEL-CRESESB, 2014.</li>
 <li>PVSYST SA. PVsyst 8.1.</li>

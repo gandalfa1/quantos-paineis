@@ -21,6 +21,7 @@ O repositório guarda duas versões, e cada uma tem um papel diferente.
 - **Inversor de 1,0 kW.** O sistema de dois painéis de 600 Wp passou a usar o Growatt MIC 1000TL-X no lugar do MIC 1500TL-X. Com o de 1,5 kW, o inversor ficava maior que os painéis. Painéis, geração, custo e retorno não mudam.
 - **Inversores com o nome do registro no Inmetro.** Nos degraus de 7,0, 7,5 e 8,0 kW, o site mostrava nomes que não estão no registro do Inmetro. Passaram a ser os modelos registrados: Growatt MIN 7000TL-X(E), MIN 7500TL-X2 e MIN 8000TL-X2 (consulta de 10/11/2026). Os limites elétricos usados continuam os de antes, iguais ou mais apertados que os das folhas desses modelos. Painéis, geração, custo e retorno não mudam.
 - **Inversores trifásicos de 12 a 25 kW.** Antes, acima de 10 kW (a partir de cerca de 21 painéis) o site não indicava inversor. Agora indica um inversor trifásico de 12, 15, 20 ou 25 kW, com um modelo para rede de 127/220 V e outro para rede de 220/380 V (Growatt e Deye, com registro ativo no Inmetro); os painéis precisam servir nos dois. A verificação elétrica passou a somar a corrente de duas fileiras ligadas na mesma entrada do inversor. Nesse porte a conta usa a ligação trifásica (mínimo de 100 kWh), e a tela avisa quando a casa precisa trocar de ligação. Acima de 25 kW, o sistema sai do porte residencial e o site não dimensiona. Nada muda até 10 kW.
+- **Rede da cidade primeiro.** Acima de 10 kW, o inversor da rede trifásica mais comum no município (127/220 V ou 220/380 V) aparece primeiro, com um lembrete para confirmar com a distribuidora. A rede vem da Base de Dados Geográfica da Distribuidora (BDGD) da ANEEL, dados de 31/12/2025: se pelo menos 95% das casas contadas (e no mínimo 30) estão numa rede, ela é a da cidade; senão, os dois modelos aparecem como antes. Painéis, custo e retorno não mudam.
 - **Energia usada na hora.** Uma pergunta opcional diz em que horário a casa mais usa energia. A parte da geração usada no mesmo instante (10%, 30% ou 39%, pelo lado baixo das medições da ANEEL, da EPE e de Dilli e Brito, 2025) economiza a tarifa inteira, sem o Fio B. Muda só a economia e o retorno; painéis, inversor e custo não mudam. Sem resposta, a conta é a de antes (0%).
 - **Manutenção, 25 anos e poupança.** O retorno passou a descontar a manutenção (1% do preço por ano) e uma troca do inversor depois de 10 anos (15% do preço), valores da EPE (Nota Técnica EPE-DEA-SEE 014/2022). O mesmo fluxo vai até 25 anos e dá a economia e os gastos do período, a taxa interna de retorno real ("rende cerca de X% ao ano") comparada com a poupança dos últimos 12 meses descontada a inflação (Banco Central, séries 196 e 433), o VPL e o retorno descontado. A tela mostra também o pior caso para 2029: a cobrança máxima que a Lei 14.300/2022 (art. 17) permite sobre a energia compensada, pelos dados abertos da ANEEL, sem desconto pelos benefícios. A conta principal continua com 100% do Fio B depois de 2028. Painéis, inversor, geração, custo e economia de hoje não mudam.
 - **Nove páginas de explicação.** Como funciona, economia, equipamentos e preços, precisão, metodologia, limitações, sobre, contato e apoie.
@@ -47,6 +48,10 @@ O repositório guarda duas versões, e cada uma tem um papel diferente.
 | `recalculo_fio_b.py` | Conferência feita para o TCC: o efeito, nos cinco casos, da troca do Fio B de R$ 0,20 pelo da ANEEL |
 | `.github/workflows/atualizar-fio-b.yml` | A tarefa automática do Fio B |
 | `.github/workflows/renovar-tabela-sol.yml`, `teste/comparar_tabela_sol.py` | A renovação da tabela de sol e a comparação da tabela nova com a atual |
+| `rede_municipios.csv`, `rede_municipios_info.json` | A tabela de rede: a rede trifásica mais comum em cada um dos 5.571 municípios, as casas contadas em cada rede e de onde ela veio |
+| `rede_municipios.py` | Lê e confere a tabela de rede; com qualquer defeito, a tabela fica desligada e o site mostra os dois inversores como antes |
+| `contar_bdgd_rede.py`, `montar_tabela_rede.py` | Contam as casas de cada distribuidora na BDGD e aplicam a regra que escolhe a rede de cada município |
+| `.github/workflows/renovar-tabela-rede.yml`, `teste/comparar_tabela_rede.py` | A montagem e a renovação da tabela de rede e a comparação da tabela nova com a atual |
 | `teste/` | Os programas de conferência e os resultados deles |
 | `resultados/plataforma/` | A tela de resultado dos cinco casos de validação do TCC, em PDF |
 | `resultados/pvsyst/` | Os relatórios das simulações no PVsyst 8.1.5, com todos os parâmetros |
@@ -77,6 +82,8 @@ Ele programa as equações de novo a partir do texto, sem chamar o motor, e comp
 
 **Os municípios.** `python teste/conferir_cidades.py` compara a lista com a do IBGE e roda os cinco casos de validação com o Nominatim e a NASA POWER de verdade. Precisa de internet e leva alguns minutos.
 
+**A tabela de rede.** `python teste/conferir_tabela_rede.py` confere a tabela nas 10 cidades do artigo e planta 10 defeitos, um de cada vez, para provar que cada um desliga a tabela inteira.
+
 ## Atualização automática do Fio B
 
 O Fio B muda quando a ANEEL aprova o reajuste de cada distribuidora, e a ANEEL só publica o valor novo poucos dias antes de ele valer. Por isso não dá para saber o valor com antecedência. O que dá para fazer é buscar logo depois que ele sai.
@@ -86,6 +93,10 @@ Duas vezes por semana, a tarefa `.github/workflows/atualizar-fio-b.yml` roda o `
 ## Renovação da tabela de sol
 
 A NASA atualiza de tempos em tempos o período das médias de sol (em 2026 passou de 2001-2020 para 2001-2025). Uma vez por ano (1º de março), ou a qualquer hora pelo botão "Run workflow" da aba Actions, a tarefa `.github/workflows/renovar-tabela-sol.yml` monta a tabela de novo e a compara com a atual (`teste/comparar_tabela_sol.py`). Se nada mudou, nada é gravado. Se algo mudou, a tabela nova vai para um ramo separado e a tarefa abre um aviso no repositório: como a tabela muda o número de painéis, ela só chega ao site depois da conferência completa do motor e da atualização dos textos que citam o período.
+
+## Renovação da tabela de rede
+
+A ANEEL publica a BDGD de cada distribuidora uma vez por ano (os dados de 31 de dezembro saem por volta de agosto). Todo 1º de outubro, ou a qualquer hora pelo botão "Run workflow" da aba Actions, a tarefa `.github/workflows/renovar-tabela-rede.yml` baixa os arquivos das distribuidoras, um por vez em cada máquina, monta a tabela de novo e a compara com a atual (`teste/comparar_tabela_rede.py`). Se nada mudou, nada é gravado. Se algo mudou, a tabela nova vai para um ramo separado e a tarefa abre um aviso no repositório; ela só chega ao site depois de revisada.
 
 ## Banco opcional e contador de acessos
 
@@ -123,6 +134,7 @@ A numeração abaixo é a do artigo do TCC. Os comentários do código usam a nu
 - **Localização das sedes, para escolher o quadrado de sol:** Fonte: IBGE/DGC. Base Cartográfica Contínua do Brasil, escala 1:250.000 - BC250 (as coordenadas do IBGE não são publicadas na tabela); municipios-brasileiros (licença MIT); Wikidata (CC0).
 - **Coordenadas, se a tabela de sol faltar:** Nominatim, com dados © OpenStreetMap contributors, disponíveis sob a Open Database License (ODbL): https://www.openstreetmap.org/copyright
 - **Fio B e distribuidora de cada município:** ANEEL, Portal de Dados Abertos (conjuntos "Componentes Tarifárias", "IndQual Município" e "Indicadores Coletivos de Continuidade"), sob a Open Database License (ODbL) 1.0. Valores sem impostos. Os arquivos que vêm desses dados e a licença deles estão em `dados-ANEEL-LICENCA.txt`.
+- **Rede trifásica de cada município:** ANEEL, Base de Dados Geográfica da Distribuidora (BDGD), dados de 31/12/2025, publicada no ArcGIS Online; Neoenergia Coelba, lista de municípios por tensão de fornecimento.
 - **Lista de municípios:** códigos e nomes conferidos com a lista oficial do IBGE. Origem e licença em `static/municipios-LICENCA.txt`.
 - **Preços:** Greener, Estudo Estratégico – Mercado Fotovoltaico, março de 2026 (preços de janeiro de 2026).
 - **Módulos e inversores:** folhas de dados dos fabricantes.
