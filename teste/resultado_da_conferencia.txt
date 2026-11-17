@@ -1,7 +1,7 @@
-Saida do teste/conferir_equacoes_3_3.py - rodado em 11/11/2026 (Python 3.13), na versao
-publicada do site (main c27bec9). A saida da versao do artigo (a) (31.488 simulacoes, 14 erros
-plantados) continua na tag v1.2-artigo-rbens; a da versao do TCC (15.744 simulacoes, 10 erros
-plantados), na tag v1.0-tcc.
+Saida do teste/conferir_equacoes_3_3.py - rodado em 17/11/2026 (Python 3.13), no ramo
+fase4-outras-marcas (outras placas e inversores, a partir do main 4d22bd0). A saida da versao do
+artigo (a) (31.488 simulacoes, 14 erros plantados) continua na tag v1.2-artigo-rbens; a da versao
+do TCC (15.744 simulacoes, 10 erros plantados), na tag v1.0-tcc.
 
 === 1 e 2: casos resolvidos a mao e varredura ===
 Simulacoes da varredura: 33472
@@ -26,11 +26,16 @@ Divergencias: 0
   DETECTADO: modulos arredondados para baixo (pelo menos 50 divergencias)
   DETECTADO: tarifa pelo consumo da conta abaixo do minimo (pelo menos 50 divergencias)
   DETECTADO: inversor arredondado para baixo (pelo menos 50 divergencias)
-  DETECTADO: strings em paralelo sem somar a corrente (pelo menos 130 divergencias)
-  DETECTADO: limite de corrente por string ignorado (pelo menos 278 divergencias)
+  DETECTADO: strings em paralelo sem somar a corrente (pelo menos 278 divergencias)
+  DETECTADO: limite de corrente por string ignorado (pelo menos 529 divergencias)
   DETECTADO: degrau trifasico aprovado com um modelo so (1 divergencias)
   DETECTADO: ligacao trifasica esquecida acima de 10 kW (pelo menos 50 divergencias)
   DETECTADO: tarifa da troca pelo minimo da trifasica (pelo menos 50 divergencias)
-Erros plantados detectados: 22 de 22
+  DETECTADO: bifacial conferida sem a corrente BNPI (pelo menos 907 divergencias)
+  DETECTADO: placas novas na escolha automatica (pelo menos 133 divergencias)
+  DETECTADO: inversor de outra marca na escolha de inicio (pelo menos 50 divergencias)
+  DETECTADO: outra marca fora da ordem do ranking (pelo menos 50 divergencias)
+  DETECTADO: outra marca antes de Growatt e Deye (pelo menos 50 divergencias)
+Erros plantados detectados: 27 de 27
 
 RESULTADO: OK

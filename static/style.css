@@ -1808,3 +1808,39 @@ table.tabela-retorno .retorno-meses { color: var(--color-text-muted); font-size:
   .secao-economia { box-shadow: none; border: 1px solid #ddd; border-left: 4px solid var(--color-primary); }
   .secao-economia-abrir { display: none; }
 }
+
+/* =========================================================
+   FASE 4, OUTRAS MARCAS (17/11/2026; maquete aprovada pela aluna em 13/11)
+   "Ver outros inversores que servem" e "Ver com outras placas", no cartao
+   do dimensionamento, e o aviso do topo quando o resultado foi refeito com
+   outra placa. Fora da impressao (.no-print): as notas recolhidas abrem
+   sozinhas ao imprimir, e o resumo impresso continua com 2 folhas.
+   ========================================================= */
+.lista-inv { margin: 6px 0 0 18px; }
+.lista-opcoes { list-style: none; padding: 0; margin: 8px 0 0; }
+.lista-opcoes > li {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--color-border);
+}
+.lista-opcoes > li:last-child { border-bottom: none; }
+.opcao-nome { font-weight: 600; min-width: 185px; }
+.opcao-num { flex: 1; white-space: nowrap; }
+.opcao-obs { flex-basis: 100%; font-size: 0.85rem; color: var(--color-text-muted); margin-top: -2px; }
+.opcao-atual { font-size: 0.85rem; color: var(--color-text-muted); }
+.opcao-nao .opcao-num { color: var(--color-text-muted); }
+.lista-opcoes form { margin: 0; }
+.lista-opcoes .btn-secundario { margin: 0; padding: 6px 14px; font-size: 0.9rem; }
+.lista-opcoes .nota-mais { flex-basis: 100%; margin-top: 0; }
+.aviso-placa {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 8px 16px; margin-bottom: 20px; padding: 12px 16px;
+    border: 1.5px solid var(--color-primary); border-radius: 10px;
+    background: rgba(242, 96, 12, 0.07);
+}
+.aviso-placa p { margin: 0; }
+.aviso-placa form { margin: 0; }
+.aviso-placa .btn-secundario { margin: 0; padding: 6px 14px; font-size: 0.9rem; }
+@media (max-width: 600px) {
+  .opcao-nome { flex-basis: 100%; min-width: 0; }
+  .opcao-nao .opcao-num { white-space: normal; }
+}

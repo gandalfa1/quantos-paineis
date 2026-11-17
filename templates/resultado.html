@@ -36,6 +36,12 @@
     vai para a tela: sem isso, -0,4 kWh aparecia como "−0" (achado no
     teste14.pdf, julho de 100 kWh). Mesmo arredondamento das outras colunas. -#}
 {%- macro dif(valor) -%}{%- set txt = br(valor | abs, 0) -%}{%- if txt == "0" -%}0{%- elif valor > 0 -%}+{{ txt }}{%- else -%}−{{ txt }}{%- endif -%}{%- endmacro -%}
+{#- FASE 4, OUTRAS MARCAS (17/11/2026): os botoes "Simular" e "Voltar ao
+    resultado de inicio" reenviam TODOS os campos que chegaram, do jeito que
+    chegaram (em branco continua em branco - armadilha do item 8 do backlog),
+    trocando so o campo "placa". -#}
+{%- macro campos_do_formulario(placa=None) -%}{% for nome, valor in request.form.items(multi=True) %}{% if nome != "placa" %}<input type="hidden" name="{{ nome }}" value="{{ valor }}">{% endif %}{% endfor %}{% if placa %}<input type="hidden" name="placa" value="{{ placa }}">{% endif %}{%- endmacro -%}
+{%- macro placas(n) -%}{{ n }} {{ "placa" if n == 1 else "placas" }}{%- endmacro -%}
 {#- Singular/plural do painel (pendencia 8). -#}
 {%- macro paineis(n) -%}{{ n }} {{ "painel" if n == 1 else "painéis" }}{%- endmacro -%}
 {#- Textos que o motor guarda sem acento, porque o calculo.py e ASCII.
@@ -246,6 +252,13 @@
         <p>⚠️ <strong>Confira sua conta:</strong> por ela, cada kWh custaria só R$ {{ br(resultado.tarifa_calculada) }}, barato demais. Talvez falte um zero no valor ou sobre um no consumo. Se a sua conta tem tarifa social ou desconto, este resultado não vale para você.</p>
     </div>
     {%- endif %}
+    {%- if resultado.placa_escolhida %}
+    {%- set placa_atual = resultado.outras_placas | selectattr("situacao", "equalto", "atual") | first %}
+    <div class="aviso-placa" id="aviso-placa">
+        <p>Resultado com a placa <strong>{{ placa_atual.marca }}, {{ placa_atual.potencia_wp }}&nbsp;Wp</strong>, escolhida por você.</p>
+        <form method="post" action="{{ url_for('rota_simular') }}" class="no-print">{{ campos_do_formulario() }}<button type="submit" class="btn-secundario">Voltar ao resultado de início</button></form>
+    </div>
+    {%- endif %}
 
     <div class="resumo-hero">
         <p class="resumo-label">Resumo rápido</p>
@@ -369,6 +382,9 @@
                 "Jinko Tiger Neo JKM600N-72HL4-V": (2.278, 1.134),
                 "Trina Vertex TSM-DE19 550 Wp": (2.384, 1.096),
                 "Trina Vertex TSM-DE21 670 Wp": (2.384, 1.303),
+                "Astronergy ASTRO N5 CHSM72N(DG)/F-HC 595 Wp": (2.278, 1.134),
+                "Risen RSM132-11-625BNDG": (2.382, 1.134),
+                "Astronergy ASTRO N7 CHSM66RN(DG)/F-BH 640 Wp": (2.382, 1.134),
             } %}
             {%- set medida_painel = MEDIDAS_PAINEL_M.get(resultado.modulo_modelo) %}
             {%- if medida_painel and resultado.numero_paineis %}
@@ -415,6 +431,46 @@
             <p class="hint-fonte">{% if resultado.rede_da_cidade %}Há dois tipos de rede trifásica. Na sua cidade, a mais comum é a de {{ resultado.rede_da_cidade }} V, por isso esse modelo vem primeiro. Confirme com a distribuidora qual é a da sua casa.{% else %}Há dois tipos de rede trifásica, e o instalador escolhe o modelo conforme a da sua casa.{% endif %} Os painéis servem nos dois.</p>{% if resultado.ligacao_trocada_para_trifasica %}
             <p class="hint-fonte">{% if resultado.ligacao_original_informada %}Precisa de ligação trifásica, e a sua é {{ nomes_ligacao.get(resultado.ligacao_original, resultado.ligacao_original) }}. A troca é pedida à distribuidora, e o custo dela não está nesta conta.{% else %}Precisa de ligação trifásica. Se a sua não é, a troca é pedida à distribuidora, e o custo dela não está nesta conta.{% endif %}</p>{% endif %}
         </details>{% endif %}
+        {%- if resultado.inversores_outras_marcas or resultado.outras_placas %}
+        {#- FASE 4, OUTRAS MARCAS (17/11/2026; maquete aprovada pela aluna em
+            13/11). Nenhuma conta aqui: as listas vem prontas do motor
+            (simulacao.simular), e cada linha de placa e a simulacao refeita
+            com aquela placa - os numeros sao os da tela que o botao abre. -#}
+        <div class="outras-opcoes no-print">
+        {%- if resultado.inversores_outras_marcas %}
+        <details class="nota-mais nota-destaque" id="outros-inversores">
+            <summary>Ver outros inversores que servem</summary>
+            <p>Também servem neste sistema, com a mesma potência ({{ br(resultado.potencia_inversor_kw, 1) }} kW):</p>
+            <ul class="lista-inv">{% for inv in resultado.inversores_outras_marcas %}
+                <li>{{ inv.marca }} {{ inv.modelo }}</li>{% endfor %}
+            </ul>
+            <p class="hint-fonte">A marca do inversor não muda nenhum número desta simulação. O preço usado é a média do mercado por kWp, não o de uma marca. Todos têm registro no Inmetro.</p>
+        </details>
+        {%- endif %}
+        {%- if resultado.outras_placas %}
+        {%- set marcas_da_lista = resultado.outras_placas | map(attribute="marca") | list %}
+        <details class="nota-mais nota-destaque" id="outras-placas">
+            <summary>Ver com outras placas</summary>
+            <p>Toque em “Simular” para refazer a conta com outra placa. A economia muda pouco: o que muda é o número de placas e o preço.</p>
+            <ul class="lista-opcoes">{% for l in resultado.outras_placas %}
+                {%- if l.situacao in ("atual", "aprovada", "outra_marca") %}
+                <li><span class="opcao-nome">{{ l.marca }}, {{ l.potencia_wp }}&nbsp;Wp</span><span class="opcao-num">{{ placas(l.numero_paineis) }} · {{ br(l.potencia_instalada_kwp) }} kWp</span>{% if l.situacao == "atual" %}<span class="opcao-atual">é a deste resultado</span>{% else %}<form method="post" action="{{ url_for('rota_simular') }}">{{ campos_do_formulario(l.chave) }}<button type="submit" class="btn-secundario">Simular</button></form>{% endif %}
+                    {%- if l.situacao == "outra_marca" or (l.situacao == "atual" and resultado.inversor_de_outra_marca) %}
+                    <span class="opcao-obs">Com inversor de outra marca ({{ l.inversor_marca }}).</span>{% endif %}</li>
+                {%- elif l.situacao == "nao_serve" %}
+                <li class="opcao-nao"><span class="opcao-nome">{{ l.marca }}, {{ l.potencia_wp }}&nbsp;Wp</span><span class="opcao-num">Não serve para um sistema deste tamanho.</span>
+                    <details class="nota-mais"><summary>Por quê?</summary>
+                    <p class="hint-fonte">{% if l.motivo_tecnico in ("corrente_de_curto_acima_do_limite", "corrente_de_operacao_acima_do_limite") %}Esta placa fornece mais corrente do que os inversores de {{ br(l.potencia_inversor_kw, 1) }} kW aceitam.{% else %}Com esta placa, nenhum inversor de {{ br(l.potencia_inversor_kw, 1) }} kW passa nas verificações elétricas.{% endif %}{% if l.serve_em_degrau_maior %} Em sistemas um pouco maiores, ela serve.{% endif %}</p></details></li>
+                {%- else %}
+                <li class="opcao-nao"><span class="opcao-nome">{{ l.marca }}, {{ l.potencia_wp }}&nbsp;Wp</span><span class="opcao-num">{% if l.motivo_inviabilidade == "payback_acima_da_vida_util" %}Com esta placa, o sistema não se paga em 25 anos.{% else %}Sem resultado com esta placa.{% endif %}</span></li>
+                {%- endif %}{% endfor %}
+            </ul>
+            {%- set bifaciais = [] %}{% for l in resultado.outras_placas if l.bifacial %}{% set _ = bifaciais.append(l.marca ~ (" de " ~ l.potencia_wp ~ " Wp" if marcas_da_lista.count(l.marca) > 1 else "")) %}{% endfor %}
+            <p class="hint-fonte">{% if bifaciais %}As placas {{ bifaciais | join(" e ") }} são bifaciais (geram também pelo verso). A conta usa só a frente, como nas outras. {% endif %}Todas têm registro no Inmetro.</p>
+        </details>
+        {%- endif %}
+        </div>
+        {%- endif %}
 
         {#- Pendencia 5 (reservada desde o T4). O texto usa o modelo que o
             motor escolheu, e nao so a marca: quando a familia for outra, a
@@ -518,7 +574,7 @@
                     {% endfor %}
                 </ul>
                 {% endif %}
-                <p class="hint-fonte">Dados do painel: {{ resultado.modulo_fabricante }}, {{ resultado.modulo_fonte_datasheet }}. Célula de {{ resultado.modulo_formato_celula_mm }} mm.</p>
+                <p class="hint-fonte">Dados do painel: {{ resultado.modulo_fabricante }}, {{ resultado.modulo_fonte_datasheet }}. {% if resultado.modulo_celula_retangular %}Célula retangular.{% else %}Célula de {{ resultado.modulo_formato_celula_mm }} mm.{% endif %}{% if resultado.modulo_bifacial %} Placa bifacial: a geração conta só a frente; a verificação elétrica usa a corrente com o verso recebendo luz (BNPI, da folha do fabricante).{% endif %}</p>
             </div>
         </details>
         {% endif %}

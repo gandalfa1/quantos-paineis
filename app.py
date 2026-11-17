@@ -27,6 +27,7 @@ import math
 
 from flask import Flask, abort, redirect, render_template, request, send_from_directory, url_for
 from simulacao import simular
+from calculo import PLACAS_DA_LISTA
 
 app = Flask(__name__)
 
@@ -271,6 +272,15 @@ def rota_simular():
     # Fio B; vazio ou desconhecido, o motor aplica a regra do municipio.
     distribuidora_cnpj = (request.form.get("distribuidora") or "").strip()
 
+    # Placa escolhida na lista "Ver com outras placas" do resultado (fase 4,
+    # outras marcas, 17/11/2026). Campo OPCIONAL, que o formulario de inicio
+    # nao envia: so o botao "Simular" da lista. LISTA BRANCA: qualquer valor
+    # que nao seja uma chave de PLACAS_DA_LISTA e ignorado e vale o resultado
+    # de inicio, como se o campo nao tivesse vindo.
+    placa = (request.form.get("placa") or "").strip()
+    if placa not in PLACAS_DA_LISTA:
+        placa = None
+
     resultado = simular(
         cidade=cidade,
         consumo_medio_kwh=consumo,
@@ -281,6 +291,7 @@ def rota_simular():
         cobrancas_nao_energia_reais=cobrancas_nao_energia,
         distribuidora_cnpj=distribuidora_cnpj,
         perfil_simultaneidade=horario_uso,
+        placa=placa,
     )
 
     if "erro" in resultado:

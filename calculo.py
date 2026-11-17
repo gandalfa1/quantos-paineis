@@ -2133,8 +2133,79 @@ CATALOGO_MODULOS = {
     },
 }
 
+# ---------------------------------------------------------------------
+# OUTRAS PLACAS (fase 4, outras marcas, 17/11/2026)
+# ---------------------------------------------------------------------
+# Tres placas a mais, so para a lista "Ver com outras placas" do resultado.
+# A ESCOLHA AUTOMATICA NAO AS VE: ela testa apenas MODULOS_DA_ESCOLHA_
+# AUTOMATICA (abaixo), as tres de sempre - senao o resultado de inicio
+# mudaria, e os 10 casos dos artigos tambem (achado da medicao, 12/11).
+#
+# Criterio (decisoes da aluna, 11-12/11/2026): marca do ranking Greener SED
+# 2026, registro Inmetro ATIVO (dados abertos, arquivo de 11/11/2026) e folha
+# oficial do site do fabricante lida pelo texto E pela imagem; uma potencia
+# por placa = a maior que esta na folha E no Inmetro.
+#
+# BIFACIAIS (opcao A, 12/11): a geracao continua so pela face da frente (o
+# modelo kWp x HSP x TD nao muda), mas a CONFERENCIA ELETRICA usa a corrente
+# BNPI da folha - frente com 1.000 W/m2 e verso com 135 W/m2 (IEC TS
+# 60904-1-2) -, que e maior que a das STC. Campos "imp_bnpi" e "isc_bnpi";
+# placa monofacial nao tem esses campos e usa a corrente de sempre (ver
+# corrente_de_operacao_do_modulo e isc_na_temperatura_maxima).
+#
+# "celula_retangular" (Risen RSM132-11 e ASTRO N7: 132 celulas "210R", placa
+# de 2.382 x 1.134 mm): so muda o texto da tela. "formato_celula_mm" fica em
+# 210, que e o lado maior da celula.
+CATALOGO_MODULOS.update({
+    "astro_n5_595": {
+        "nome": "Astronergy ASTRO N5 CHSM72N(DG)/F-HC 595 Wp",
+        "fabricante": "Astronergy",
+        "fonte": "folha ASTRO N5 580~600 W, edição 202406",
+        "registro_inmetro": "008733/2023",
+        "formato_celula_mm": 182, "celula_retangular": False, "bifacial": False,
+        "potencia_wp": 595,
+        "vmp": 44.33, "imp": 13.42, "voc": 52.75, "isc": 14.26,
+        "coef_pmax": -0.29, "coef_voc": -0.25, "coef_isc": 0.043,
+    },
+    "risen_625": {
+        "nome": "Risen RSM132-11-625BNDG",
+        "fabricante": "Risen Energy",
+        "fonte": "folha RSM132-11-615-640BNDG, edição 2026H2-1",
+        "registro_inmetro": "015420/2024",
+        "formato_celula_mm": 210, "celula_retangular": True, "bifacial": True,
+        "potencia_wp": 625,
+        "vmp": 40.98, "imp": 15.26, "voc": 49.27, "isc": 16.10,
+        "imp_bnpi": 16.90, "isc_bnpi": 17.84,
+        "coef_pmax": -0.29, "coef_voc": -0.25, "coef_isc": 0.046,
+    },
+    "astro_n7_640": {
+        "nome": "Astronergy ASTRO N7 CHSM66RN(DG)/F-BH 640 Wp",
+        "fabricante": "Astronergy",
+        "fonte": "folha ASTRO N7 620~640 W, edição 202609",
+        "registro_inmetro": "001073/2024",
+        "formato_celula_mm": 210, "celula_retangular": True, "bifacial": True,
+        "potencia_wp": 640,
+        "vmp": 41.99, "imp": 15.24, "voc": 49.57, "isc": 16.42,
+        "imp_bnpi": 16.85, "isc_bnpi": 18.21,
+        "coef_pmax": -0.29, "coef_voc": -0.25, "coef_isc": 0.043,
+    },
+})
+
+# As tres de sempre, na ORDEM de sempre (o simulacao.py usa a primeira na
+# mensagem de quando nenhuma serve). E so isto que a escolha automatica testa.
+MODULOS_DA_ESCOLHA_AUTOMATICA = ("jinko_600", "trina_550", "trina_670")
+
+# As placas da lista "Ver com outras placas", em ordem de potencia.
+PLACAS_DA_LISTA = sorted(CATALOGO_MODULOS, key=lambda k: CATALOGO_MODULOS[k]["potencia_wp"])
+
 for _modulo in CATALOGO_MODULOS.values():
     _modulo["coef_vmp"] = _modulo["coef_pmax"] - _modulo["coef_isc"]
+
+
+def corrente_de_operacao_do_modulo(modulo):
+    """Imp usada na conferencia eletrica: a BNPI nas bifaciais, a das STC
+    nas outras (fase 4, outras marcas)."""
+    return modulo.get("imp_bnpi", modulo["imp"])
 
 
 # ---------------------------------------------------------------------
@@ -2460,6 +2531,240 @@ CATALOGO_INVERSORES = {
 
 
 # ---------------------------------------------------------------------
+# INVERSORES DE OUTRAS MARCAS (fase 4, outras marcas, 17/11/2026)
+# ---------------------------------------------------------------------
+# Lista SEPARADA de proposito: modelos_no_degrau() so olha o
+# CATALOGO_INVERSORES, entao a escolha de hoje (Growatt, depois Deye) nao
+# muda. Estes modelos entram em dois lugares so:
+#   - a lista "Ver outros inversores que servem" do resultado
+#     (inversores_de_outras_marcas_que_servem): a marca nao muda nenhum
+#     numero - o preco e a media do mercado por kWp;
+#   - a placa escolhida na lista "Ver com outras placas" que nao cabe em
+#     nenhum Growatt/Deye do degrau (dimensionar_arranjo_com_placa).
+# Criterio (decisoes da aluna, 11-12/11/2026): Solis, Huawei e Solplanet
+# (ranking Greener SED 2026, nessa ordem); monofasicos de 220 V ate 10 kW,
+# so com a potencia EXATA de um degrau da GRADE_INVERSORES_KW; registro
+# Inmetro ATIVO (dados abertos, arquivo de 11/11/2026); folha oficial do site
+# do fabricante lida pelo texto e pela imagem (claude/outras_marcas_etapa1_
+# 12-11.txt). Regra de sempre: nenhum limite mais folgado que a folha.
+#   - Solis 7/7,5/8 kW: MPPT1 de 18 A e MPPT2 de 32 A (2 strings); usados
+#     2 MPPT x 1 string a 18 A / 20 A, como no MIN7000TL-X(E).
+#   - Huawei LC0: folha diz MPPT 40-560 V; o registro diz 90-560 V -> 90 V.
+#   - Solplanet ASW S: folha BR 2025 da 20/16/20 A; a global, 16 A -> 16 A.
+# Degraus sem nenhuma das tres: 1,0 / 1,5 / 2,5 / 4,2 kW.
+# Trifasicos destas marcas: 2a rodada.
+ORDEM_MARCAS_OUTRAS = ("Solis", "Huawei", "Solplanet")
+CATALOGO_INVERSORES_OUTRAS_MARCAS = {
+    "S6-GR1P2K-M": {
+        "potencia_kw": 2.0, "marca": "Solis", "familia": "Solis S6 mini",
+        "classe_corrente": "baixa", "registro_inmetro": "006728/2023",
+        "fonte": "folha S6-GR1P(2-3)K-BR V2,2",
+        "mppts": 1, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 14.0, "corrente_max_curto_a": 22.0,
+        "tensao_max_v": 550.0, "mppt_min_v": 80.0, "mppt_max_v": 500.0,
+        "tensao_partida_v": 90.0,
+    },
+    "S6-GR1P3K-M": {
+        "potencia_kw": 3.0, "marca": "Solis", "familia": "Solis S6 mini",
+        "classe_corrente": "baixa", "registro_inmetro": "006729/2023",
+        "fonte": "folha S6-GR1P(2-3)K-BR V2,2",
+        "mppts": 1, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 14.0, "corrente_max_curto_a": 22.0,
+        "tensao_max_v": 550.0, "mppt_min_v": 80.0, "mppt_max_v": 500.0,
+        "tensao_partida_v": 90.0,
+    },
+    "S6-GR1P5K-S": {
+        "potencia_kw": 5.0, "marca": "Solis", "familia": "Solis S6",
+        "classe_corrente": "alta", "registro_inmetro": "010391/2023",
+        "fonte": "folha S6-GR1P(2,5-6)K-S BRA V2,0 (10/2024)",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 22.0,
+        "tensao_max_v": 550.0, "mppt_min_v": 90.0, "mppt_max_v": 550.0,
+        "tensao_partida_v": 100.0,
+    },
+    "S6-GR1P6K-S": {
+        "potencia_kw": 6.0, "marca": "Solis", "familia": "Solis S6",
+        "classe_corrente": "alta", "registro_inmetro": "010392/2023",
+        "fonte": "folha S6-GR1P(2,5-6)K-S BRA V2,0 (10/2024)",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 22.0,
+        "tensao_max_v": 550.0, "mppt_min_v": 90.0, "mppt_max_v": 550.0,
+        "tensao_partida_v": 100.0,
+    },
+    "S6-GR1P7K02-NV-YD-HC": {
+        "potencia_kw": 7.0, "marca": "Solis", "familia": "Solis S6",
+        "classe_corrente": "alta", "registro_inmetro": "017290/2024",
+        "fonte": "folha S6-GR1P(7-8)K-BR V2,3",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 18.0, "corrente_max_curto_a": 20.0,
+        "tensao_max_v": 550.0, "mppt_min_v": 90.0, "mppt_max_v": 500.0,
+        "tensao_partida_v": 90.0,
+    },
+    "S6-GR1P7.5K2": {
+        "potencia_kw": 7.5, "marca": "Solis", "familia": "Solis S6",
+        "classe_corrente": "alta", "registro_inmetro": "014119/2024",
+        "fonte": "folha S6-GR1P(7-8)K-BR V2,3",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 18.0, "corrente_max_curto_a": 20.0,
+        "tensao_max_v": 550.0, "mppt_min_v": 90.0, "mppt_max_v": 500.0,
+        "tensao_partida_v": 90.0,
+    },
+    "S6-GR1P8K02-NV-YD-HC": {
+        "potencia_kw": 8.0, "marca": "Solis", "familia": "Solis S6",
+        "classe_corrente": "alta", "registro_inmetro": "017291/2024",
+        "fonte": "folha S6-GR1P(7-8)K-BR V2,3",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 18.0, "corrente_max_curto_a": 20.0,
+        "tensao_max_v": 550.0, "mppt_min_v": 90.0, "mppt_max_v": 500.0,
+        "tensao_partida_v": 90.0,
+    },
+    "S6-GR1P9K03-NV-ND": {
+        "potencia_kw": 9.0, "marca": "Solis", "familia": "Solis S6",
+        "classe_corrente": "alta", "registro_inmetro": "011735/2024",
+        "fonte": "folha S6-GR1P(8-10)K-ND-BR V2,2",
+        "mppts": 3, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 20.0, "corrente_max_curto_a": 25.0,
+        "tensao_max_v": 550.0, "mppt_min_v": 50.0, "mppt_max_v": 500.0,
+        "tensao_partida_v": 60.0,
+    },
+    "S6-GR1P10K03-NV-ND": {
+        "potencia_kw": 10.0, "marca": "Solis", "familia": "Solis S6",
+        "classe_corrente": "alta", "registro_inmetro": "011148/2024",
+        "fonte": "folha S6-GR1P(8-10)K-ND-BR V2,2",
+        "mppts": 3, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 20.0, "corrente_max_curto_a": 25.0,
+        "tensao_max_v": 550.0, "mppt_min_v": 50.0, "mppt_max_v": 500.0,
+        "tensao_partida_v": 60.0,
+    },
+    "SUN2000-2KTL-L1": {
+        "potencia_kw": 2.0, "marca": "Huawei", "familia": "Huawei SUN2000 L1",
+        "classe_corrente": "baixa", "registro_inmetro": "004398/2024",
+        "fonte": "folha SUN2000-(2KTL-6KTL)-L1, 11/2024",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 12.5, "corrente_max_curto_a": 18.0,
+        "tensao_max_v": 600.0, "mppt_min_v": 90.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 100.0,
+    },
+    "SUN2000-3KTL-L1": {
+        "potencia_kw": 3.0, "marca": "Huawei", "familia": "Huawei SUN2000 L1",
+        "classe_corrente": "baixa", "registro_inmetro": "001160/2025",
+        "fonte": "folha SUN2000-(2KTL-6KTL)-L1, 11/2024",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 12.5, "corrente_max_curto_a": 18.0,
+        "tensao_max_v": 600.0, "mppt_min_v": 90.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 100.0,
+    },
+    "SUN2000-5KTL-L1": {
+        "potencia_kw": 5.0, "marca": "Huawei", "familia": "Huawei SUN2000 L1",
+        "classe_corrente": "baixa", "registro_inmetro": "001173/2025",
+        "fonte": "folha SUN2000-(2KTL-6KTL)-L1, 11/2024",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 12.5, "corrente_max_curto_a": 18.0,
+        "tensao_max_v": 600.0, "mppt_min_v": 90.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 100.0,
+    },
+    "SUN2000-6KTL-L1": {
+        "potencia_kw": 6.0, "marca": "Huawei", "familia": "Huawei SUN2000 L1",
+        "classe_corrente": "baixa", "registro_inmetro": "001138/2025",
+        "fonte": "folha SUN2000-(2KTL-6KTL)-L1, 11/2024",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 12.5, "corrente_max_curto_a": 18.0,
+        "tensao_max_v": 600.0, "mppt_min_v": 90.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 100.0,
+    },
+    "SUN2000-7.5K-LC0": {
+        "potencia_kw": 7.5, "marca": "Huawei", "familia": "Huawei SUN2000 LC0",
+        "classe_corrente": "alta", "registro_inmetro": "014537/2024",
+        "fonte": "folha SUN2000-7.5K-LC0, 11/2024",
+        "mppts": 3, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 20.0,
+        "tensao_max_v": 600.0, "mppt_min_v": 90.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 50.0,
+    },
+    "SUN2000-8K-LC0": {
+        "potencia_kw": 8.0, "marca": "Huawei", "familia": "Huawei SUN2000 LC0",
+        "classe_corrente": "alta", "registro_inmetro": "016586/2024",
+        "fonte": "folha SUN2000-(8K-10K)-LC0, 04/2025",
+        "mppts": 3, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 20.0,
+        "tensao_max_v": 600.0, "mppt_min_v": 90.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 50.0,
+    },
+    "SUN2000-10K-LC0": {
+        "potencia_kw": 10.0, "marca": "Huawei", "familia": "Huawei SUN2000 LC0",
+        "classe_corrente": "alta", "registro_inmetro": "015506/2024",
+        "fonte": "folha SUN2000-(8K-10K)-LC0, 04/2025",
+        "mppts": 3, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 20.0,
+        "tensao_max_v": 600.0, "mppt_min_v": 90.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 50.0,
+    },
+    "ASW3000-S-G2": {
+        "potencia_kw": 3.0, "marca": "Solplanet", "familia": "Solplanet ASW S-G2",
+        "classe_corrente": "alta", "registro_inmetro": "008646/2024",
+        "fonte": "folha ASW 3-6K-S-G2 (global)",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 24.0,
+        "tensao_max_v": 600.0, "mppt_min_v": 60.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 100.0,
+    },
+    "ASW5000-S-G2": {
+        "potencia_kw": 5.0, "marca": "Solplanet", "familia": "Solplanet ASW S-G2",
+        "classe_corrente": "alta", "registro_inmetro": "008649/2024",
+        "fonte": "folha ASW 3-6K-S-G2 (global)",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 24.0,
+        "tensao_max_v": 600.0, "mppt_min_v": 60.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 100.0,
+    },
+    "ASW6000-S-G2": {
+        "potencia_kw": 6.0, "marca": "Solplanet", "familia": "Solplanet ASW S-G2",
+        "classe_corrente": "alta", "registro_inmetro": "008655/2024",
+        "fonte": "folha ASW 3-6K-S-G2 (global)",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 24.0,
+        "tensao_max_v": 600.0, "mppt_min_v": 60.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 100.0,
+    },
+    "ASW7500-S": {
+        "potencia_kw": 7.5, "marca": "Solplanet", "familia": "Solplanet ASW S",
+        "classe_corrente": "alta", "registro_inmetro": "002497/2025",
+        "fonte": "folha ASW 7.3-10K-S (BR, 02/2025)",
+        "mppts": 3, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 22.5,
+        "tensao_max_v": 600.0, "mppt_min_v": 80.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 100.0,
+    },
+    "ASW8000-S": {
+        "potencia_kw": 8.0, "marca": "Solplanet", "familia": "Solplanet ASW S",
+        "classe_corrente": "alta", "registro_inmetro": "011478/2023",
+        "fonte": "folha ASW 7.3-10K-S (BR, 02/2025)",
+        "mppts": 3, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 22.5,
+        "tensao_max_v": 600.0, "mppt_min_v": 80.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 100.0,
+    },
+    "ASW10000-S": {
+        "potencia_kw": 10.0, "marca": "Solplanet", "familia": "Solplanet ASW S",
+        "classe_corrente": "alta", "registro_inmetro": "011479/2023",
+        "fonte": "folha ASW 7.3-10K-S (BR, 02/2025) e global",
+        "mppts": 3, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 22.5,
+        "tensao_max_v": 600.0, "mppt_min_v": 80.0, "mppt_max_v": 560.0,
+        "tensao_partida_v": 100.0,
+    },
+}
+
+
+def dados_do_inversor(nome_inversor):
+    """Limites de um inversor, esteja ele no catalogo de sempre ou no das
+    outras marcas."""
+    if nome_inversor in CATALOGO_INVERSORES:
+        return CATALOGO_INVERSORES[nome_inversor]
+    return CATALOGO_INVERSORES_OUTRAS_MARCAS[nome_inversor]
+
+
+# ---------------------------------------------------------------------
 # Grandezas do modulo corrigidas por temperatura
 # ---------------------------------------------------------------------
 def voc_na_temperatura_minima(modulo, temperatura_c=TEMP_MINIMA_PROJETO_C):
@@ -2515,7 +2820,8 @@ def isc_na_temperatura_maxima(modulo, temperatura_c=TEMP_MAXIMA_CELULA_C):
     esta funcao nao depende do numero de modulos.
     """
     variacao = (modulo["coef_isc"] / 100) * (temperatura_c - TEMP_STC_C)
-    return modulo["isc"] * (1 + variacao)
+    # Fase 4, outras marcas: placa bifacial usa a Isc BNPI (frente + verso).
+    return modulo.get("isc_bnpi", modulo["isc"]) * (1 + variacao)
 
 
 # ---------------------------------------------------------------------
@@ -2623,7 +2929,7 @@ def verificar_compatibilidade(n_modulos, chave_modulo, nome_inversor):
     arranjo em vez de so reprova-lo - ver dimensionar_arranjo().
     """
     modulo = CATALOGO_MODULOS[chave_modulo]
-    inversor = CATALOGO_INVERSORES[nome_inversor]
+    inversor = dados_do_inversor(nome_inversor)
     # Fase 4, item 7 (10/11/2026): inversor que aceita mais de uma string no
     # mesmo MPPT vai pela conta com strings em paralelo, abaixo. Todos os
     # inversores ate 10 kW tem 1 string por MPPT no catalogo e seguem por
@@ -2641,7 +2947,7 @@ def verificar_compatibilidade(n_modulos, chave_modulo, nome_inversor):
     v1 = isc_quente <= inversor["corrente_max_curto_a"]
 
     # --- 2) DESEMPENHO: corrente de operacao contra a maxima utilizavel
-    excesso = modulo["imp"] / inversor["corrente_max_entrada_a"] - 1
+    excesso = corrente_de_operacao_do_modulo(modulo) / inversor["corrente_max_entrada_a"] - 1
     v2 = excesso <= EXCESSO_CORRENTE_ACEITAVEL
 
     strings = dividir_arranjo_em_strings(n_modulos, modulo, inversor)
@@ -2772,12 +3078,13 @@ def strings_por_mppt_permitidas_pela_corrente(modulo, inversor):
     """
     isc_quente = isc_na_temperatura_maxima(modulo)
     limite_string = inversor.get("corrente_max_string_a")
-    if limite_string and modulo["imp"] / limite_string - 1 > EXCESSO_CORRENTE_ACEITAVEL:
+    imp = corrente_de_operacao_do_modulo(modulo)
+    if limite_string and imp / limite_string - 1 > EXCESSO_CORRENTE_ACEITAVEL:
         return 0
     k_max = 0
     for k in range(1, inversor["strings_por_mppt"] + 1):
         if (k * isc_quente <= inversor["corrente_max_curto_a"]
-                and k * modulo["imp"] / inversor["corrente_max_entrada_a"] - 1
+                and k * imp / inversor["corrente_max_entrada_a"] - 1
                 <= EXCESSO_CORRENTE_ACEITAVEL):
             k_max = k
     return k_max
@@ -2792,7 +3099,7 @@ def verificar_compatibilidade_paralelo(n_modulos, chave_modulo, nome_inversor):
     carregado).
     """
     modulo = CATALOGO_MODULOS[chave_modulo]
-    inversor = CATALOGO_INVERSORES[nome_inversor]
+    inversor = dados_do_inversor(nome_inversor)
     limites = limites_de_modulos_por_string(modulo, inversor)
     isc_quente = isc_na_temperatura_maxima(modulo)
     limite_string = inversor.get("corrente_max_string_a")
@@ -2802,11 +3109,11 @@ def verificar_compatibilidade_paralelo(n_modulos, chave_modulo, nome_inversor):
     # O MPPT mais carregado. Sem divisao valida, a corrente e avaliada com
     # uma string so, como na funcao de sempre.
     k = max(g["strings"] for g in grupos) if grupos else 1
-    corrente_operacao = k * modulo["imp"]
+    corrente_operacao = k * corrente_de_operacao_do_modulo(modulo)
     corrente_curto = k * isc_quente
     excessos = [corrente_operacao / inversor["corrente_max_entrada_a"] - 1]
     if limite_string:
-        excessos.append(modulo["imp"] / limite_string - 1)
+        excessos.append(corrente_de_operacao_do_modulo(modulo) / limite_string - 1)
     excesso = max(excessos)
     v1 = corrente_curto <= inversor["corrente_max_curto_a"]
     v2 = excesso <= EXCESSO_CORRENTE_ACEITAVEL
@@ -3083,6 +3390,88 @@ def dimensionar_arranjo(n_modulos_por_energia, chave_modulo, fdi=0.80):
         "inversor": None, "inversor_comercial": None, "laudo": None,
         "reprovados": [], "motivo": "nao_convergiu",
     }
+
+
+# ---------------------------------------------------------------------
+# OUTRAS MARCAS E OUTRAS PLACAS (fase 4, 17/11/2026)
+# ---------------------------------------------------------------------
+def inversores_de_outras_marcas_que_servem(n_modulos, chave_modulo, potencia_inversor_kw,
+                                           exceto=None):
+    """
+    Inversores de OUTRAS MARCAS do mesmo degrau que passam nas quatro
+    verificacoes com o MESMO numero de placas. Devolve [(nome, laudo)], na
+    ordem do ranking (Solis, Huawei, Solplanet). So ate 10 kW: nao ha
+    trifasicos destas marcas nesta rodada. "exceto" tira um modelo da lista
+    (o que ja foi indicado no resultado).
+    """
+    if potencia_inversor_kw > LIMITE_MONOFASICO_KW + 1e-9:
+        return []
+    nomes = [nome for nome, inv in CATALOGO_INVERSORES_OUTRAS_MARCAS.items()
+             if abs(inv["potencia_kw"] - potencia_inversor_kw) < 1e-9 and nome != exceto]
+    nomes.sort(key=lambda n: ORDEM_MARCAS_OUTRAS.index(
+        CATALOGO_INVERSORES_OUTRAS_MARCAS[n]["marca"]))
+    servem = []
+    for nome in nomes:
+        laudo = verificar_compatibilidade(n_modulos, chave_modulo, nome)
+        if laudo["aprovado"]:
+            servem.append((nome, laudo))
+    return servem
+
+
+def dimensionar_arranjo_com_placa(n_modulos_por_energia, chave_modulo, fdi=0.80):
+    """
+    Arranjo com a placa ESCOLHIDA na lista "Ver com outras placas" (decisao
+    (a) da aluna, 12/11/2026):
+      1. o caminho de sempre - dimensionar_arranjo(), so Growatt e Deye, com
+         o minimo eletrico e tudo;
+      2. se nenhum deles serve, um inversor de OUTRA MARCA do mesmo degrau,
+         com o mesmo numero de placas (o primeiro do ranking);
+      3. se nenhum serve, o arranjo sai reprovado - a tela mostra "Nao serve
+         para um sistema deste tamanho".
+    E exatamente a conta da medicao da etapa 2 (12/11/2026). Devolve o mesmo
+    dicionario de dimensionar_arranjo(), com o campo a mais
+    "inversor_de_outra_marca".
+    """
+    arranjo = dimensionar_arranjo(n_modulos_por_energia, chave_modulo, fdi)
+    arranjo["inversor_de_outra_marca"] = False
+    if arranjo["aprovado"] or not arranjo.get("inversor_comercial"):
+        return arranjo
+    servem = inversores_de_outras_marcas_que_servem(
+        arranjo["numero_modulos"], chave_modulo,
+        arranjo["inversor_comercial"]["potencia_kw"])
+    if servem:
+        nome, laudo = servem[0]
+        arranjo.update({"aprovado": True, "inversor": nome, "laudo": laudo,
+                        "motivo": "", "inversor_de_outra_marca": True})
+    return arranjo
+
+
+def corrente_cabe_no_inversor(chave_modulo, nome_inversor):
+    """
+    As duas verificacoes de CORRENTE (1 e 2) para uma string so. Nao dependem
+    do numero de placas: em serie, a corrente da fileira e a de uma placa.
+    """
+    modulo = CATALOGO_MODULOS[chave_modulo]
+    inversor = dados_do_inversor(nome_inversor)
+    if inversor["strings_por_mppt"] > 1:
+        return strings_por_mppt_permitidas_pela_corrente(modulo, inversor) > 0
+    return (isc_na_temperatura_maxima(modulo) <= inversor["corrente_max_curto_a"]
+            and corrente_de_operacao_do_modulo(modulo) / inversor["corrente_max_entrada_a"] - 1
+            <= EXCESSO_CORRENTE_ACEITAVEL)
+
+
+def placa_serve_em_degrau_maior(chave_modulo, potencia_inversor_kw):
+    """
+    True quando algum inversor de degrau MAIOR (de qualquer lista) aceita a
+    corrente desta placa. Decide se a explicacao "Por que?" pode dizer que
+    "em sistemas um pouco maiores, ela serve".
+    """
+    for catalogo in (CATALOGO_INVERSORES, CATALOGO_INVERSORES_OUTRAS_MARCAS):
+        for nome, inv in catalogo.items():
+            if (inv["potencia_kw"] > potencia_inversor_kw + 1e-9
+                    and corrente_cabe_no_inversor(chave_modulo, nome)):
+                return True
+    return False
 
 
 def _motivo_da_reprovacao(reprovados):

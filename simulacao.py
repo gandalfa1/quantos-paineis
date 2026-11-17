@@ -111,6 +111,13 @@ from calculo import (
     CATALOGO_MODULOS,
     CATALOGO_INVERSORES,
     dimensionar_arranjo,
+    # Fase 4, outras marcas (17/11/2026).
+    MODULOS_DA_ESCOLHA_AUTOMATICA,
+    PLACAS_DA_LISTA,
+    dimensionar_arranjo_com_placa,
+    dados_do_inversor,
+    inversores_de_outras_marcas_que_servem,
+    placa_serve_em_degrau_maior,
     TEMP_MINIMA_PROJETO_C,
     TEMP_MAXIMA_CELULA_C,
     EXCESSO_CORRENTE_ACEITAVEL,
@@ -272,7 +279,80 @@ def _detalhe_tecnico(servico, tentativas, alternativa=None):
 
 
 def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
-            opcao_painel=None,
+            opcao_painel=None, placa=None, **outros):
+    """
+    Funcao principal: recebe os dados do usuario e devolve o resultado. A
+    conta esta em _simular_com_ligacao() e _simular_uma_vez(), logo abaixo;
+    os argumentos sao os mesmos (td, fdi, tipo_ligacao, consumo_por_mes_kwh
+    etc. vao em "outros").
+
+    FASE 4, OUTRAS MARCAS (17/11/2026). Depois da conta, dois campos novos,
+    so no caminho de usuario (nao no de reproducao com opcao_painel):
+      - "inversores_outras_marcas": inversores de outras marcas do mesmo
+        degrau que passam nas quatro verificacoes com o mesmo numero de
+        placas (ate 10 kW). A marca nao muda nenhum numero.
+      - "outras_placas": uma linha por placa de PLACAS_DA_LISTA. Cada linha
+        e o resultado da SIMULACAO INTEIRA refeita com aquela placa (mesmos
+        dados, placa=chave) - por isso os numeros da linha sao os mesmos da
+        tela que o botao "Simular" abre. Custo medido: ~1 ms por simulacao
+        com a tabela de sol (etapa 2, 12/11/2026).
+    """
+    resultado = _simular_com_ligacao(cidade, consumo_medio_kwh, valor_fatura_reais,
+                                     opcao_painel=opcao_painel, placa=placa, **outros)
+    if resultado.get("erro") or opcao_painel is not None:
+        return resultado
+
+    resultado["inversores_outras_marcas"] = [
+        {"modelo": nome, "marca": dados_do_inversor(nome)["marca"],
+         "registro_inmetro": dados_do_inversor(nome)["registro_inmetro"]}
+        for nome, _laudo in inversores_de_outras_marcas_que_servem(
+            resultado["numero_paineis"], resultado["modulo_chave"],
+            resultado["potencia_inversor_kw"], exceto=resultado["inversor_modelo"])]
+
+    linhas = []
+    for chave in PLACAS_DA_LISTA:
+        modulo = CATALOGO_MODULOS[chave]
+        linha = {"chave": chave, "marca": modulo["nome"].split()[0],
+                 "potencia_wp": modulo["potencia_wp"],
+                 "bifacial": modulo.get("bifacial", False)}
+        if chave == resultado["modulo_chave"]:
+            outro = resultado
+            linha["situacao"] = "atual"
+        else:
+            outro = _simular_com_ligacao(cidade, consumo_medio_kwh, valor_fatura_reais,
+                                         placa=chave, **outros)
+            if outro.get("motivo_inviabilidade") == "placa_nao_serve":
+                linha["situacao"] = "nao_serve"
+            elif outro.get("erro"):
+                # Ex.: com esta placa o sistema nao se paga em 25 anos.
+                linha["situacao"] = "sem_resultado"
+                linha["motivo_inviabilidade"] = outro.get("motivo_inviabilidade")
+            elif outro["inversor_de_outra_marca"]:
+                linha["situacao"] = "outra_marca"
+            else:
+                linha["situacao"] = "aprovada"
+        linha["numero_paineis"] = outro.get("numero_paineis")
+        linha["potencia_instalada_kwp"] = outro.get("potencia_instalada_kwp")
+        linha["potencia_inversor_kw"] = outro.get("potencia_inversor_kw")
+        if linha["situacao"] in ("atual", "aprovada", "outra_marca"):
+            linha["inversor_modelo"] = outro["inversor_modelo"]
+            linha["inversor_marca"] = (dados_do_inversor(outro["inversor_modelo"]).get("marca")
+                                       if outro["inversor_modelo"] else None)
+            linha["custo_total_sistema"] = outro["custo_total_sistema"]
+            linha["payback_meses"] = outro["payback_meses"]
+            linha["economia_anual"] = outro["economia_anual"]
+        if linha["situacao"] == "nao_serve":
+            linha["motivo_tecnico"] = outro.get("motivo_tecnico")
+            linha["serve_em_degrau_maior"] = (
+                outro.get("potencia_inversor_kw") is not None
+                and placa_serve_em_degrau_maior(chave, outro["potencia_inversor_kw"]))
+        linhas.append(linha)
+    resultado["outras_placas"] = linhas
+    return resultado
+
+
+def _simular_com_ligacao(cidade, consumo_medio_kwh, valor_fatura_reais,
+            opcao_painel=None, placa=None,
             td=0.80, fdi=0.80, fio_b=None,
             percentual_fio_b=None,
             piso_disponibilidade_kwh=None,
@@ -281,8 +361,8 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
             cobrancas_nao_energia_reais=None, distribuidora_cnpj=None,
             perfil_simultaneidade=None):
     """
-    Funcao principal: recebe os dados do usuario e devolve o resultado. A
-    conta inteira esta em _simular_uma_vez(), logo abaixo.
+    A conta de uma simulacao (simular() chama esta funcao; a conta inteira
+    esta em _simular_uma_vez(), logo abaixo).
 
     LIGACAO TRIFASICA ACIMA DE 10 kW (fase 4, item 7, 10/11/2026). Acima de
     10 kW o inversor e trifasico, e a casa precisa de ligacao trifasica - e o
@@ -305,7 +385,7 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
     argumentos = dict(
         cidade=cidade, consumo_medio_kwh=consumo_medio_kwh,
         valor_fatura_reais=valor_fatura_reais, opcao_painel=opcao_painel,
-        td=td, fdi=fdi, fio_b=fio_b, percentual_fio_b=percentual_fio_b,
+        placa=placa, td=td, fdi=fdi, fio_b=fio_b, percentual_fio_b=percentual_fio_b,
         piso_disponibilidade_kwh=piso_disponibilidade_kwh,
         tipo_ligacao=tipo_ligacao, consumo_por_mes_kwh=consumo_por_mes_kwh,
         consumo_da_fatura_kwh=consumo_da_fatura_kwh,
@@ -344,7 +424,7 @@ def _precisa_de_trifasica(resultado, fdi):
 
 
 def _simular_uma_vez(cidade, consumo_medio_kwh, valor_fatura_reais,
-            opcao_painel=None,
+            opcao_painel=None, placa=None,
             td=0.80, fdi=0.80, fio_b=None,
             percentual_fio_b=None,
             piso_disponibilidade_kwh=None,
@@ -779,8 +859,20 @@ def _simular_uma_vez(cidade, consumo_medio_kwh, valor_fatura_reais,
     # sistema residencial quem decide o modulo e a COMPATIBILIDADE
     # ELETRICA, nao o preco nem o payback. Isso responde "por que este
     # modulo?" na banca sem depender de criterio adotado.
-    if opcao_painel is None:
-        chaves_a_testar = list(CATALOGO_MODULOS.keys())
+    # FASE 4, OUTRAS MARCAS (17/11/2026): "placa" e a placa escolhida na
+    # lista "Ver com outras placas" do resultado. NAO e o opcao_painel: aquele
+    # e o caminho de reproducao dos casos do PVsyst e devolve o arranjo mesmo
+    # reprovado; este procura um inversor de outra marca quando Growatt e Deye
+    # nao servem, e, se nenhum servir, devolve a explicacao (nunca um arranjo
+    # reprovado). A escolha automatica testa so as tres placas de sempre
+    # (MODULOS_DA_ESCOLHA_AUTOMATICA): as placas novas ficam so na lista.
+    if placa is not None:
+        if opcao_painel is not None:
+            raise ValueError("placa e opcao_painel nao podem vir juntos")
+        chaves_a_testar = [placa]
+        escolha_automatica = False
+    elif opcao_painel is None:
+        chaves_a_testar = list(MODULOS_DA_ESCOLHA_AUTOMATICA)
         escolha_automatica = True
     else:
         # Caminho de REPRODUCAO DE CASO DE TESTE, nao caminho de usuario.
@@ -792,12 +884,38 @@ def _simular_uma_vez(cidade, consumo_medio_kwh, valor_fatura_reais,
     for chave_modulo in chaves_a_testar:
         modulo_candidato = CATALOGO_MODULOS[chave_modulo]
         n_candidato = numero_paineis(pot_teorica, modulo_candidato["potencia_wp"])
-        arranjo_candidato = dimensionar_arranjo(n_candidato, chave_modulo, fdi)
+        if placa is not None:
+            arranjo_candidato = dimensionar_arranjo_com_placa(n_candidato, chave_modulo, fdi)
+        else:
+            arranjo_candidato = dimensionar_arranjo(n_candidato, chave_modulo, fdi)
         arranjo_candidato["desperdicio_kwp"] = (
             arranjo_candidato["potencia_instalada_kwp"] - pot_teorica)
         arranjos.append(arranjo_candidato)
 
     aprovados = [a for a in arranjos if a["aprovado"]]
+
+    # Placa escolhida que nao serve neste porte (fase 4, outras marcas): a
+    # resposta e a explicacao, nunca um arranjo reprovado. Pela tela isto
+    # nao acontece - a linha dessa placa nao tem botao "Simular" -, mas o
+    # pedido pode chegar montado a mao.
+    if placa is not None and not aprovados:
+        reprovado = arranjos[0]
+        comercial = reprovado.get("inversor_comercial") or {}
+        return {
+            "erro": (f"Com a placa {CATALOGO_MODULOS[placa]['nome']}, não encontramos um "
+                     f"inversor que funcione num sistema deste tamanho. Volte e escolha "
+                     f"outra placa."),
+            "inviavel": True,
+            "motivo_inviabilidade": "placa_nao_serve",
+            "motivo_tecnico": reprovado["motivo"],
+            "placa_escolhida": placa,
+            "numero_paineis": reprovado["numero_modulos"],
+            "potencia_instalada_kwp": reprovado["potencia_instalada_kwp"],
+            "potencia_inversor_kw": comercial.get("potencia_kw"),
+            "consumo_medio_mensal_kwh": consumo_medio_kwh,
+            "tipo_ligacao": tipo_ligacao_usado,
+            "tipo_ligacao_informado": tipo_ligacao_informado,
+        }
 
     # 3b) GUARDA DE VIABILIDADE, PARTE 3 (correcao T15)
     #
@@ -1164,6 +1282,12 @@ def _simular_uma_vez(cidade, consumo_medio_kwh, valor_fatura_reais,
         "modulo_formato_celula_mm": painel["formato_celula_mm"],
         "modulo_fonte_datasheet": painel["fonte"],
         "modulo_escolhido_pela_plataforma": escolha_automatica,
+        # Fase 4, outras marcas (17/11/2026).
+        "modulo_chave": arranjo["chave_modulo"],
+        "modulo_bifacial": painel.get("bifacial", False),
+        "modulo_celula_retangular": painel.get("celula_retangular", False),
+        "placa_escolhida": placa,
+        "inversor_de_outra_marca": arranjo.get("inversor_de_outra_marca", False),
         # Modelos que a plataforma testou e DESCARTOU, com o motivo. Existe
         # para a tela poder responder "por que este modulo e nao aquele" -
         # que e a diferenca entre uma ferramenta que decide e uma que
@@ -1179,10 +1303,10 @@ def _simular_uma_vez(cidade, consumo_medio_kwh, valor_fatura_reais,
         ],
         # O INVERSOR, agora com modelo e nao so potencia.
         "inversor_modelo": arranjo["inversor"],
-        "inversor_familia": (CATALOGO_INVERSORES[arranjo["inversor"]]["familia"]
+        "inversor_familia": (dados_do_inversor(arranjo["inversor"])["familia"]
                              if arranjo["inversor"] else None),
         "inversor_classe_corrente": (
-            CATALOGO_INVERSORES[arranjo["inversor"]]["classe_corrente"]
+            dados_do_inversor(arranjo["inversor"])["classe_corrente"]
             if arranjo["inversor"] else None),
         # FASE 4, ITEM 7 (10/11/2026): acima de 10 kW o inversor e
         # trifasico, e o degrau tem um modelo por tensao de rede (127/220 V e

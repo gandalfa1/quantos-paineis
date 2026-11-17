@@ -66,6 +66,16 @@ pela conta do texto (conferir_arranjo) - e testes diretos com inversores
 ficticios (testes_strings_em_paralelo). A varredura vai ate 4.700 kWh/mes.
 Erros plantados: 22.
 
+FASE 4, OUTRAS MARCAS (17/11/2026): placas e inversores de outras marcas, so
+nas listas do resultado. Pelo texto: placa bifacial e conferida com a corrente
+BNPI da folha (frente e verso recebendo luz); o resultado de inicio so usa as
+tres placas de sempre e os inversores Growatt/Deye; a lista de outros
+inversores traz, na ordem Solis, Huawei, Solplanet, todos os do degrau que
+passam com o mesmo numero de placas; e cada linha de "outras placas" e a
+simulacao refeita com aquela placa, com o inversor Growatt/Deye quando algum
+serve, senao o primeiro de outra marca que serve, senao "nao serve"
+(conferir_outras_marcas). Erros plantados: 27.
+
 Roda sem internet: a geocodificacao e a NASA POWER sao substituidas por
 dubles que devolvem o estado e os 12 valores de HSP informados no teste.
 
@@ -440,7 +450,9 @@ def arranjo_valido_pelo_texto(n, mod, inv, grupos, corrente_informada=None):
     erros = []
     voc_frio = mod["voc"] * (1 + mod["coef_voc"] / 100 * (0 - 25))
     vmp_quente = mod["vmp"] * (1 + (mod["coef_pmax"] - mod["coef_isc"]) / 100 * (70 - 25))
-    isc_quente = mod["isc"] * (1 + mod["coef_isc"] / 100 * (70 - 25))
+    # Outras marcas (17/11/2026): placa bifacial usa as correntes BNPI da folha.
+    imp = mod.get("imp_bnpi", mod["imp"])
+    isc_quente = mod.get("isc_bnpi", mod["isc"]) * (1 + mod["coef_isc"] / 100 * (70 - 25))
     if sum(g["strings"] * g["modulos_por_string"] for g in grupos) != n:
         erros.append("strings nao somam o numero de modulos")
     if len(grupos) > inv["mppts"]:
@@ -451,9 +463,9 @@ def arranjo_valido_pelo_texto(n, mod, inv, grupos, corrente_informada=None):
             erros.append(f"{k} strings num MPPT que aceita {inv['strings_por_mppt']}")
         if k * isc_quente > inv["corrente_max_curto_a"] + 1e-9:
             erros.append(f"curto do MPPT {k * isc_quente:.2f} A acima de {inv['corrente_max_curto_a']}")
-        if k * mod["imp"] / inv["corrente_max_entrada_a"] - 1 > 0.10 + 1e-12:
-            erros.append(f"corrente do MPPT {k * mod['imp']:.2f} A acima da tolerancia")
-        if inv.get("corrente_max_string_a") and mod["imp"] / inv["corrente_max_string_a"] - 1 > 0.10 + 1e-12:
+        if k * imp / inv["corrente_max_entrada_a"] - 1 > 0.10 + 1e-12:
+            erros.append(f"corrente do MPPT {k * imp:.2f} A acima da tolerancia")
+        if inv.get("corrente_max_string_a") and imp / inv["corrente_max_string_a"] - 1 > 0.10 + 1e-12:
             erros.append("corrente da string acima do limite por string")
         if L * voc_frio > inv["tensao_max_v"] + 1e-9:
             erros.append(f"tensao a frio {L * voc_frio:.0f} V acima de {inv['tensao_max_v']}")
@@ -461,7 +473,7 @@ def arranjo_valido_pelo_texto(n, mod, inv, grupos, corrente_informada=None):
             erros.append(f"tensao a quente {L * vmp_quente:.0f} V abaixo do MPPT")
     if corrente_informada is not None and grupos:
         k = max(g["strings"] for g in grupos)
-        if not perto(corrente_informada, k * mod["imp"]):
+        if not perto(corrente_informada, k * imp):
             erros.append(f"corrente do MPPT informada {corrente_informada} != {k} x Imp")
     return erros
 
@@ -489,7 +501,7 @@ def conferir_arranjo(res):
             erros.append("modelos por tensao num degrau monofasico")
         pares = [(res["inversor_modelo"], res["arranjo_laudo"])]
     for nome, laudo in pares:
-        inv = calculo.CATALOGO_INVERSORES[nome]
+        inv = calculo.dados_do_inversor(nome)
         if abs(inv["potencia_kw"] - res["potencia_inversor_kw"]) > 1e-9:
             erros.append(f"{nome} nao e do degrau de {res['potencia_inversor_kw']} kW")
         erros += [f"{nome}: {e}" for e in arranjo_valido_pelo_texto(
@@ -567,9 +579,129 @@ def testes_strings_em_paralelo():
     return falhas
 
 
-def comparar(entrada, fio_b_uf, mediana, motor=None):
-    """Roda o motor e as equacoes; devolve a lista de divergencias."""
-    motor = motor or simulacao.simular
+# ---------------------------------------------------------------------------
+# OUTRAS MARCAS (17/11/2026), pelo texto
+# ---------------------------------------------------------------------------
+AUTOMATICAS = ("jinko_600", "trina_550", "trina_670")
+ORDEM_RANKING = ("Solis", "Huawei", "Solplanet")
+
+
+def serve_pelo_texto(n, mod, inv):
+    """Inversor de 1 string por MPPT: existe um jeito de dividir n placas em
+    1 a mppts fileiras (tamanhos que diferem de no maximo 1) que passe nas
+    quatro verificacoes do texto?"""
+    for q in range(1, inv["mppts"] + 1):
+        base, resto = divmod(n, q)
+        if base == 0:
+            continue
+        grupos = [{"strings": 1, "modulos_por_string": base + (1 if i < resto else 0)}
+                  for i in range(q)]
+        if not arranjo_valido_pelo_texto(n, mod, inv, grupos):
+            return True
+    return False
+
+
+def do_degrau(catalogo, kw):
+    return [n for n, inv in catalogo.items() if abs(inv["potencia_kw"] - kw) < 1e-9]
+
+
+def conferir_outras_marcas(res, refazer=None, com_listas=True):
+    """Confere o resultado de inicio (so as placas e inversores de sempre) e,
+    com as listas, a de outros inversores e cada linha da de placas contra a
+    simulacao refeita com aquela placa ("refazer")."""
+    erros = []
+    if res.get("erro"):
+        return erros
+    mod_chave = res.get("modulo_chave")
+    if res.get("placa_escolhida") is None:
+        if mod_chave not in AUTOMATICAS:
+            erros.append(f"resultado de inicio com placa fora das tres de sempre: {mod_chave}")
+        if res.get("inversor_modelo") and res["inversor_modelo"] not in calculo.CATALOGO_INVERSORES:
+            erros.append(f"resultado de inicio com inversor de outra marca: {res['inversor_modelo']}")
+    if not com_listas:
+        return erros
+    kw, n = res["potencia_inversor_kw"], res["numero_paineis"]
+    mod = calculo.CATALOGO_MODULOS[mod_chave]
+    # lista de outros inversores: todos os do degrau que servem, na ordem do ranking
+    esperado = []
+    if kw <= LIMITE_MONOFASICO:
+        alt = calculo.CATALOGO_INVERSORES_OUTRAS_MARCAS
+        nomes = sorted(do_degrau(alt, kw), key=lambda x: ORDEM_RANKING.index(alt[x]["marca"]))
+        esperado = [x for x in nomes if x != res["inversor_modelo"] and serve_pelo_texto(n, mod, alt[x])]
+    lista = [x["modelo"] for x in res.get("inversores_outras_marcas", [])]
+    if lista != esperado:
+        erros.append(f"outros inversores: motor={lista} texto={esperado}")
+    if refazer is None:
+        return erros
+    linhas = res.get("outras_placas") or []
+    if [l["chave"] for l in linhas] != sorted(calculo.CATALOGO_MODULOS,
+                                              key=lambda k: calculo.CATALOGO_MODULOS[k]["potencia_wp"]):
+        erros.append("lista de placas incompleta ou fora de ordem")
+    for l in linhas:
+        if l["situacao"] == "atual":
+            if l["chave"] != mod_chave or l["numero_paineis"] != n:
+                erros.append(f"linha atual {l['chave']} diferente do resultado")
+            continue
+        r = refazer(l["chave"])
+        m = calculo.CATALOGO_MODULOS[l["chave"]]
+        if l["situacao"] == "sem_resultado":
+            if not r.get("erro") or r.get("motivo_inviabilidade") == "placa_nao_serve":
+                erros.append(f"linha {l['chave']} sem resultado, mas a refeita tem")
+            continue
+        if l["numero_paineis"] != r.get("numero_paineis") or not perto(
+                l["potencia_instalada_kwp"], r.get("potencia_instalada_kwp")):
+            erros.append(f"linha {l['chave']}: {l['numero_paineis']} placas, refeita "
+                         f"{r.get('numero_paineis')}")
+            continue
+        kw_l, n_l = l["potencia_inversor_kw"], l["numero_paineis"]
+        de_hoje = do_degrau(calculo.CATALOGO_INVERSORES, kw_l)
+        if l["situacao"] == "nao_serve":
+            if r.get("motivo_inviabilidade") != "placa_nao_serve":
+                erros.append(f"linha {l['chave']} nao serve, mas a refeita serve")
+            elif kw_l <= LIMITE_MONOFASICO:
+                todos = de_hoje + do_degrau(calculo.CATALOGO_INVERSORES_OUTRAS_MARCAS, kw_l)
+                bons = [x for x in todos if serve_pelo_texto(n_l, m, calculo.dados_do_inversor(x))]
+                if bons:
+                    erros.append(f"linha {l['chave']} nao serve, mas pelo texto {bons[0]} serve")
+            continue
+        if r.get("erro"):
+            erros.append(f"linha {l['chave']} com botao, mas a refeita da erro")
+            continue
+        if not (perto(l["custo_total_sistema"], r["custo_total_sistema"])
+                and perto(l["payback_meses"], r["payback_meses"])
+                and l["inversor_modelo"] == r["inversor_modelo"]):
+            erros.append(f"linha {l['chave']}: numeros diferentes da refeita")
+        erros += [f"linha {l['chave']}: {e}" for e in conferir_arranjo(r)]
+        if l["situacao"] == "aprovada":
+            if r["inversor_modelo"] not in calculo.CATALOGO_INVERSORES:
+                erros.append(f"linha {l['chave']} aprovada com inversor de outra marca")
+        elif l["situacao"] == "outra_marca":
+            alt = calculo.CATALOGO_INVERSORES_OUTRAS_MARCAS
+            if kw_l > LIMITE_MONOFASICO or r["inversor_modelo"] not in alt:
+                erros.append(f"linha {l['chave']} com outra marca fora da regra")
+                continue
+            hoje_bons = [x for x in de_hoje
+                         if serve_pelo_texto(n_l, m, calculo.CATALOGO_INVERSORES[x])]
+            if hoje_bons:
+                erros.append(f"linha {l['chave']} com outra marca, mas {hoje_bons[0]} serve")
+            nomes = sorted(do_degrau(alt, kw_l), key=lambda x: ORDEM_RANKING.index(alt[x]["marca"]))
+            primeiro = next((x for x in nomes if serve_pelo_texto(n_l, m, alt[x])), None)
+            if r["inversor_modelo"] != primeiro:
+                erros.append(f"linha {l['chave']}: outra marca {r['inversor_modelo']}, texto {primeiro}")
+    return erros
+
+
+def comparar(entrada, fio_b_uf, mediana, motor=None, conferir_linhas=False):
+    """Roda o motor e as equacoes; devolve a lista de divergencias.
+
+    Outras marcas (17/11/2026): com conferir_linhas, o motor e o simular()
+    inteiro, com as listas do resultado, e cada linha da lista de placas e
+    conferida contra a simulacao refeita. Sem conferir_linhas, a conta e a
+    mesma (simulacao._simular_com_ligacao, que o simular() chama), sem montar
+    as listas: elas custam 5 simulacoes a mais, e a conferencia passaria do
+    limite de 30 min da tarefa do Fio B no GitHub."""
+    if motor is None:
+        motor = simulacao.simular if conferir_linhas else simulacao._simular_com_ligacao
     C_meses, V_fat, C_fat, ligacao, uf, H, modo = entrada
     _ENTRADA["uf"], _ENTRADA["hsp"] = uf, H
     media = sum(C_meses) / 12
@@ -580,6 +712,12 @@ def comparar(entrada, fio_b_uf, mediana, motor=None):
     res = motor(**kwargs)
     eq = pelas_equacoes(C_meses, V_fat, C_fat, ligacao, uf, H, fio_b_uf, mediana)
     erros = []
+    # Outras marcas (17/11/2026). A simulacao refeita com cada placa (sem as
+    # listas: e a conta que o botao "Simular" abre) so numa parte da varredura,
+    # para o tempo da conferencia nao explodir.
+    refazer = ((lambda chave: simulacao._simular_com_ligacao(**dict(kwargs, placa=chave)))
+               if conferir_linhas else None)
+    erros += conferir_outras_marcas(res, refazer, com_listas=conferir_linhas)
     # FASE 4, ITEM 7 (10/11/2026), pelo texto: acima de 10 kW de inversor a
     # casa precisa de ligacao trifasica, e a conta e feita com o minimo da
     # trifasica (100 kWh), qualquer que seja a ligacao informada.
@@ -822,7 +960,11 @@ def rodar(motor=None, mostrar=True, parar_em=None):
     # 2) varredura
     for entrada in varredura():
         n += 1
-        erros, res, _ = comparar(entrada, fio_b_uf, mediana, motor)
+        # listas do resultado conferidas na entrada "media" de um consumo em
+        # cada tres (60, 120, 180... kWh): ~2.800 simulacoes, 5 placas cada
+        linhas = (entrada[6] == "media" and entrada[2] == sum(entrada[0]) / 12
+                  and entrada[2] % 60 == 0)
+        erros, res, _ = comparar(entrada, fio_b_uf, mediana, motor, conferir_linhas=linhas)
         chave = res.get("motivo_inviabilidade", "normal")
         guardas[chave] = guardas.get(chave, 0) + 1
         if erros:
@@ -900,6 +1042,19 @@ def erros_plantados():
         return {"inversor": None, "laudo": None, "reprovados": [],
                 "minimo_de_modulos_sugerido": None}
 
+    orig_mnd = calculo.modelos_no_degrau
+
+    def _outra_marca_primeiro(n_energia, chave, fdi=0.80):
+        a = calculo.dimensionar_arranjo(n_energia, chave, fdi)
+        kw = (a.get("inversor_comercial") or {}).get("potencia_kw")
+        servem = (calculo.inversores_de_outras_marcas_que_servem(a["numero_modulos"], chave, kw)
+                  if kw else [])
+        a["inversor_de_outra_marca"] = bool(servem)
+        if servem:
+            a.update({"aprovado": True, "inversor": servem[0][0], "laudo": servem[0][1],
+                      "motivo": ""})
+        return a
+
     mutacoes = {
         "regra antiga do minimo (em energia)": ("calculo", "compensavel_do_mes", regra_antiga),
         "minimo ignorado": ("calculo", "compensavel_do_mes", sem_minimo),
@@ -963,6 +1118,18 @@ def erros_plantados():
         "tarifa da troca pelo minimo da trifasica": (
             "simulacao", "_simular_uma_vez",
             lambda **k: orig_uma_vez(**dict(k, piso_da_conta_kwh=None))),
+        # Fase 4, outras marcas (17/11/2026)
+        "bifacial conferida sem a corrente BNPI": (
+            "calculo", "corrente_de_operacao_do_modulo", lambda m: m["imp"]),
+        "placas novas na escolha automatica": (
+            "simulacao", "MODULOS_DA_ESCOLHA_AUTOMATICA", tuple(calculo.CATALOGO_MODULOS)),
+        "inversor de outra marca na escolha de inicio": (
+            "calculo", "modelos_no_degrau",
+            lambda kw: do_degrau(calculo.CATALOGO_INVERSORES_OUTRAS_MARCAS, kw) + orig_mnd(kw)),
+        "outra marca fora da ordem do ranking": (
+            "calculo", "ORDEM_MARCAS_OUTRAS", ("Solplanet", "Huawei", "Solis")),
+        "outra marca antes de Growatt e Deye": (
+            "simulacao", "dimensionar_arranjo_com_placa", _outra_marca_primeiro),
     }
     detectadas = 0
     for nome, (modulo, funcao, nova) in mutacoes.items():
