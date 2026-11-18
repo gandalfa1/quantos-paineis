@@ -415,7 +415,15 @@
                 <span class="valor">{{ resultado.inversor_modelo }} (família {{ resultado.inversor_familia }})</span>
             </li>
             {% endif %}
-        </ul>{% if resultado.inversores_por_tensao %}
+        </ul>{% if area_telhado and medida_painel and resultado.numero_paineis %}{% set area_paineis = (resultado.numero_paineis * medida_painel[0] * medida_painel[1]) | round(1) %}{% if area_paineis > area_telhado %}<p class="hint-fonte aviso-area">⚠️ <strong>Não cabe:</strong> os painéis ocupam {{ br(area_paineis, 1) }} m², e a área livre que você informou é de {{ br(area_telhado, 0 if area_telhado == (area_telhado | round) else (1 if (area_telhado * 10) == (area_telhado * 10) | round else 2)) }} m². Converse com o instalador.</p>{% endif %}{% endif %}{% if not resultado.inversores_por_tensao and resultado.potencia_inversor_kw > 5 and resultado.potencia_inversor_kw <= 10 %}<p class="hint-fonte">Um sistema deste tamanho pode precisar de um padrão de entrada maior. Confirme com a distribuidora.</p>{% endif %}{% if resultado.inversores_por_tensao %}
+        {#- FASE 4, B4 "SO INFORMAR" (18/11/2026), na MESMA linha do </ul> para as
+            telas antigas nao mudarem: (1) aviso "Nao cabe" quando a area livre do
+            telhado (campo opcional, so na tela, nao vai ao motor) e menor que a
+            area dos paineis (MEDIDAS_PAINEL_M, acima); (2) art. 31 da REN 1.000
+            (a potencia da geracao fica limitada a potencia disponibilizada da
+            casa, que depende do padrao de entrada): frase curta de 5 kW
+            (exclusive) ate 10 kW - 127 V x 40 A ~ 5 kVA; acima de 10 kW ja ha o
+            aviso da trifasica, dentro de "Ver os modelos de inversor". -#}
         {#- Pedido da aluna (11/11/2026): acima de 10 kW, os modelos, a frase da
             rede e o aviso da ligacao trifasica ficam recolhidos ("a tela fica
             muito poluida"). O aviso do custo da troca virou uma frase curta

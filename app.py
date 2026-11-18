@@ -236,6 +236,23 @@ def rota_simular():
                 "resultado.html", resultado=None,
                 erro="O valor das cobranças que não são energia não pode ser negativo.")
 
+    # Area livre do telhado (fase 4, B4 "so informar", 18/11/2026). Campo
+    # OPCIONAL que SO AVISA: NAO vai para o simular() - o motor nao muda. A
+    # tela compara com a soma da area dos paineis e avisa quando nao cabe.
+    # Em branco, a tela fica exatamente como era.
+    area_telhado, problema = ler_numero(request.form.get("area_telhado"))
+    if problema != "vazio":
+        if problema == "invalido":
+            return _tela_de_erro("A área do telhado não parece um número válido. "
+                                 "Informe só os metros quadrados, por exemplo 25 "
+                                 "— ou deixe o campo em branco.")
+        if problema == "grande" or area_telhado > 100000:
+            return _tela_de_erro("A área do telhado parece grande demais para uma "
+                                 "casa. Confira se digitou certo.")
+        if area_telhado <= 0:
+            return _tela_de_erro("A área do telhado precisa ser maior que zero "
+                                 "— ou deixe o campo em branco.")
+
     # Modo avancado (opcional): historico de 12 meses e mes da fatura.
     consumo_por_mes, erro_consumo = ler_consumo_mensal(request.form)
     if erro_consumo:
@@ -315,6 +332,7 @@ def rota_simular():
         resultado=resultado,
         erro=None,
         fatura_informada=fatura,
+        area_telhado=area_telhado,
     )
 
 

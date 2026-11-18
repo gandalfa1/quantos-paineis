@@ -312,7 +312,7 @@
                         uma fracao pelo lado baixo das medicoes publicadas - as
                         fontes estao no calculo.py (SIMULTANEIDADE_POR_PERFIL) e
                         na pagina Metodologia. Muda so a economia e o retorno. -#}
-                    <div class="form-group" style="margin-bottom: 0;">
+                    <div class="form-group">
                         <label for="horario">
                             Em que horário a sua casa mais usa energia?
                             <span class="tip">
@@ -327,6 +327,25 @@
                             <option value="dia">Bastante de dia</option>
                         </select>
                         <p class="hint">“Dia” é enquanto há sol. <strong>Quase tudo à noite:</strong> não fica ninguém em casa durante o dia. <strong>Bastante de dia:</strong> tem gente em casa o dia todo, ar-condicionado ou piscina ligados à tarde. Na dúvida, deixe “Não sei”: calculamos como se nada fosse usado na hora, e a sua economia tende a ser um pouco maior do que a mostrada.</p>
+                    </div>
+
+                    {#- FASE 4, B4 "SO INFORMAR" (18/11/2026, decisao da aluna): area
+                        livre do telhado. Opcional e SO AVISA: nao entra no motor
+                        (app.py le o campo e manda so para a tela). Se a area
+                        informada for menor que a soma da area dos paineis, o
+                        resultado avisa que nao cabe. Nao recalcula com menos
+                        paineis (isso seria mexer no motor; fica para depois, se
+                        ela quiser). -#}
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="area_telhado">
+                            Área livre do telhado (m²)
+                            <span class="tip">
+                                <button type="button" class="tip-btn" aria-label="Para que serve a área do telhado?">i</button>
+                                <span class="tip-bubble">Serve só para conferir se os painéis cabem. Conte só a parte que pega sol e não tem caixa d'água, chaminé ou antena. O número de painéis e a economia não mudam.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="area_telhado" name="area_telhado" step="any" min="0">
+                        <p class="hint">Não sabe? Deixe em branco.</p>
                     </div>
                 </div>
             </details>
@@ -1206,9 +1225,11 @@
             var cobrancas = document.getElementById('cobrancas');
             var ligacao = document.getElementById('ligacao');
             var horario = document.getElementById('horario');
+            var area = document.getElementById('area_telhado');
             var tem = (cobrancas && cobrancas.value.trim() !== '')
                    || (ligacao && ligacao.value !== '')
-                   || (horario && horario.value !== '');
+                   || (horario && horario.value !== '')
+                   || (area && area.value.trim() !== '');
             if (tem) { bloco.open = true; }
         }
 
@@ -1272,7 +1293,7 @@
                 mensal.open = true;
             }
             var opcionais = document.getElementById('bloco-opcionais');
-            if (opcionais && ['ligacao', 'cobrancas'].some(function (n) { return dados[n]; })) { opcionais.open = true; }
+            if (opcionais && ['ligacao', 'cobrancas', 'area_telhado'].some(function (n) { return dados[n]; })) { opcionais.open = true; }
             aviso.hidden = false;
         }
         if (botaoLimpar) {
