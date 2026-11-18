@@ -84,15 +84,15 @@
 <tbody>
 <tr>
 <th scope="row">Guaíra, 300 kWh/mês</th>
-<td>5 painéis, retorno de 57,7 meses</td>
-<td>5 painéis, 57,7 meses</td>
-<td>4 painéis, 55,0 meses</td>
+<td>5 painéis, retorno de 62,1 meses</td>
+<td>5 painéis, 62,1 meses</td>
+<td>4 painéis, 58,4 meses</td>
 </tr>
 <tr>
 <th scope="row">Campinas, 180 kWh/mês</th>
-<td>3 painéis, 68,6 meses</td>
-<td>3 painéis, 71,6 meses</td>
-<td>2 painéis, 102,4 meses</td>
+<td>3 painéis, 72,1 meses</td>
+<td>3 painéis, 75,2 meses</td>
+<td>2 painéis, 105,1 meses</td>
 </tr>
 </tbody>
 </table></div>
@@ -108,7 +108,7 @@
 <details class="secao-sanfona">
     <summary><h2 id="sobre-a-sua-conta-e-as-regras"><span class="divider-dot"></span>Sobre a sua conta e as regras</h2></summary>
 <div class="secao-conteudo">
-<p><strong>Iluminação pública e outras cobranças.</strong> <span class="efeito pior">⬇ pior na vida real</span> A plataforma calcula a sua tarifa com o valor da conta. Se a conta tiver iluminação pública (cobrada pela prefeitura), taxa de lixo, multa, juros ou parcelamento, esses valores não são energia, e os painéis não os reduzem. O campo opcional <strong>Cobranças da conta que não são energia</strong>, no bloco “Deixar o resultado mais preciso”, desconta esses valores antes do cálculo. <strong>Se ele ficar em branco</strong>, eles entram como se fossem energia economizada, a economia sai <strong>otimista</strong> e a tela de resultado avisa. Em Manaus, a contribuição residencial era de R$ 47,91 por mês na faixa de 501 a 1.000 kWh (valor proposto para 2022). No caso de Manaus, com o campo em branco, o retorno encurtaria de 42,6 para 36,8 meses.</p>
+<p><strong>Iluminação pública e outras cobranças.</strong> <span class="efeito pior">⬇ pior na vida real</span> A plataforma calcula a sua tarifa com o valor da conta. Se a conta tiver iluminação pública (cobrada pela prefeitura), taxa de lixo, multa, juros ou parcelamento, esses valores não são energia, e os painéis não os reduzem. O campo opcional <strong>Cobranças da conta que não são energia</strong>, no bloco “Deixar o resultado mais preciso”, desconta esses valores antes do cálculo. <strong>Se ele ficar em branco</strong>, eles entram como se fossem energia economizada, a economia sai <strong>otimista</strong> e a tela de resultado avisa. Em Manaus, a contribuição residencial era de R$ 47,91 por mês na faixa de 501 a 1.000 kWh (valor proposto para 2022). No caso de Manaus, com o campo em branco, o retorno encurtaria de 47,0 para 40,6 meses.</p>
 <p><strong>Impostos.</strong> <span class="efeito pior">⬇ pior na vida real</span> A sua tarifa tem impostos (ICMS, PIS e Cofins), mas o Fio B da tabela da ANEEL não tem. Descontar um do outro deixa a economia um pouco otimista. Esse efeito não foi medido, porque o ICMS muda de estado para estado.</p>
 <p><strong>Bandeira tarifária.</strong> <span class="efeito dois">⬍ para os dois lados</span> A tarifa sai de uma conta só e carrega a bandeira daquele mês. A plataforma usa essa tarifa para todo o período.</p>
 <p><strong>Municípios com mais de uma distribuidora.</strong> <span class="efeito dois">⬍ para os dois lados</span> Em 481 dos 5.571 municípios, mais de uma empresa atende a cidade — quase sempre uma cooperativa dividindo a área com a concessionária, em Santa Catarina, no Rio Grande do Sul e no Paraná. A plataforma pergunta qual é a sua; <strong>se você não informar</strong>, ela usa a de maior Fio B, que dá a menor economia. A diferença entre as opções do mesmo município é de R$ 0,079/kWh na mediana e chega a R$ 0,38/kWh no caso extremo — o suficiente para mudar o retorno em vários meses. Informar a sua distribuidora resolve: o nome está na conta de luz.</p>
@@ -128,10 +128,10 @@
 <p><strong>Catálogo pequeno.</strong> <span class="efeito dois">⬍ para os dois lados</span> O resultado de início usa três painéis e inversores de 1,0 a 25 kW, de quatro fabricantes: monofásicos até 10 kW e trifásicos de 12 a 25 kW. Outros três painéis e três marcas de inversor (só até 10 kW) aparecem nas listas do resultado. Acima de 25 kW de inversor (cerca de 31 kWp de painéis), o sistema sai do porte residencial, e a plataforma não indica sistema. Veja a página <a href="/equipamentos"><strong>Os painéis, os inversores e os preços</strong></a>.</p>
 <p><strong>Placas bifaciais.</strong> <span class="efeito melhor">⬆ melhor na vida real</span> Nas placas que geram também pelo verso, a energia do verso não entra na conta. Na vida real, a geração pode ser um pouco maior.</p>
 <p><strong>Troca para ligação trifásica.</strong> <span class="efeito pior">⬇ pior na vida real</span> Acima de 10 kW, a casa precisa de ligação trifásica. Se a sua ainda não é, a troca é pedida à distribuidora e pode ter custo, como um padrão de entrada novo. Esse custo não está na conta.</p>
-<p><strong>Rede da sua casa.</strong> O site mostra primeiro o inversor da rede mais comum na cidade, mas a da sua casa pode ser a outra. Confirme com a distribuidora.</p>
+<p><strong>Rede da sua casa.</strong> O site mostra primeiro o inversor da rede mais comum na cidade, mas a da sua casa pode ser a outra. Confirme com a distribuidora. Em parte de São Paulo (Enel SP e EDP SP), há casas com rede de 120/240 V. Acima de 10 kW, os modelos trifásicos do site, de 220 V e 380 V, podem não servir nela; confirme com o instalador.</p>
 <p><strong>Arredondamento dos painéis.</strong> <span class="efeito dois">⬍ para os dois lados</span> O número de painéis é sempre arredondado para cima. Com um painel a menos, o sistema custaria cerca de R$ 1.000 a menos e às vezes se pagaria alguns meses antes. Mas, em 25 anos, quase sempre economizaria menos: os painéis perdem um pouco de força a cada ano, e o painel a mais compensa essa perda.</p>
 <p><strong>Corrente dos painéis no calor.</strong> <span class="efeito pior">⬇ pior na vida real</span> (efeito pequeno) Na verificação de desempenho, a plataforma usa a corrente do painel nas condições de laboratório. No calor, essa corrente sobe um pouco. Se ela fosse corrigida para 70 °C, só os inversores Growatt MIN de 4,2 a 6,0 kW passariam da tolerância e seriam trocados por um inversor de corrente alta da mesma potência. Quando a corrente passa do limite de entrada, o inversor não se danifica, mas perde um pouco de energia: nos testes com o PVsyst, essa perda foi de no máximo 0,56%.</p>
-<p><strong>Preço médio nacional.</strong> <span class="efeito dois">⬍ para os dois lados</span> O preço é a média do mercado brasileiro em janeiro de 2026, e não o preço da sua região nem de uma marca. Os preços mudam com o tempo. Em Campinas (1,8 kWp), usar o preço de um sistema de 2 kWp em vez da reta da plataforma encurtaria o retorno em cerca de 4 meses.</p>
+<p><strong>Preço médio nacional.</strong> <span class="efeito dois">⬍ para os dois lados</span> O preço é a média do mercado brasileiro em junho de 2026, e não o preço da sua região nem de uma marca. Os preços mudam com o tempo. Em Campinas (1,8 kWp), usar o preço de um sistema de 2 kWp em vez da reta da plataforma encurtaria o retorno em cerca de 4 meses.</p>
 <p><strong>Cabos e proteções.</strong> <span class="efeito dois">⬍ para os dois lados</span> Cabos, disjuntores e outras proteções não são dimensionados pela plataforma. Esse é o trabalho do profissional que faz o projeto.</p>
 </div>
 </details>

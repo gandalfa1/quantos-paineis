@@ -1104,7 +1104,7 @@ def _simular_uma_vez(cidade, consumo_medio_kwh, valor_fatura_reais,
     # erro crescendo conforme o sistema encolhe.
     #
     # Agora o custo vem do preco de mercado do SISTEMA PRONTO, medido pela
-    # Greener (marco/2026, precos de janeiro/2026), interpolado pelo porte.
+    # Greener (setembro/2026, precos de junho/2026), interpolado pelo porte.
     # O parametro percentual_bos foi removido da assinatura no T5.
     custos = custo_sistema_greener(pot_instalada)
     custo_total = custos["custo_total"]

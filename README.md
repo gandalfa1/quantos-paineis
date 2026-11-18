@@ -137,7 +137,7 @@ A numeração abaixo é a do artigo do TCC. Os comentários do código usam a nu
 - **Fio B e distribuidora de cada município:** ANEEL, Portal de Dados Abertos (conjuntos "Componentes Tarifárias", "IndQual Município" e "Indicadores Coletivos de Continuidade"), sob a Open Database License (ODbL) 1.0. Valores sem impostos. Os arquivos que vêm desses dados e a licença deles estão em `dados-ANEEL-LICENCA.txt`.
 - **Rede trifásica de cada município:** ANEEL, Base de Dados Geográfica da Distribuidora (BDGD), dados de 31/12/2025, publicada no ArcGIS Online; Neoenergia Coelba, lista de municípios por tensão de fornecimento.
 - **Lista de municípios:** códigos e nomes conferidos com a lista oficial do IBGE. Origem e licença em `static/municipios-LICENCA.txt`.
-- **Preços:** Greener, Estudo Estratégico – Mercado Fotovoltaico, março de 2026 (preços de janeiro de 2026).
+- **Preços:** Greener, Estudo Estratégico – Soluções Energéticas Distribuídas, Mercado Fotovoltaico, 1º semestre de 2026, setembro de 2026 (preços de junho de 2026). Até 18/11/2026 o site usou a edição de março de 2026 (preços de janeiro de 2026), que é a dos artigos.
 - **Módulos e inversores:** folhas de dados dos fabricantes.
 - **Fontes tipográficas:** Inter e Sora, sob a SIL Open Font License (`static/fonts/`).
 

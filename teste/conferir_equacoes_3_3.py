@@ -161,9 +161,12 @@ DEGRAUS = [1.0, 1.5, 2.0, 2.5, 3.0, 4.2, 5.0, 6.0, 7.0, 7.5, 8.0, 9.0, 10.0,  # 
 LIMITE_MONOFASICO = 10.0      # kW: acima, inversor trifasico e ligacao trifasica (item 7)
 C_DISP = {"monofasica": 30.0, "bifasica": 50.0, "trifasica": 100.0}
 P_FIO_B_2026 = 0.60           # Lei 14.300/2022, art. 27, IV
-SISTEMA = [(2, 3.44), (4, 2.66), (8, 2.21), (12, 2.04), (30, 1.91)]   # R$/Wp
-KIT = [(2, 1.68), (4, 1.42)]  # R$/Wp, trecho usado abaixo de 2 kWp
-SERVICO_FIXO = 3520.0         # R$ = (3,44 - 1,68) x 2.000 Wp
+# Greener, setembro/2026 (precos de junho/2026) - fase 4, 18/11/2026.
+# Antes (marco/2026, precos de janeiro/2026): 3,44/2,66/2,21/2,04/1,91;
+# kit 1,68/1,42; servico fixo 3.520.
+SISTEMA = [(2, 3.62), (4, 2.91), (8, 2.43), (12, 2.22), (30, 2.02)]   # R$/Wp
+KIT = [(2, 1.99), (4, 1.68)]  # R$/Wp, trecho usado abaixo de 2 kWp
+SERVICO_FIXO = 3260.0         # R$ = (3,62 - 1,99) x 2.000 Wp
 
 
 def eq1(H):
@@ -888,12 +891,16 @@ PERFIS = {
     None: perfil(5.0, 0.15),
 }
 
+# Fase 4 (18/11/2026): custo e payback simples com os precos da Greener de
+# setembro/2026 (precos de junho/2026). Com os de marco/2026 (os do TCC e dos
+# artigos) eram: custo 7881,60 / 9150,00 / 13513,50 / 6590,80 / 7881,60 e
+# payback 48,6 / 49,1 / 38,0 / 67,6 / 46,8. Economia, modulos e inversor iguais.
 CASOS_OFICIAIS = [  # (cidade, UF, consumo, economia/mes, custo, payback em meses, modulos, inversor)
-    ("Bom Jesus da Lapa", "BA", 300, 162.08, 7881.60, 48.6, 4, 2.0),
-    ("Guaira", "PR", 300, 186.38, 9150.00, 49.1, 5, 2.5),
-    ("Manaus", "AM", 550, 355.49, 13513.50, 38.0, 9, 5.0),
-    ("Campinas", "SP", 180, 97.50, 6590.80, 67.6, 3, 1.5),
-    ("Cuiaba", "MT", 300, 168.28, 7881.60, 46.8, 4, 2.0),
+    ("Bom Jesus da Lapa", "BA", 300, 162.08, 8347.20, 51.5, 4, 2.0),
+    ("Guaira", "PR", 300, 186.38, 9795.00, 52.6, 5, 2.5),
+    ("Manaus", "AM", 550, 355.49, 14806.80, 41.7, 9, 5.0),
+    ("Campinas", "SP", 180, 97.50, 6897.80, 70.7, 3, 1.5),
+    ("Cuiaba", "MT", 300, 168.28, 8347.20, 49.6, 4, 2.0),
 ]
 
 
@@ -1067,7 +1074,7 @@ def erros_plantados():
             "simulacao", "custo_sistema_greener",
             lambda P: dict(orig["custo_sistema_greener"](P),
                            custo_total=orig["custo_sistema_greener"](P)["custo_total"]
-                           - (3520 if P < 2 else 0))),
+                           - (SERVICO_FIXO if P < 2 else 0))),
         "payback em anos no lugar de meses": ("simulacao", "payback_meses",
                                               lambda I, e: I / (e * 12) if e > 0 else math.inf),
         # Itens 28 e 11 (06/10/2026): os erros que a conta nova pode ter

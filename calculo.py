@@ -3509,21 +3509,30 @@ def _motivo_da_reprovacao(reprovados):
 # projeto, ART, deslocamento e homologacao quase nao encolhem.
 #
 # Agora o custo vem do PRECO DE MERCADO DO SISTEMA PRONTO, medido pela
-# Greener junto a milhares de integradores de todo o pais (precos de
-# janeiro/2026). E preco ao cliente final, ja incluindo
-# equipamento, mao de obra, projeto e homologacao.
+# Greener junto a empresas integradoras de todo o pais. E preco ao cliente
+# final, ja incluindo equipamento, mao de obra, projeto e homologacao.
 #
 # FONTE: GREENER. Estudo Estrategico - Solucoes Energeticas Distribuidas,
-# Mercado Fotovoltaico. Marco/2026, precos de referencia de janeiro/2026.
+# Mercado Fotovoltaico, 1o semestre de 2026. Setembro/2026, precos de
+# referencia de junho/2026 (slides 46 e 47; pesquisa de 10/07 a 23/08/2026,
+# 434 respostas validas).
 # (No artigo: Equacao 10, calculada em custo_sistema_greener().)
-CURVA_SISTEMA_GREENER = [(2.0, 3.44), (4.0, 2.66), (8.0, 2.21),
-                         (12.0, 2.04), (30.0, 1.91)]
+#
+# FASE 4 (18/11/2026): tabela trocada pela edicao de setembro/2026. Antes
+# (edicao de marco/2026, precos de janeiro/2026, a dos artigos - que citam
+# as tags): sistema 3,44 / 2,66 / 2,21 / 2,04 / 1,91 e kit 1,68 / 1,42 /
+# 1,26 / 1,21 / 1,12 R$/Wp. O numero de paineis nao depende do preco.
+# No kit, 30 kWp (1,42) ficou 1 centavo acima de 12 kWp (1,41): e o dado
+# publicado; so muda a divisao equipamento x instalacao entre 12 e 30 kWp,
+# nunca o custo total (que vem da curva do sistema).
+CURVA_SISTEMA_GREENER = [(2.0, 3.62), (4.0, 2.91), (8.0, 2.43),
+                         (12.0, 2.22), (30.0, 2.02)]
 
-CURVA_KIT_GREENER = [(2.0, 1.68), (4.0, 1.42), (8.0, 1.26),
-                     (12.0, 1.21), (30.0, 1.12)]
+CURVA_KIT_GREENER = [(2.0, 1.99), (4.0, 1.68), (8.0, 1.46),
+                     (12.0, 1.41), (30.0, 1.42)]
 
 MENOR_PORTE_MEDIDO_KWP = 2.0
-REFERENCIA_PRECOS = "Greener, marco/2026 (precos de janeiro/2026)"
+REFERENCIA_PRECOS = "Greener, setembro/2026 (precos de junho/2026)"
 
 
 def interpolar_preco_por_wp(potencia_kwp, curva):

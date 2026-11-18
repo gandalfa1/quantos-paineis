@@ -1,28 +1,28 @@
-Saida do teste/conferir_equacoes_3_3.py - rodado em 17/11/2026 (Python 3.13), no ramo
-fase4-outras-marcas (outras placas e inversores, a partir do main 4d22bd0). A saida da versao do
+Saida do teste/conferir_equacoes_3_3.py - rodado em 18/11/2026 (Python 3.13), no ramo
+fase4-precos-greener-jun2026 (precos da Greener de setembro/2026, a partir do main 20d6b53). A saida da versao do
 artigo (a) (31.488 simulacoes, 14 erros plantados) continua na tag v1.2-artigo-rbens; a da versao
 do TCC (15.744 simulacoes, 10 erros plantados), na tag v1.0-tcc.
 
 === 1 e 2: casos resolvidos a mao e varredura ===
 Simulacoes da varredura: 33472
-Resultados: {'sem_energia_compensavel': 864, 'payback_acima_da_vida_util': 803, 'normal': 31245, 'sem_arranjo_valido': 560}
+Resultados: {'sem_energia_compensavel': 864, 'payback_acima_da_vida_util': 807, 'normal': 31241, 'sem_arranjo_valido': 560}
 Divergencias: 0
 
 === 3: erros plantados ===
-  DETECTADO: regra antiga do minimo (em energia) (pelo menos 82 divergencias)
+  DETECTADO: regra antiga do minimo (em energia) (pelo menos 89 divergencias)
   DETECTADO: minimo ignorado (pelo menos 50 divergencias)
   DETECTADO: HSP pela media simples (pelo menos 50 divergencias)
   DETECTADO: ano de 360 dias (pelo menos 50 divergencias)
   DETECTADO: Fio B sem o percentual (pelo menos 50 divergencias)
   DETECTADO: servico fixo esquecido abaixo de 2 kWp (pelo menos 50 divergencias)
   DETECTADO: payback em anos no lugar de meses (pelo menos 50 divergencias)
-  DETECTADO: retorno com o Fio B de hoje para sempre (pelo menos 52 divergencias)
+  DETECTADO: retorno com o Fio B de hoje para sempre (pelo menos 53 divergencias)
   DETECTADO: retorno sem a degradacao (pelo menos 50 divergencias)
   DETECTADO: retorno sem a manutencao (pelo menos 50 divergencias)
   DETECTADO: troca do inversor esquecida (pelo menos 50 divergencias)
   DETECTADO: pior caso calculado com o Fio B (pelo menos 50 divergencias)
   DETECTADO: escalada do Fio B um ano adiantada (pelo menos 50 divergencias)
-  DETECTADO: geracao sem a TD (pelo menos 79 divergencias)
+  DETECTADO: geracao sem a TD (pelo menos 81 divergencias)
   DETECTADO: modulos arredondados para baixo (pelo menos 50 divergencias)
   DETECTADO: tarifa pelo consumo da conta abaixo do minimo (pelo menos 50 divergencias)
   DETECTADO: inversor arredondado para baixo (pelo menos 50 divergencias)
@@ -32,7 +32,7 @@ Divergencias: 0
   DETECTADO: ligacao trifasica esquecida acima de 10 kW (pelo menos 50 divergencias)
   DETECTADO: tarifa da troca pelo minimo da trifasica (pelo menos 50 divergencias)
   DETECTADO: bifacial conferida sem a corrente BNPI (pelo menos 907 divergencias)
-  DETECTADO: placas novas na escolha automatica (pelo menos 133 divergencias)
+  DETECTADO: placas novas na escolha automatica (pelo menos 134 divergencias)
   DETECTADO: inversor de outra marca na escolha de inicio (pelo menos 50 divergencias)
   DETECTADO: outra marca fora da ordem do ranking (pelo menos 50 divergencias)
   DETECTADO: outra marca antes de Growatt e Deye (pelo menos 50 divergencias)

@@ -123,8 +123,8 @@
 </tr>
 <tr>
 <th scope="row">Preço do sistema</th>
-<td><strong>Greener</strong>, <em>Estudo Estratégico</em> (março de 2026)</td>
-<td>São os preços médios de janeiro de 2026 para cada tamanho de sistema.</td>
+<td><strong>Greener</strong>, <em>Estudo Estratégico</em> do 1º semestre de 2026 (setembro de 2026)</td>
+<td>São os preços médios de junho de 2026 para cada tamanho de sistema.</td>
 </tr>
 <tr>
 <th scope="row">Painéis e inversores</th>
@@ -251,7 +251,7 @@
 <li><strong>Critério de aceitação:</strong> diferença de até 10% na geração do ano. Os cinco casos ficaram dentro dele.</li>
 <li><strong>A plataforma estima menos.</strong> Isso aconteceu nos cinco casos e em todos os 12 meses de cada um. O motivo são as perdas: a plataforma usa uma taxa fixa de 0,80, e o PVsyst calculou de 83,35% a 85,93%, que é o valor de um sistema sem sombra, sem sujeira e sem desgaste. Em relação à simulação, portanto, a estimativa fica do lado seguro. <strong>Mas, num telhado real, a geração pode ser menor que a do PVsyst.</strong></li>
 <li><strong>Verificação elétrica:</strong> os limites de painéis em série deram iguais aos do PVsyst nos inversores conferidos (MIC 1500TL-X, MIC 2000TL-X e MIN 5000TL-X). A perda por limite de corrente ficou em até 0,04%. Numa simulação extra de Campinas, feita para isolar esse efeito, ela chegou a 0,56%.</li>
-<li><strong>Tempo de retorno:</strong> com 60% do Fio B, foi de 3,2 a 5,6 anos nos cinco casos. Um estudo publicado (Costa et al., 2025) calculou 4,57 anos para uma casa com 4,2 kWp. Na mesma casa, três calculadoras gratuitas deram de 3 anos e 3 meses a 4 anos e 1 mês. Esses tempos caem dentro da nossa faixa, mas a comparação vale só como ordem de grandeza, porque os cenários são diferentes. Com a subida do Fio B, que a plataforma passou a somar mês a mês depois do TCC, e com a manutenção e a troca do inversor, o retorno dos cinco casos fica de 3,6 a 6,0 anos para uma simulação feita em novembro de 2026.</li>
+<li><strong>Tempo de retorno:</strong> com 60% do Fio B, foi de 3,2 a 5,6 anos nos cinco casos. Um estudo publicado (Costa et al., 2025) calculou 4,57 anos para uma casa com 4,2 kWp. Na mesma casa, três calculadoras gratuitas deram de 3 anos e 3 meses a 4 anos e 1 mês. Esses tempos caem dentro da nossa faixa, mas a comparação vale só como ordem de grandeza, porque os cenários são diferentes. Com a subida do Fio B, que a plataforma passou a somar mês a mês depois do TCC, e com a manutenção e a troca do inversor, o retorno dos cinco casos fica de 3,9 a 6,3 anos para uma simulação feita em novembro de 2026, com os preços de junho de 2026.</li>
 <li><strong>Conferência das equações:</strong> um programa refaz as contas a partir das equações escritas no artigo (e, para o retorno mês a mês, da descrição que está no código). Ele rodou a plataforma 33.472 vezes, em toda a faixa de consumo residencial e até os inversores trifásicos de 25 kW, inclusive com contas de mês abaixo do mínimo, sem nenhuma divergência. Também foram colocados de propósito 22 erros no cálculo, 6 deles no retorno mês a mês e nos 25 anos (entre eles, esquecer a manutenção ou a troca do inversor), 2 na tarifa e 4 nos inversores trifásicos (entre eles, esquecer de somar a corrente de duas fileiras na mesma entrada), e o programa detectou os 22.</li>
 <li><strong>O que ficou fixo nos cinco casos:</strong> ligação bifásica, 60% do Fio B (2026) e tarifa de teste de R$ 0,75/kWh.</li>
 <li><strong>Limites desta comparação:</strong></li>
@@ -292,6 +292,7 @@
 <li>EPE. Nota Técnica EPE-DEA-SEE 014/2022 (Modelo 4MD, versão PDE 2032). Rio de Janeiro: Empresa de Pesquisa Energética, 2022.</li>
 <li>EPE. Nota Técnica DEA-SEE 009/2023: aprimoramento na metodologia de estimação da geração de micro e minigeradores fotovoltaicos distribuídos. 2023.</li>
 <li>GREENER. Estudo estratégico: mercado fotovoltaico, referente ao ano de 2025. Março de 2026.</li>
+<li>GREENER. Estudo estratégico: soluções energéticas distribuídas, mercado fotovoltaico, 1º semestre de 2026. Setembro de 2026.</li>
 <li>IBGE. Base Cartográfica Contínua do Brasil, escala 1:250.000 – BC250. Versão 2025. Fonte: IBGE/DGC.</li>
 <li>KELVINS. municipios-brasileiros. GitHub, licença MIT.</li>
 <li>NASA. POWER: Prediction Of Worldwide Energy Resources. Climatology API, v2.10.0 (comparação com o PVsyst) e v2.10.1 (tabela de sol).</li>
