@@ -2552,7 +2552,16 @@ CATALOGO_INVERSORES = {
 #   - Huawei LC0: folha diz MPPT 40-560 V; o registro diz 90-560 V -> 90 V.
 #   - Solplanet ASW S: folha BR 2025 da 20/16/20 A; a global, 16 A -> 16 A.
 # Degraus sem nenhuma das tres: 1,0 / 1,5 / 2,5 / 4,2 kW.
-# Trifasicos destas marcas: 2a rodada.
+# TRIFASICOS 12-25 kW (2a rodada, 18-19/11/2026; claude/outras_marcas_2a_
+# rodada_etapa1_18-11.txt): mesma regra (potencia exata do degrau, registro
+# ATIVO no Inmetro, folha oficial), com "tensao_rede" como no catalogo de
+# sempre. Marca com dois modelos no degrau -> o de limites mais apertados;
+# hibridos fora. Huawei M5: piso de MPPT do registro Inmetro ("full-load",
+# 370-530 V), mais apertado que o da folha (200 V). Assimetricos (Solplanet
+# LT-G2 Pro 12/15/25K, UT-G3 15K): o MPPT mais fraco vale para os dois.
+# Degrau sem nenhuma das tres: 12 kW na rede de 127/220 V. Acima de 10 kW
+# eles so aparecem na lista "Ver outros inversores que servem" (por rede):
+# nao entram na escolha do motor nem em "Ver com outras placas".
 ORDEM_MARCAS_OUTRAS = ("Solis", "Huawei", "Solplanet")
 CATALOGO_INVERSORES_OUTRAS_MARCAS = {
     "S6-GR1P2K-M": {
@@ -2752,6 +2761,186 @@ CATALOGO_INVERSORES_OUTRAS_MARCAS = {
         "corrente_max_entrada_a": 16.0, "corrente_max_curto_a": 22.5,
         "tensao_max_v": 600.0, "mppt_min_v": 80.0, "mppt_max_v": 560.0,
         "tensao_partida_v": 100.0,
+    },
+    # --- Trifasicos 12-25 kW (2a rodada; quadro final da etapa 1)
+    "SUN2000-12KTL-M5": {
+        "potencia_kw": 12.0, "marca": "Huawei", "familia": "Huawei SUN2000 M5",
+        "classe_corrente": "alta", "tensao_rede": "220/380 V", "registro_inmetro": "006706/2025",
+        "fonte": "folha SUN2000-(12-25)KTL-M5 v01 2019 + manual EDOC1100253093; MPPT do Inmetro (full-load)",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 30.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 20.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 370.0, "mppt_max_v": 800.0,
+        "tensao_partida_v": 200.0,
+    },
+    "ASW12K-LT-G2 Pro": {
+        "potencia_kw": 12.0, "marca": "Solplanet", "familia": "Solplanet ASW LT-G2 Pro",
+        "classe_corrente": "alta", "tensao_rede": "220/380 V", "registro_inmetro": "009066/2024",
+        "fonte": "Brochura Solplanet BR 10/2024, p. 20",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 20.0, "corrente_max_curto_a": 30.0,
+        "corrente_max_string_a": 20.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 150.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 180.0,
+    },
+    "S5-GR3P15K": {
+        "potencia_kw": 15.0, "marca": "Solis", "familia": "Solis S5 GR3P",
+        "classe_corrente": "alta", "tensao_rede": "220/380 V", "registro_inmetro": "016207/2024",
+        "fonte": "flyer S5-GR3P(5-20)K BR V2,2",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 160.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 180.0,
+    },
+    "SUN2000-15KTL-M5": {
+        "potencia_kw": 15.0, "marca": "Huawei", "familia": "Huawei SUN2000 M5",
+        "classe_corrente": "alta", "tensao_rede": "220/380 V", "registro_inmetro": "006685/2025",
+        "fonte": "folha SUN2000-(12-25)KTL-M5 v01 2019 + manual EDOC1100253093; MPPT do Inmetro (full-load)",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 30.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 20.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 410.0, "mppt_max_v": 800.0,
+        "tensao_partida_v": 200.0,
+    },
+    "ASW15K-LT-G2 Pro": {
+        "potencia_kw": 15.0, "marca": "Solplanet", "familia": "Solplanet ASW LT-G2 Pro",
+        "classe_corrente": "alta", "tensao_rede": "220/380 V", "registro_inmetro": "009068/2024",
+        "fonte": "Brochura Solplanet BR 10/2024, p. 20",
+        "mppts": 2, "strings_por_mppt": 1,
+        "corrente_max_entrada_a": 20.0, "corrente_max_curto_a": 30.0,
+        "corrente_max_string_a": 20.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 150.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 180.0,
+    },
+    "S5-GR3P20K": {
+        "potencia_kw": 20.0, "marca": "Solis", "familia": "Solis S5 GR3P",
+        "classe_corrente": "alta", "tensao_rede": "220/380 V", "registro_inmetro": "016208/2024",
+        "fonte": "flyer S5-GR3P(5-20)K BR V2,2",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 160.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 180.0,
+    },
+    "SUN2000-20KTL-M5": {
+        "potencia_kw": 20.0, "marca": "Huawei", "familia": "Huawei SUN2000 M5",
+        "classe_corrente": "alta", "tensao_rede": "220/380 V", "registro_inmetro": "006703/2025",
+        "fonte": "folha SUN2000-(12-25)KTL-M5 v01 2019 + manual EDOC1100253093; MPPT do Inmetro (full-load)",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 30.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 20.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 480.0, "mppt_max_v": 800.0,
+        "tensao_partida_v": 200.0,
+    },
+    "ASW20K-LT-G2 Pro": {
+        "potencia_kw": 20.0, "marca": "Solplanet", "familia": "Solplanet ASW LT-G2 Pro",
+        "classe_corrente": "alta", "tensao_rede": "220/380 V", "registro_inmetro": "009071/2024",
+        "fonte": "Brochura Solplanet BR 10/2024, p. 20",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 48.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 150.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 180.0,
+    },
+    "S5-GC25K": {
+        "potencia_kw": 25.0, "marca": "Solis", "familia": "Solis S5 GC",
+        "classe_corrente": "alta", "tensao_rede": "220/380 V", "registro_inmetro": "016203/2024",
+        "fonte": "flyer S5-GC(25-40)K BR V2,2",
+        "mppts": 3, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 200.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 180.0,
+    },
+    "SUN2000-25KTL-M5": {
+        "potencia_kw": 25.0, "marca": "Huawei", "familia": "Huawei SUN2000 M5",
+        "classe_corrente": "alta", "tensao_rede": "220/380 V", "registro_inmetro": "005046/2025",
+        "fonte": "folha SUN2000-(12-25)KTL-M5 v01 2019 + manual EDOC1100253093; MPPT do Inmetro (full-load)",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 30.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 20.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 530.0, "mppt_max_v": 800.0,
+        "tensao_partida_v": 200.0,
+    },
+    "ASW25K-LT-G2 Pro": {
+        "potencia_kw": 25.0, "marca": "Solplanet", "familia": "Solplanet ASW LT-G2 Pro",
+        "classe_corrente": "alta", "tensao_rede": "220/380 V", "registro_inmetro": "009074/2024",
+        "fonte": "Brochura Solplanet BR 10/2024, p. 20",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 48.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 150.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 180.0,
+    },
+    "S5-GC15K-LV": {
+        "potencia_kw": 15.0, "marca": "Solis", "familia": "Solis S5 GC LV",
+        "classe_corrente": "alta", "tensao_rede": "127/220 V", "registro_inmetro": "016201/2024",
+        "fonte": "flyer S5-GC(15-20)K-LV BRA 2021",
+        "mppts": 3, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 200.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 180.0,
+    },
+    "ASW15K-UT-G3": {
+        "potencia_kw": 15.0, "marca": "Solplanet", "familia": "Solplanet ASW UT-G3",
+        "classe_corrente": "alta", "tensao_rede": "127/220 V", "registro_inmetro": "003991/2023",
+        "fonte": "Brochura Solplanet BR 10/2024, p. 30",
+        "mppts": 2, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 48.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 800.0, "mppt_min_v": 180.0, "mppt_max_v": 700.0,
+        "tensao_partida_v": 180.0,
+    },
+    "S5-GC20K-LV": {
+        "potencia_kw": 20.0, "marca": "Solis", "familia": "Solis S5 GC LV",
+        "classe_corrente": "alta", "tensao_rede": "127/220 V", "registro_inmetro": "016202/2024",
+        "fonte": "flyer S5-GC(15-20)K-LV BRA 2021",
+        "mppts": 3, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 200.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 180.0,
+    },
+    "SUN2000-20KTL-M3": {
+        "potencia_kw": 20.0, "marca": "Huawei", "familia": "Huawei SUN2000 M3",
+        "classe_corrente": "alta", "tensao_rede": "127/220 V", "registro_inmetro": "006689/2025",
+        "fonte": "folha JP + manual EDOC1100164794",
+        "mppts": 4, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 26.0, "corrente_max_curto_a": 40.0,
+        "tensao_max_v": 750.0, "mppt_min_v": 200.0, "mppt_max_v": 750.0,
+        "tensao_partida_v": 200.0,
+    },
+    "ASW20K-UT-G3": {
+        "potencia_kw": 20.0, "marca": "Solplanet", "familia": "Solplanet ASW UT-G3",
+        "classe_corrente": "alta", "tensao_rede": "127/220 V", "registro_inmetro": "004857/2023",
+        "fonte": "Brochura Solplanet BR 10/2024, p. 32",
+        "mppts": 3, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 48.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 800.0, "mppt_min_v": 200.0, "mppt_max_v": 650.0,
+        "tensao_partida_v": 200.0,
+    },
+    "S5-GC25K-LV": {
+        "potencia_kw": 25.0, "marca": "Solis", "familia": "Solis S5 GC LV",
+        "classe_corrente": "alta", "tensao_rede": "127/220 V", "registro_inmetro": "012318/2023",
+        "fonte": "flyer S5-GC25K-LV BR",
+        "mppts": 4, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 40.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 1100.0, "mppt_min_v": 195.0, "mppt_max_v": 1000.0,
+        "tensao_partida_v": 195.0,
+    },
+    "ASW25K-UT-G3": {
+        "potencia_kw": 25.0, "marca": "Solplanet", "familia": "Solplanet ASW UT-G3",
+        "classe_corrente": "alta", "tensao_rede": "127/220 V", "registro_inmetro": "011790/2022",
+        "fonte": "Brochura Solplanet BR 10/2024, p. 32",
+        "mppts": 3, "strings_por_mppt": 2,
+        "corrente_max_entrada_a": 32.0, "corrente_max_curto_a": 48.0,
+        "corrente_max_string_a": 16.0,
+        "tensao_max_v": 800.0, "mppt_min_v": 200.0, "mppt_max_v": 650.0,
+        "tensao_partida_v": 200.0,
     },
 }
 
@@ -3400,12 +3589,11 @@ def inversores_de_outras_marcas_que_servem(n_modulos, chave_modulo, potencia_inv
     """
     Inversores de OUTRAS MARCAS do mesmo degrau que passam nas quatro
     verificacoes com o MESMO numero de placas. Devolve [(nome, laudo)], na
-    ordem do ranking (Solis, Huawei, Solplanet). So ate 10 kW: nao ha
-    trifasicos destas marcas nesta rodada. "exceto" tira um modelo da lista
-    (o que ja foi indicado no resultado).
+    ordem do ranking (Solis, Huawei, Solplanet). Acima de 10 kW entram os
+    trifasicos das duas redes juntos - por isso dimensionar_arranjo_com_placa
+    so a chama ate 10 kW, e a tela usa outras_marcas_para_a_tela (por rede).
+    "exceto" tira um modelo da lista (o que ja foi indicado no resultado).
     """
-    if potencia_inversor_kw > LIMITE_MONOFASICO_KW + 1e-9:
-        return []
     nomes = [nome for nome, inv in CATALOGO_INVERSORES_OUTRAS_MARCAS.items()
              if abs(inv["potencia_kw"] - potencia_inversor_kw) < 1e-9 and nome != exceto]
     nomes.sort(key=lambda n: ORDEM_MARCAS_OUTRAS.index(
@@ -3418,6 +3606,39 @@ def inversores_de_outras_marcas_que_servem(n_modulos, chave_modulo, potencia_inv
     return servem
 
 
+def outras_marcas_para_a_tela(n_modulos, chave_modulo, potencia_inversor_kw, exceto=None):
+    """
+    O que a tela "Ver outros inversores que servem" mostra (2a rodada,
+    19/11/2026), em grupos: um so ate 10 kW (tensao_rede None) e um por rede
+    acima de 10 kW. Em cada grupo:
+    "servem" (passam nas 4 verificacoes com o mesmo numero de placas),
+    "nao_servem" (o modelo existe no degrau e reprova) e "sem_modelo" (marcas
+    sem modelo com a potencia exata do degrau). Nenhum numero muda.
+    "exceto" tira o modelo ja indicado no resultado (quando a placa escolhida
+    so serve num inversor de outra marca): ele nao entra em nenhuma lista.
+    """
+    trifasico = potencia_inversor_kw > LIMITE_MONOFASICO_KW + 1e-9
+    redes = ("127/220 V", "220/380 V") if trifasico else (None,)
+    grupos = []
+    for rede in redes:
+        g = {"tensao_rede": rede, "servem": [], "nao_servem": [], "sem_modelo": []}
+        for marca in ORDEM_MARCAS_OUTRAS:
+            nomes = [n for n, inv in CATALOGO_INVERSORES_OUTRAS_MARCAS.items()
+                     if inv["marca"] == marca and inv.get("tensao_rede") == rede
+                     and abs(inv["potencia_kw"] - potencia_inversor_kw) < 1e-9]
+            if not nomes:
+                g["sem_modelo"].append(marca)
+            for nome in nomes:
+                if nome == exceto:
+                    continue
+                laudo = verificar_compatibilidade(n_modulos, chave_modulo, nome)
+                item = {"modelo": nome, "marca": marca,
+                        "registro_inmetro": CATALOGO_INVERSORES_OUTRAS_MARCAS[nome]["registro_inmetro"]}
+                (g["servem"] if laudo["aprovado"] else g["nao_servem"]).append(item)
+        grupos.append(g)
+    return grupos
+
+
 def dimensionar_arranjo_com_placa(n_modulos_por_energia, chave_modulo, fdi=0.80):
     """
     Arranjo com a placa ESCOLHIDA na lista "Ver com outras placas" (decisao
@@ -3428,6 +3649,10 @@ def dimensionar_arranjo_com_placa(n_modulos_por_energia, chave_modulo, fdi=0.80)
          com o mesmo numero de placas (o primeiro do ranking);
       3. se nenhum serve, o arranjo sai reprovado - a tela mostra "Nao serve
          para um sistema deste tamanho".
+    Acima de 10 kW o passo 2 NAO acontece (2a rodada, 19/11/2026): ali o
+    arranjo precisa servir nas DUAS redes, e um modelo de outra marca e de
+    uma rede so aprovaria a placa pela metade. Medido: com o catalogo de
+    hoje, nenhuma placa dentro do teto de 25 kW precisaria desse passo.
     E exatamente a conta da medicao da etapa 2 (12/11/2026). Devolve o mesmo
     dicionario de dimensionar_arranjo(), com o campo a mais
     "inversor_de_outra_marca".
@@ -3435,6 +3660,8 @@ def dimensionar_arranjo_com_placa(n_modulos_por_energia, chave_modulo, fdi=0.80)
     arranjo = dimensionar_arranjo(n_modulos_por_energia, chave_modulo, fdi)
     arranjo["inversor_de_outra_marca"] = False
     if arranjo["aprovado"] or not arranjo.get("inversor_comercial"):
+        return arranjo
+    if arranjo["inversor_comercial"]["potencia_kw"] > LIMITE_MONOFASICO_KW + 1e-9:
         return arranjo
     servem = inversores_de_outras_marcas_que_servem(
         arranjo["numero_modulos"], chave_modulo,

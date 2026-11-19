@@ -81,7 +81,7 @@
             <div class="form-group autocomplete-wrap">
                 <label for="cidade">Cidade</label>
                 <input type="text" id="cidade" name="cidade" autocomplete="off"
-                       placeholder="Comece a digitar, ex: Guaíra"
+                       placeholder="Digite o nome da sua cidade"
                        role="combobox" aria-autocomplete="list" aria-expanded="false"
                        aria-controls="cidade-sugestoes" aria-describedby="cidade-aviso" required>
                 <ul id="cidade-sugestoes" class="sugestoes-lista" role="listbox" hidden></ul>
@@ -498,7 +498,7 @@
             campo.setCustomValidity('');
         });
     }
-    configurarMensagem('cidade', 'Digite o nome da sua cidade e escolha na lista, por exemplo: Guaíra - PR.');
+    configurarMensagem('cidade', 'Digite o nome da sua cidade e escolha na lista.');
     configurarMensagem('consumo', 'Informe um consumo médio maior que zero.');
     configurarMensagem('fatura', 'Informe o valor total da conta, maior que zero.');
     configurarMensagem('consumo_fatura', 'Informe o consumo em kWh que aparece nessa mesma conta.');
@@ -591,7 +591,7 @@
                     .catch(function (erro) {
                         console.error('Lista de cidades nao carregou:', erro);
                         falhouCarregar = true;
-                        aviso.textContent = 'Não consegui carregar a lista de cidades. Digite no formato Cidade - UF, por exemplo: Guaíra - PR.';
+                        aviso.textContent = 'Não consegui carregar a lista de cidades. Digite no formato Cidade - UF.';
                     });
             }
             return carregamento;
@@ -700,7 +700,7 @@
             if (achados.length > MAXIMO_SUGESTOES) {
                 var mais = document.createElement('li');
                 mais.textContent = 'e mais ' + (achados.length - MAXIMO_SUGESTOES)
-                    + ' — continue digitando, ou acrescente o estado (ex: Guaíra PR)';
+                    + ' — continue digitando, ou acrescente o estado';
                 mais.style.opacity = '0.7';
                 mais.style.cursor = 'default';
                 lista.appendChild(mais);

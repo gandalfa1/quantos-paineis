@@ -541,6 +541,73 @@ FICTICIO_DEGRAU_12 = {   # um 3o modelo no degrau de 12 kW que NENHUM arranjo ap
     "tensao_partida_v": 160.0}
 
 
+# Quadro final da 2a rodada (claude/outras_marcas_2a_rodada_etapa1_18-11.txt):
+# modelo: (kW, marca, rede, registro, MPPTs, strings/MPPT, I_mppt, Icc_mppt,
+# I_string, Vmax, MPPT min, MPPT max, partida). Confere a copia para o catalogo.
+QUADRO_TRIFASICOS = {
+    "SUN2000-12KTL-M5": (12, "Huawei", "220/380 V", "006706/2025", 2, 2, 30, 40, 20, 1100, 370, 800, 200),
+    "ASW12K-LT-G2 Pro": (12, "Solplanet", "220/380 V", "009066/2024", 2, 1, 20, 30, 20, 1100, 150, 1000, 180),
+    "S5-GR3P15K": (15, "Solis", "220/380 V", "016207/2024", 2, 2, 32, 40, 16, 1100, 160, 1000, 180),
+    "SUN2000-15KTL-M5": (15, "Huawei", "220/380 V", "006685/2025", 2, 2, 30, 40, 20, 1100, 410, 800, 200),
+    "ASW15K-LT-G2 Pro": (15, "Solplanet", "220/380 V", "009068/2024", 2, 1, 20, 30, 20, 1100, 150, 1000, 180),
+    "S5-GR3P20K": (20, "Solis", "220/380 V", "016208/2024", 2, 2, 32, 40, 16, 1100, 160, 1000, 180),
+    "SUN2000-20KTL-M5": (20, "Huawei", "220/380 V", "006703/2025", 2, 2, 30, 40, 20, 1100, 480, 800, 200),
+    "ASW20K-LT-G2 Pro": (20, "Solplanet", "220/380 V", "009071/2024", 2, 2, 32, 48, 16, 1100, 150, 1000, 180),
+    "S5-GC25K": (25, "Solis", "220/380 V", "016203/2024", 3, 2, 32, 40, 16, 1100, 200, 1000, 180),
+    "SUN2000-25KTL-M5": (25, "Huawei", "220/380 V", "005046/2025", 2, 2, 30, 40, 20, 1100, 530, 800, 200),
+    "ASW25K-LT-G2 Pro": (25, "Solplanet", "220/380 V", "009074/2024", 2, 2, 32, 48, 16, 1100, 150, 1000, 180),
+    "S5-GC15K-LV": (15, "Solis", "127/220 V", "016201/2024", 3, 2, 32, 40, 16, 1100, 200, 1000, 180),
+    "ASW15K-UT-G3": (15, "Solplanet", "127/220 V", "003991/2023", 2, 2, 32, 48, 16, 800, 180, 700, 180),
+    "S5-GC20K-LV": (20, "Solis", "127/220 V", "016202/2024", 3, 2, 32, 40, 16, 1100, 200, 1000, 180),
+    "SUN2000-20KTL-M3": (20, "Huawei", "127/220 V", "006689/2025", 4, 2, 26, 40, None, 750, 200, 750, 200),
+    "ASW20K-UT-G3": (20, "Solplanet", "127/220 V", "004857/2023", 3, 2, 32, 48, 16, 800, 200, 650, 200),
+    "S5-GC25K-LV": (25, "Solis", "127/220 V", "012318/2023", 4, 2, 32, 40, 16, 1100, 195, 1000, 195),
+    "ASW25K-UT-G3": (25, "Solplanet", "127/220 V", "011790/2022", 3, 2, 32, 48, 16, 800, 200, 650, 200),
+}
+
+
+def testes_outras_marcas_trifasicos():
+    """2a rodada de outras marcas (19/11/2026): catalogo igual ao quadro,
+    guarda de "Ver com outras placas" acima de 10 kW, modelo indicado fora da
+    lista e o caso conferido a mao (Huawei 25K com 42 e 48 Jinko)."""
+    falhas = []
+    alt = calculo.CATALOGO_INVERSORES_OUTRAS_MARCAS
+    tri = {k: v for k, v in alt.items() if v["potencia_kw"] > LIMITE_MONOFASICO}
+    if set(tri) != set(QUADRO_TRIFASICOS):
+        falhas.append(f"trifasicos de outras marcas diferentes do quadro: {sorted(set(tri) ^ set(QUADRO_TRIFASICOS))}")
+    campos = ("potencia_kw", "marca", "tensao_rede", "registro_inmetro", "mppts", "strings_por_mppt",
+              "corrente_max_entrada_a", "corrente_max_curto_a", "corrente_max_string_a", "tensao_max_v",
+              "mppt_min_v", "mppt_max_v", "tensao_partida_v")
+    for nome, linha in QUADRO_TRIFASICOS.items():
+        inv = alt.get(nome, {})
+        for campo, valor in zip(campos, linha):
+            if inv.get(campo) != valor:
+                falhas.append(f"{nome}: {campo} = {inv.get(campo)}, quadro = {valor}")
+    if any(v["potencia_kw"] == 12 and v.get("tensao_rede") == "127/220 V" for v in alt.values()):
+        falhas.append("modelo de outra marca de 12 kW em 127/220 V (o quadro nao tem)")
+    # guarda: acima de 10 kW, a placa escolhida nao e aprovada com outra marca
+    orig = calculo.dimensionar_arranjo
+    calculo.dimensionar_arranjo = lambda n, chave, fdi=0.80: {
+        "aprovado": False, "numero_modulos": 23, "inversor": None, "laudo": None, "motivo": "teste",
+        "inversor_comercial": {"potencia_kw": 12.0, "fora_da_grade": False}}
+    try:
+        a = calculo.dimensionar_arranjo_com_placa(23, "jinko_600")
+        if a["aprovado"] or a["inversor_de_outra_marca"]:
+            falhas.append(f"acima de 10 kW a placa foi aprovada com outra marca ({a['inversor']})")
+    finally:
+        calculo.dimensionar_arranjo = orig
+    # o modelo indicado nao aparece de novo na lista
+    g = calculo.outras_marcas_para_a_tela(13, "jinko_600", 7.0, exceto="S6-GR1P7K02-NV-YD-HC")[0]
+    if any(x["modelo"] == "S6-GR1P7K02-NV-YD-HC" for x in g["servem"] + g["nao_servem"]) or "Solis" in g["sem_modelo"]:
+        falhas.append("modelo indicado repetido na lista de outros inversores")
+    # conferido a mao (etapa 2): Huawei 25K com 42 Jinko nao serve; com 48 serve
+    for n, esperado in ((42, False), (48, True)):
+        g380 = calculo.outras_marcas_para_a_tela(n, "jinko_600", 25.0)[1]
+        if ("SUN2000-25KTL-M5" in [x["modelo"] for x in g380["servem"]]) != esperado:
+            falhas.append(f"Huawei 25K com {n} Jinko: esperado servir={esperado}")
+    return falhas
+
+
 def testes_strings_em_paralelo():
     """Testes diretos da ligacao com strings em paralelo e da regra dos dois
     modelos por degrau trifasico. Devolve a lista de falhas."""
@@ -604,6 +671,45 @@ def serve_pelo_texto(n, mod, inv):
     return False
 
 
+def serve_pelo_texto_geral(n, mod, inv):
+    """2a rodada de outras marcas (19/11/2026), para os trifasicos: existe
+    ALGUM jeito de ligar n placas - ate mppts entradas, cada uma com 1 a
+    strings_por_mppt fileiras IGUAIS em paralelo - que passe nas quatro
+    verificacoes do texto? Cada entrada e conferida sozinha por
+    arranjo_valido_pelo_texto; depois, soma de entradas validas."""
+    validos = set()
+    for k in range(1, inv["strings_por_mppt"] + 1):
+        for L in range(1, n // k + 1):
+            if not arranjo_valido_pelo_texto(k * L, mod, inv, [{"strings": k, "modulos_por_string": L}]):
+                validos.add(k * L)
+    somas = {0}
+    for _ in range(inv["mppts"]):
+        somas = somas | {a + b for a in somas for b in validos if a + b <= n}
+    return n in somas
+
+
+def grupos_pelo_texto(n, mod, kw, exceto=None):
+    """O que "Ver outros inversores que servem" deve mostrar, pelo texto: um
+    grupo ate 10 kW (so os monofasicos); acima, um por rede."""
+    alt = calculo.CATALOGO_INVERSORES_OUTRAS_MARCAS
+    trifasico = kw > LIMITE_MONOFASICO
+    out = []
+    for rede in (("127/220 V", "220/380 V") if trifasico else (None,)):
+        g = {"tensao_rede": rede, "servem": [], "nao_servem": [], "sem_modelo": []}
+        for marca in ORDEM_RANKING:
+            nomes = [x for x in do_degrau(alt, kw)
+                     if alt[x]["marca"] == marca and alt[x].get("tensao_rede") == rede]
+            if not nomes:
+                g["sem_modelo"].append(marca)
+            for x in nomes:
+                if x == exceto:
+                    continue
+                ok = (serve_pelo_texto_geral if trifasico else serve_pelo_texto)(n, mod, alt[x])
+                (g["servem"] if ok else g["nao_servem"]).append(x)
+        out.append(g)
+    return out
+
+
 def do_degrau(catalogo, kw):
     return [n for n, inv in catalogo.items() if abs(inv["potencia_kw"] - kw) < 1e-9]
 
@@ -626,14 +732,21 @@ def conferir_outras_marcas(res, refazer=None, com_listas=True):
     kw, n = res["potencia_inversor_kw"], res["numero_paineis"]
     mod = calculo.CATALOGO_MODULOS[mod_chave]
     # lista de outros inversores: todos os do degrau que servem, na ordem do ranking
-    esperado = []
-    if kw <= LIMITE_MONOFASICO:
-        alt = calculo.CATALOGO_INVERSORES_OUTRAS_MARCAS
-        nomes = sorted(do_degrau(alt, kw), key=lambda x: ORDEM_RANKING.index(alt[x]["marca"]))
-        esperado = [x for x in nomes if x != res["inversor_modelo"] and serve_pelo_texto(n, mod, alt[x])]
+    # 2a rodada (19/11/2026): acima de 10 kW entram os trifasicos das duas redes.
+    alt = calculo.CATALOGO_INVERSORES_OUTRAS_MARCAS
+    nomes = sorted(do_degrau(alt, kw), key=lambda x: ORDEM_RANKING.index(alt[x]["marca"]))
+    teste = serve_pelo_texto if kw <= LIMITE_MONOFASICO else serve_pelo_texto_geral
+    esperado = [x for x in nomes if x != res["inversor_modelo"] and teste(n, mod, alt[x])]
     lista = [x["modelo"] for x in res.get("inversores_outras_marcas", [])]
     if lista != esperado:
         erros.append(f"outros inversores: motor={lista} texto={esperado}")
+    # e o que a tela mostra, por grupo (rede), com as marcas sem modelo
+    grupos = [{"tensao_rede": g["tensao_rede"], "servem": [x["modelo"] for x in g["servem"]],
+               "nao_servem": [x["modelo"] for x in g["nao_servem"]], "sem_modelo": g["sem_modelo"]}
+              for g in res.get("outras_marcas_grupos") or []]
+    esperados = grupos_pelo_texto(n, mod, kw, exceto=res["inversor_modelo"])
+    if grupos != esperados:
+        erros.append(f"grupos de outras marcas: motor={grupos} texto={esperados}")
     if refazer is None:
         return erros
     linhas = res.get("outras_placas") or []
@@ -948,6 +1061,8 @@ def rodar(motor=None, mostrar=True, parar_em=None):
         falhas.append("mediana do Fio B diferente")
     # 0b) item 7: strings em paralelo e os dois modelos por degrau trifasico
     falhas += testes_strings_em_paralelo()
+    # 0c) 2a rodada de outras marcas: catalogo dos trifasicos, guarda e lista
+    falhas += testes_outras_marcas_trifasicos()
     # 1) casos resolvidos a mao (numeros da tela de 23/09/2026)
     for nome, uf, consumo, eco, custo, pb, n_mod, inv in CASOS_OFICIAIS:
         H = PERFIS[uf]
@@ -1050,6 +1165,15 @@ def erros_plantados():
                 "minimo_de_modulos_sugerido": None}
 
     orig_mnd = calculo.modelos_no_degrau
+    orig_omt = calculo.outras_marcas_para_a_tela
+
+    def _redes_trocadas(*a, **k):
+        grupos = orig_omt(*a, **k)
+        redes = [g["tensao_rede"] for g in grupos][::-1]
+        return [dict(g, tensao_rede=r) for g, r in zip(grupos, redes)]
+
+    def _sem_modelo_esquecido(*a, **k):
+        return [dict(g, sem_modelo=[]) for g in orig_omt(*a, **k)]
 
     def _outra_marca_primeiro(n_energia, chave, fdi=0.80):
         a = calculo.dimensionar_arranjo(n_energia, chave, fdi)
@@ -1137,6 +1261,11 @@ def erros_plantados():
             "calculo", "ORDEM_MARCAS_OUTRAS", ("Solplanet", "Huawei", "Solis")),
         "outra marca antes de Growatt e Deye": (
             "simulacao", "dimensionar_arranjo_com_placa", _outra_marca_primeiro),
+        # 2a rodada de outras marcas (19/11/2026)
+        "redes trocadas na lista de outros inversores": (
+            "simulacao", "outras_marcas_para_a_tela", _redes_trocadas),
+        "marca sem modelo esquecida na lista": (
+            "simulacao", "outras_marcas_para_a_tela", _sem_modelo_esquecido),
     }
     detectadas = 0
     for nome, (modulo, funcao, nova) in mutacoes.items():

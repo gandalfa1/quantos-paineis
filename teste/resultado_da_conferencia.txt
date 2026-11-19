@@ -1,5 +1,6 @@
-Saida do teste/conferir_equacoes_3_3.py - rodado em 18/11/2026 (Python 3.13), no ramo
-fase4-precos-greener-jun2026 (precos da Greener de setembro/2026, a partir do main 20d6b53). A saida da versao do
+Saida do teste/conferir_equacoes_3_3.py - rodado em 19/11/2026 (Python 3.13), no ramo
+fase4-outras-marcas-trifasicos (outras marcas, 2a rodada: inversores trifasicos de 12 a 25 kW, a partir do main 7c0b729).
+A saida da versao do
 artigo (a) (31.488 simulacoes, 14 erros plantados) continua na tag v1.2-artigo-rbens; a da versao
 do TCC (15.744 simulacoes, 10 erros plantados), na tag v1.0-tcc.
 
@@ -26,16 +27,18 @@ Divergencias: 0
   DETECTADO: modulos arredondados para baixo (pelo menos 50 divergencias)
   DETECTADO: tarifa pelo consumo da conta abaixo do minimo (pelo menos 50 divergencias)
   DETECTADO: inversor arredondado para baixo (pelo menos 50 divergencias)
-  DETECTADO: strings em paralelo sem somar a corrente (pelo menos 278 divergencias)
-  DETECTADO: limite de corrente por string ignorado (pelo menos 529 divergencias)
+  DETECTADO: strings em paralelo sem somar a corrente (1 divergencias)
+  DETECTADO: limite de corrente por string ignorado (1 divergencias)
   DETECTADO: degrau trifasico aprovado com um modelo so (1 divergencias)
   DETECTADO: ligacao trifasica esquecida acima de 10 kW (pelo menos 50 divergencias)
   DETECTADO: tarifa da troca pelo minimo da trifasica (pelo menos 50 divergencias)
   DETECTADO: bifacial conferida sem a corrente BNPI (pelo menos 907 divergencias)
   DETECTADO: placas novas na escolha automatica (pelo menos 134 divergencias)
-  DETECTADO: inversor de outra marca na escolha de inicio (pelo menos 50 divergencias)
+  DETECTADO: inversor de outra marca na escolha de inicio (1 divergencias)
   DETECTADO: outra marca fora da ordem do ranking (pelo menos 50 divergencias)
   DETECTADO: outra marca antes de Growatt e Deye (pelo menos 50 divergencias)
-Erros plantados detectados: 27 de 27
+  DETECTADO: redes trocadas na lista de outros inversores (pelo menos 50 divergencias)
+  DETECTADO: marca sem modelo esquecida na lista (pelo menos 50 divergencias)
+Erros plantados detectados: 29 de 29
 
 RESULTADO: OK

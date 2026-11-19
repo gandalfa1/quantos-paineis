@@ -445,14 +445,26 @@
             (simulacao.simular), e cada linha de placa e a simulacao refeita
             com aquela placa - os numeros sao os da tela que o botao abre. -#}
         <div class="outras-opcoes no-print">
-        {%- if resultado.inversores_outras_marcas %}
+        {%- if resultado.outras_marcas_grupos %}
+        {#- OUTRAS MARCAS, 2a RODADA (19/11/2026; maquete aprovada pela aluna em
+            19/11): o botao aparece em TODO resultado. Acima de 10 kW, um grupo
+            por rede (a da cidade em 1o). Sem numeros: a marca nao muda nenhum.
+            "(Por que?)" leva a explicacao do "sem modelo" em Equipamentos. -#}
+        {%- set grupos = resultado.outras_marcas_grupos | sort(attribute="tensao_rede", reverse=(resultado.rede_da_cidade == "220/380")) %}
+        {%- set kw_txt = br(resultado.potencia_inversor_kw, 1) if resultado.potencia_inversor_kw <= 10 else br(resultado.potencia_inversor_kw, 0) %}
+        {%- set algum = grupos | selectattr("servem") | list | length > 0 %}
         <details class="nota-mais nota-destaque" id="outros-inversores">
-            <summary>Ver outros inversores que servem</summary>
-            <p>Também servem neste sistema, com a mesma potência ({{ br(resultado.potencia_inversor_kw, 1) }} kW):</p>
-            <ul class="lista-inv">{% for inv in resultado.inversores_outras_marcas %}
+            <summary>Ver outros inversores que servem</summary>{% if algum %}
+            <p>Também servem neste sistema, com a mesma potência ({{ kw_txt }} kW):</p>{% endif %}{% for g in grupos %}{% if g.tensao_rede %}
+            <p class="opcao-rede">Para rede de {{ g.tensao_rede }}:</p>{% endif %}{% if g.servem %}
+            <ul class="lista-inv">{% for inv in g.servem %}
                 <li>{{ inv.marca }} {{ inv.modelo }}</li>{% endfor %}
-            </ul>
-            <p class="hint-fonte">A marca do inversor não muda nenhum número desta simulação. O preço usado é a média do mercado por kWp, não o de uma marca. Todos têm registro no Inmetro.</p>
+            </ul>{% endif %}{% if not g.servem and g.sem_modelo | length == 3 %}
+            <p class="opcao-falta">Nesta potência{% if not algum %} ({{ kw_txt }} kW){% endif %}, Solis, Huawei e Solplanet não têm modelo com registro no Inmetro. Só serve o modelo indicado acima. <a href="/equipamentos#sem-modelo">(Por quê?)</a></p>{% else %}{% for inv in g.nao_servem %}
+            <p class="opcao-falta">{{ inv.marca }} {{ inv.modelo }}: não serve com este número de placas.</p>{% endfor %}{% if g.sem_modelo %}{% set m = g.sem_modelo %}
+            <p class="opcao-falta">Sem modelo de {{ kw_txt }} kW com registro no Inmetro: {{ (m[:-1] | join(", ")) ~ " e " ~ m[-1] if m | length > 1 else m[0] }}. <a href="/equipamentos#sem-modelo">(Por quê?)</a></p>{% endif %}{% if not g.servem %}
+            <p class="opcao-falta">Só serve o modelo indicado acima.</p>{% endif %}{% endif %}{% endfor %}{% if algum %}
+            <p class="hint-fonte">A marca do inversor não muda nenhum número desta simulação. O preço usado é a média do mercado por kWp, não o de uma marca. Todos têm registro no Inmetro.</p>{% endif %}
         </details>
         {%- endif %}
         {%- if resultado.outras_placas %}

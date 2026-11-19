@@ -117,6 +117,7 @@ from calculo import (
     dimensionar_arranjo_com_placa,
     dados_do_inversor,
     inversores_de_outras_marcas_que_servem,
+    outras_marcas_para_a_tela,
     placa_serve_em_degrau_maior,
     TEMP_MINIMA_PROJETO_C,
     TEMP_MAXIMA_CELULA_C,
@@ -291,6 +292,9 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
       - "inversores_outras_marcas": inversores de outras marcas do mesmo
         degrau que passam nas quatro verificacoes com o mesmo numero de
         placas (ate 10 kW). A marca nao muda nenhum numero.
+      - "outras_marcas_grupos" (2a rodada, 19/11/2026): o que a tela mostra
+        em "Ver outros inversores que servem", em TODO resultado - um grupo
+        ate 10 kW, um por rede acima (outras_marcas_para_a_tela).
       - "outras_placas": uma linha por placa de PLACAS_DA_LISTA. Cada linha
         e o resultado da SIMULACAO INTEIRA refeita com aquela placa (mesmos
         dados, placa=chave) - por isso os numeros da linha sao os mesmos da
@@ -308,6 +312,10 @@ def simular(cidade, consumo_medio_kwh, valor_fatura_reais,
         for nome, _laudo in inversores_de_outras_marcas_que_servem(
             resultado["numero_paineis"], resultado["modulo_chave"],
             resultado["potencia_inversor_kw"], exceto=resultado["inversor_modelo"])]
+
+    resultado["outras_marcas_grupos"] = outras_marcas_para_a_tela(
+        resultado["numero_paineis"], resultado["modulo_chave"],
+        resultado["potencia_inversor_kw"], exceto=resultado["inversor_modelo"])
 
     linhas = []
     for chave in PLACAS_DA_LISTA:
