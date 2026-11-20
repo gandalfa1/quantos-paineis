@@ -605,6 +605,27 @@ def testes_outras_marcas_trifasicos():
         g380 = calculo.outras_marcas_para_a_tela(n, "jinko_600", 25.0)[1]
         if ("SUN2000-25KTL-M5" in [x["modelo"] for x in g380["servem"]]) != esperado:
             falhas.append(f"Huawei 25K com {n} Jinko: esperado servir={esperado}")
+    # 3a rodada (20/11/2026): potencia vizinha, conferida a mao na medicao de 19/11
+    # (claude/terceira_rodada_e_textos_19-11.txt). (n placas Jinko, degrau, grupo) -> esperado
+    casos_vizinha = (
+        (5, 2.5, 0, (3.0, ["S6-GR1P3K-M", "SUN2000-3KTL-L1", "ASW3000-S-G2"])),
+        (7, 4.2, 0, None),                       # sobra 5,0 / 4,2 = 1,19
+        (8, 4.2, 0, (5.0, ["S6-GR1P5K-S", "SUN2000-5KTL-L1", "ASW5000-S-G2"])),
+        (13, 7.0, 0, (7.5, ["SUN2000-7.5K-LC0", "ASW7500-S"])),
+        (17, 9.0, 0, (10.0, ["SUN2000-10K-LC0", "ASW10000-S"])),
+        (3, 1.5, 0, None),                       # sobra 2,0 / 1,8 = 1,11
+        (2, 1.0, 0, None),                       # 1,5 kW tambem sem as tres
+        (23, 12.0, 0, None),                     # sobra 15 / 13,8 = 1,09
+        (24, 12.0, 0, (15.0, ["S5-GC15K-LV", "ASW15K-UT-G3"])),
+        (24, 12.0, 1, (15.0, ["S5-GR3P15K"])),
+        (31, 15.0, 0, None),                     # Huawei 127/220: 20 / 18,6 = 1,08
+    )
+    for n, kw, i, esperado in casos_vizinha:
+        g = calculo.outras_marcas_para_a_tela(n, "jinko_600", kw)[i]
+        v = g.get("vizinhas")
+        obtido = (v["potencia_kw"], [x["modelo"] for x in v["servem"]]) if v else None
+        if obtido != esperado:
+            falhas.append(f"potencia vizinha com {n} Jinko em {kw} kW: {obtido}, esperado {esperado}")
     return falhas
 
 
@@ -706,8 +727,33 @@ def grupos_pelo_texto(n, mod, kw, exceto=None):
                     continue
                 ok = (serve_pelo_texto_geral if trifasico else serve_pelo_texto)(n, mod, alt[x])
                 (g["servem"] if ok else g["nao_servem"]).append(x)
+        g["vizinhas"] = vizinhas_pelo_texto(n, mod, kw, rede, g["sem_modelo"])
         out.append(g)
     return out
+
+
+SOBRA_MAXIMA = 1.05   # kW do inversor / kWp: Manual CEPEL-CRESESB (2014), p. 332 (item A1)
+
+
+def vizinhas_pelo_texto(n, mod, kw, rede, marcas):
+    """3a rodada de outras marcas (20/11/2026), pelo texto: para as marcas sem
+    modelo no degrau, o modelo delas no degrau SEGUINTE, se nao atravessa
+    10 kW, e da mesma rede, a sobra (kW / kWp) fica ate 1,05 e passa nas
+    quatro verificacoes com o mesmo numero de placas."""
+    alt = calculo.CATALOGO_INVERSORES_OUTRAS_MARCAS
+    seguintes = [d for d in DEGRAUS if d > kw + 1e-9]
+    if not seguintes or not marcas:
+        return None
+    prox = seguintes[0]
+    if kw <= LIMITE_MONOFASICO < prox:
+        return None
+    if prox / (n * mod["potencia_wp"] / 1000) > SOBRA_MAXIMA + 1e-9:
+        return None
+    teste = serve_pelo_texto_geral if prox > LIMITE_MONOFASICO else serve_pelo_texto
+    servem = [x for marca in ORDEM_RANKING if marca in marcas for x in do_degrau(alt, prox)
+              if alt[x]["marca"] == marca and alt[x].get("tensao_rede") == rede
+              and teste(n, mod, alt[x])]
+    return {"potencia_kw": prox, "servem": servem} if servem else None
 
 
 def do_degrau(catalogo, kw):
@@ -742,7 +788,10 @@ def conferir_outras_marcas(res, refazer=None, com_listas=True):
         erros.append(f"outros inversores: motor={lista} texto={esperado}")
     # e o que a tela mostra, por grupo (rede), com as marcas sem modelo
     grupos = [{"tensao_rede": g["tensao_rede"], "servem": [x["modelo"] for x in g["servem"]],
-               "nao_servem": [x["modelo"] for x in g["nao_servem"]], "sem_modelo": g["sem_modelo"]}
+               "nao_servem": [x["modelo"] for x in g["nao_servem"]], "sem_modelo": g["sem_modelo"],
+               "vizinhas": ({"potencia_kw": g["vizinhas"]["potencia_kw"],
+                             "servem": [x["modelo"] for x in g["vizinhas"]["servem"]]}
+                            if g.get("vizinhas") else None)}
               for g in res.get("outras_marcas_grupos") or []]
     esperados = grupos_pelo_texto(n, mod, kw, exceto=res["inversor_modelo"])
     if grupos != esperados:
@@ -1175,6 +1224,26 @@ def erros_plantados():
     def _sem_modelo_esquecido(*a, **k):
         return [dict(g, sem_modelo=[]) for g in orig_omt(*a, **k)]
 
+
+    def _vizinho_variante(pular=0, qualquer_rede=False):
+        """inversores_vizinhos com um defeito: pula um degrau ou ignora a rede."""
+        def f(n, chave, kw, rede, marcas):
+            seg = [d for d in calculo.GRADE_INVERSORES_KW if d > kw + 1e-9]
+            if len(seg) <= pular or not marcas:
+                return None
+            prox = seg[pular]
+            kwp = n * calculo.CATALOGO_MODULOS[chave]["potencia_wp"] / 1000
+            if kw <= 10 < prox or prox / kwp > (9.0 if pular else calculo.SOBRA_MAXIMA_INVERSOR_VIZINHO):
+                return None
+            servem = [{"modelo": x, "marca": inv["marca"], "registro_inmetro": inv["registro_inmetro"]}
+                      for m in calculo.ORDEM_MARCAS_OUTRAS if m in marcas
+                      for x, inv in calculo.CATALOGO_INVERSORES_OUTRAS_MARCAS.items()
+                      if inv["marca"] == m and abs(inv["potencia_kw"] - prox) < 1e-9
+                      and (qualquer_rede or inv.get("tensao_rede") == rede)
+                      and calculo.verificar_compatibilidade(n, chave, x)["aprovado"]]
+            return {"potencia_kw": prox, "servem": servem} if servem else None
+        return f
+
     def _outra_marca_primeiro(n_energia, chave, fdi=0.80):
         a = calculo.dimensionar_arranjo(n_energia, chave, fdi)
         kw = (a.get("inversor_comercial") or {}).get("potencia_kw")
@@ -1266,6 +1335,13 @@ def erros_plantados():
             "simulacao", "outras_marcas_para_a_tela", _redes_trocadas),
         "marca sem modelo esquecida na lista": (
             "simulacao", "outras_marcas_para_a_tela", _sem_modelo_esquecido),
+        # 3a rodada de outras marcas (20/11/2026): potencia vizinha
+        "inversor vizinho sem o limite de sobra": (
+            "calculo", "SOBRA_MAXIMA_INVERSOR_VIZINHO", 9.0),
+        "inversor vizinho dois degraus acima": (
+            "calculo", "inversores_vizinhos", _vizinho_variante(pular=1)),
+        "inversor vizinho de outra rede": (
+            "calculo", "inversores_vizinhos", _vizinho_variante(qualquer_rede=True)),
     }
     detectadas = 0
     for nome, (modulo, funcao, nova) in mutacoes.items():
