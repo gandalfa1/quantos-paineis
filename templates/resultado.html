@@ -363,7 +363,7 @@
                     Potência instalada
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="O que é kWp?">i</button>
-                        <span class="tip-bubble">kWp (quilowatt-pico) é a soma das potências dos painéis, medidas em condições padronizadas de laboratório (sol de 1.000 W/m² e painel a 25 °C). É a forma padrão do mercado de medir o "tamanho" de um sistema fotovoltaico.</span>
+                        <span class="tip-bubble">Soma das potências dos painéis, medidas em laboratório (sol de 1.000 W/m² e painel a 25 °C). É o jeito padrão de dizer o tamanho de um sistema.</span>
                     </span>
                 </span>
                 <span class="valor">{{ br(resultado.potencia_instalada_kwp) }} kWp</span>
@@ -393,7 +393,7 @@
                     Área mínima ocupada pelos painéis
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="O que é a área mínima?">i</button>
-                        <span class="tip-bubble">Soma da área dos painéis ({{ resultado.numero_paineis }} {{ "painel" if resultado.numero_paineis == 1 else "painéis" }} de {{ br(medida_painel[0]) }} m × {{ br(medida_painel[1]) }} m, pela folha do fabricante). O telhado precisa de mais: espaço nas bordas e em volta de caixa d'água ou chaminé e, numa laje plana com os painéis em fileiras inclinadas, cerca de 1,4 vez essa área, para uma fileira não sombrear a outra (estudo do NREL, laboratório de energia renovável dos EUA). Quem define o espaço real é o instalador.</span>
+                        <span class="tip-bubble">Só a área dos painéis ({{ resultado.numero_paineis }} {{ "painel" if resultado.numero_paineis == 1 else "painéis" }} de {{ br(medida_painel[0]) }} m × {{ br(medida_painel[1]) }} m). O telhado precisa de mais: espaço nas bordas e, numa laje com os painéis em fileiras inclinadas, cerca de 1,4 vez essa área, para uma fileira não fazer sombra na outra (estudo do NREL). Quem define o espaço real é o instalador.</span>
                     </span>
                 </span>
                 <span class="valor">{{ br(resultado.numero_paineis * medida_painel[0] * medida_painel[1], 1) }} m²</span>
@@ -404,7 +404,7 @@
                     Potência do inversor
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="O que é kW?">i</button>
-                        <span class="tip-bubble">kW (quilowatt) aqui é a potência de saída do inversor, já em corrente alternada (CA) — a mesma forma de energia usada pelos aparelhos da sua casa e pela rede elétrica.</span>
+                        <span class="tip-bubble">Potência de saída do inversor, já na forma de energia usada pela casa e pela rede (corrente alternada).</span>
                     </span>
                 </span>
                 <span class="valor">{{ br(resultado.potencia_inversor_kw) }} kW</span>
@@ -510,7 +510,7 @@
                         Como os painéis são ligados
                         <span class="tip">
                             <button type="button" class="tip-btn" aria-label="O que é uma fileira de painéis?">i</button>
-                            <span class="tip-bubble">Os painéis são ligados em série, um atrás do outro, formando uma fileira (em inglês, <em>string</em>): as tensões se somam e a corrente é a de um painel só. Quando a fileira ficaria longa demais, os painéis são divididos em mais de uma, cada uma numa entrada própria do inversor.{% if resultado.inversores_por_tensao %} Nos inversores maiores, duas fileiras iguais podem dividir a mesma entrada (ligadas em paralelo), e aí as correntes delas se somam.{% endif %}</span>
+                            <span class="tip-bubble">Os painéis são ligados um atrás do outro, numa fileira: as tensões se somam e a corrente é a de um painel só. Fileira longa demais é dividida em duas ou mais, cada uma numa entrada do inversor.{% if resultado.inversores_por_tensao %} Nos inversores maiores, duas fileiras iguais podem dividir a mesma entrada, e aí as correntes se somam.{% endif %}</span>
                         </span>
                     </span>
                     <span class="valor">{% if resultado.inversores_por_tensao %}{% for inv in resultado.inversores_por_tensao | sort(attribute="tensao_rede", reverse=(resultado.rede_da_cidade == "220/380")) %}{% set pares = (inv.laudo.mppts_usados or []) | selectattr("strings", "gt", 1) | list | length %}{% if not loop.first %}<br>{% endif %}rede de {{ inv.tensao_rede }}: {{ inv.laudo.strings }} fileiras ({{ inv.laudo.modulos_por_string | join(" + ") }}){% if pares == 1 %}, duas delas na mesma entrada{% elif pares > 1 %}, de duas em duas nas entradas{% endif %}{% endfor %}{% elif resultado.arranjo_strings == 1 %}todos em série, numa só fileira{% else %}{{ resultado.arranjo_strings }} fileiras ({{ resultado.arranjo_modulos_por_string | join(" + ") }}){% endif %}</span>
@@ -521,13 +521,13 @@
                         HSP médio anual da região
                         <span class="tip">
                             <button type="button" class="tip-btn" aria-label="O que é HSP?">i</button>
-                            <span class="tip-bubble">HSP (Horas de Sol Pleno) é a energia que o sol entrega num dia, contada em horas de sol forte, de 1.000 W/m². Quanto maior esse número, mais energia os painéis geram por dia na sua região.</span>
+                            <span class="tip-bubble">Horas de Sol Pleno: a energia que o sol entrega num dia, contada em horas de sol forte (1.000 W/m²). Quanto maior, mais os painéis geram.</span>
                         </span>
                     </span>
                     <span class="valor">{{ br(resultado.hsp_medio_anual) }} h/dia</span>
                 </li>
             </ul>
-            <p class="hint-fonte">São uma referência técnica, com dados das folhas de fabricante: modelos equivalentes de outras marcas também servem, desde que respeitem os mesmos limites de corrente e tensão. As potências de inversor seguem a grade de referência {{ textos_do_motor.get(resultado.fabricante_referencia_inversor, resultado.fabricante_referencia_inversor) }}; outras marcas vendem degraus de potência diferentes.</p>
+            <p class="hint-fonte">As potências de inversor seguem a grade {{ textos_do_motor.get(resultado.fabricante_referencia_inversor, resultado.fabricante_referencia_inversor) }}; outras marcas vendem degraus diferentes.</p>
         </details>
 
         {#- Caminho que o site NAO percorre: so acontece quando um caso de
@@ -547,10 +547,7 @@
             <p><strong>Por que {{ paineis(resultado.numero_paineis) }}, se o seu consumo pedia {{ paineis(resultado.numero_paineis_por_energia) }}?</strong></p>
             <details class="nota-mais">
             <summary>Entenda</summary>
-            <div>
-            <p>Pela energia, {{ paineis(resultado.numero_paineis_por_energia) }} {{ "bastaria" if resultado.numero_paineis_por_energia == 1 else "bastariam" }}. Mas, com tão poucos painéis ligados em série, a tensão do arranjo fica abaixo do mínimo em que o inversor consegue trabalhar — e nos dias quentes a tensão dos painéis cai ainda mais. O menor arranjo que funciona com este inversor tem {{ paineis(resultado.numero_paineis) }}.</p>
-            <p>Ou seja: este não é um sistema com folga, é o <strong>menor sistema que funciona</strong>. A consequência aparece mais abaixo — ele gera bem mais energia do que a sua conta consegue abater, e essa sobra não vira economia. Por isso o retorno do investimento é mais lento do que em casas que consomem mais.</p>
-            </div>
+            <p>Pela energia, {{ paineis(resultado.numero_paineis_por_energia) }} {{ "bastaria" if resultado.numero_paineis_por_energia == 1 else "bastariam" }}. Mas, com tão poucos painéis em série, a tensão fica abaixo do mínimo do inversor, sobretudo nos dias quentes. Este é o <strong>menor sistema que funciona</strong>: ele gera mais do que a conta consegue abater, e por isso se paga mais devagar.</p>
             </details>
         </div>
         {% endif %}
@@ -564,7 +561,7 @@
         <details class="exemplo-fatura detalhes-tecnicos">
             <summary>Detalhes técnicos: a verificação elétrica</summary>
             <div class="exemplo-fatura-conteudo">
-                <p>Antes de indicar o sistema, a plataforma confere se os painéis podem ser ligados no inversor indicado. São quatro verificações: duas de segurança (corrente de curto-circuito e tensão máxima no frio) e duas de desempenho (corrente de operação e tensão mínima no calor).</p>
+                <p>Antes de indicar o sistema, a plataforma confere se os painéis podem ser ligados no inversor: duas verificações de segurança (corrente de curto-circuito e tensão máxima no frio) e duas de desempenho (corrente de operação e tensão mínima no calor).</p>
                 <ul class="resultado-lista">
                     <li>
                         <span>Painéis em cada fileira</span>
@@ -589,7 +586,7 @@
                 </ul>{% if resultado.inversores_por_tensao %}
                 <p>Os números acima são os do inversor para rede de {{ resultado.inversores_por_tensao[0].tensao_rede }} ({{ resultado.inversores_por_tensao[0].modelo }}). {% for inv in resultado.inversores_por_tensao[1:] %}O de {{ inv.tensao_rede }} ({{ inv.modelo }}) também passou nas quatro verificações, com fileiras de {{ inv.laudo.modulos_por_string | join(" + ") }} painéis. {% endfor %}{% set ns = namespace(paralelo=false) %}{% for inv in resultado.inversores_por_tensao %}{% if (inv.laudo.mppts_usados or []) | selectattr("strings", "gt", 1) | list %}{% set ns.paralelo = true %}{% endif %}{% endfor %}{% if ns.paralelo %}Quando duas fileiras dividem a mesma entrada do inversor, as correntes delas se somam, e é a soma que a plataforma compara com o limite.{% endif %}</p>{% endif %}
                 {% if resultado.modulo_escolhido_pela_plataforma %}
-                <p><strong>Por que este painel.</strong> Entre os painéis compatíveis, a plataforma escolhe o de menor corrente de operação. A corrente é o que mais limita a ligação com o inversor, e ela não diminui em sistemas maiores — em série, a corrente da fileira é a de um painel só.</p>
+                <p><strong>Por que este painel.</strong> Entre os que passam, a plataforma escolhe o de menor corrente, que é o que mais limita a ligação com o inversor.</p>
                 {% endif %}
                 {% if resultado.modulos_descartados %}
                 <p><strong>Painéis testados e descartados para o seu caso:</strong></p>
@@ -641,7 +638,7 @@
         </div>
         <details class="nota-mais">
             <summary>Como ler este gráfico</summary>
-            <p class="grafico-nota">Cada par de barras compara o que os painéis geram com o que a sua casa consome, em kWh; o número embaixo é a diferença. O que sobra vira crédito guardado, que cobre os meses em que falta{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %} (até a conta chegar ao valor mínimo da distribuidora){% endif %}. A geração vem de dados de irradiação da sua região estimados por satélite (NASA POWER).{% if resultado.modo_consumo == 'media' %} As barras de consumo têm todas a mesma altura porque você informou a média do mês; para ver a variação da sua casa, volte e preencha o histórico de 12 meses.{% else %} O consumo vem do histórico de 12 meses que você informou, então é o da sua casa.{% endif %}</p>
+            <p class="grafico-nota">Cada par de barras compara a geração com o consumo, em kWh; o número embaixo é a diferença. O que sobra vira crédito, que cobre os meses em que falta{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %} (até a conta chegar ao mínimo da distribuidora){% endif %}.{% if resultado.modo_consumo == 'media' %} As barras de consumo são iguais porque você informou a média; preencha os 12 meses da conta para ver a variação da sua casa.{% endif %}</p>
         </details>
 
         <details class="nota-mais fora-do-resumo">
@@ -675,7 +672,7 @@
         </div>
         <details class="nota-mais">
             <summary>O que mostra a coluna “Abatido da conta”</summary>
-            <p class="grafico-nota">Quanto de fato sai da sua fatura em cada mês de um ano típico, já usando o crédito guardado dos meses de mais sol (no primeiro ano o saldo ainda está se formando, e os primeiros meses fracos podem abater menos).{% if not resultado.arranjo_subiu_pelo_minimo_eletrico %} Diferença negativa não quer dizer que o sistema ficou pequeno: o crédito dos meses de mais sol cobre os de menos sol.{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %} No seu caso, a conta não pode ficar abaixo do valor mínimo da distribuidora (o custo de disponibilidade, equivalente a {{ resultado.piso_disponibilidade_kwh | round | int }} kWh na ligação {% if resultado.tipo_ligacao_informado %}{{ nomes_ligacao.get(resultado.tipo_ligacao, resultado.tipo_ligacao) }}{% else %}bifásica, considerada quando o tipo não é informado{% endif %}), e isso impede de abater {{ br(resultado.piso_anual_kwh, 0) }} kWh do consumo no ano. Por isso o sistema foi dimensionado só para a parte que pode ser abatida: painel a mais seria dinheiro sem retorno.{% endif %}{% endif %}</p>
+            <p class="grafico-nota">Quanto sai de fato da conta em cada mês, já usando o crédito dos meses de mais sol (no primeiro ano esse crédito ainda está se formando).{% if not resultado.arranjo_subiu_pelo_minimo_eletrico %} Diferença negativa não quer dizer que o sistema ficou pequeno: o crédito cobre esses meses.{% if resultado.piso_anual_kwh and resultado.piso_anual_kwh > 0 %} No seu caso, a conta não pode ficar abaixo do mínimo da distribuidora ({{ resultado.piso_disponibilidade_kwh | round | int }} kWh na ligação {% if resultado.tipo_ligacao_informado %}{{ nomes_ligacao.get(resultado.tipo_ligacao, resultado.tipo_ligacao) }}{% else %}bifásica, a que usamos quando a ligação não é informada{% endif %}), e por isso {{ br(resultado.piso_anual_kwh, 0) }} kWh do consumo do ano não podem ser abatidos. O sistema foi feito só para a parte que pode ser abatida: painel a mais seria dinheiro sem retorno.{% endif %}{% endif %}</p>
         </details>
         </details>
         <ul class="resultado-lista">
@@ -689,18 +686,14 @@
             e dita em palavras, com fonte de campo. Escolha discutida com a
             aluna; fontes e decisao em claude/melhorias_site_item18_andamento_06-10.txt.
             NUNCA ancorar isto nos PRs do PVsyst (circular). -#}
-        <p class="nota-exata">É a geração de um sistema típico. Na sua casa ela pode sair um pouco maior ou menor — depende da direção e da inclinação do telhado, de sombra e da limpeza dos painéis. Se sair menor, a economia também pode diminuir um pouco.</p>
+        <p class="nota-exata">É a geração de um sistema típico. Na sua casa pode sair um pouco maior ou menor, conforme a direção e a inclinação do telhado, a sombra e a limpeza dos painéis.</p>
         <details class="nota-mais nota-fontes">
         <summary>Quanto isso varia na prática</summary>
         <p class="nota-fonte">
-            A plataforma desconta 20% de perdas (calor, sujeira, fiação, inversor), o que se chama
-            taxa de desempenho de 0,80. Em 73 sistemas de até 10 kW medidos em 2022 no Rio Grande do
-            Norte, a taxa ficou em média em 0,79, de 0,70 a 0,92 conforme o sistema (Fonseca, Vieira
-            e Guerra, 2025). Em 1.162 sistemas reais da Bahia, de Pernambuco e de São Paulo, a EPE
-            achou a geração média muito perto da estimada em Pernambuco e São Paulo, e de 5% a 8%
-            acima na Bahia, com grande variação entre sistemas (Nota Técnica EPE DEA-SEE 014/2023).
-            Ou seja: na média a conta acerta; casa a casa, a geração real pode ficar uns 12% abaixo
-            ou até 15% acima do número mostrado.
+            A conta desconta 20% de perdas (calor, sujeira, fiação, inversor). Em sistemas reais medidos no Brasil, a
+            geração ficou, na média, perto da estimada, mas variou de casa para casa: de uns 12% abaixo a até 15% acima
+            (Fonseca, Vieira e Guerra, 2025, com 73 sistemas no Rio Grande do Norte; EPE, Nota Técnica DEA-SEE 014/2023,
+            com 1.162 sistemas na Bahia, em Pernambuco e em São Paulo).
         </p>
         </details>
     </div>
@@ -1220,17 +1213,17 @@
 
         <details class="faq-item">
             <summary>Minha conta de luz vai zerar?</summary>
-            <p>Não. Toda conta tem um valor mínimo, o custo de disponibilidade, que depende do tipo de ligação da sua casa (art. 291 da Resolução ANEEL nº 1.000/2021). E sobre a energia abatida pelos créditos continua sendo cobrada uma parte da tarifa, o Fio B, que paga a rede de distribuição — e que a Lei nº 14.300/2022 aumenta ano a ano até 2029. Por isso cada kWh abatido economiza menos que a tarifa cheia. As duas cobranças não se somam: a conta fica no maior dos dois valores (art. 655-I da mesma resolução). Tudo isso já está no cálculo desta simulação. Mais detalhes em <a href="{{ url_for('pagina', nome='economia') }}">Economia e retorno</a>.</p>
+            <p>Não. Toda conta tem um valor mínimo, que depende da ligação da casa. E sobre a energia abatida continua a taxa pelo uso da rede, que a lei aumenta até 2029; por isso cada kWh abatido vale menos que a tarifa cheia. As duas não se somam: a conta fica na maior. Tudo isso já está nesta simulação. Mais em <a href="{{ url_for('pagina', nome='economia') }}">Economia e retorno</a>.</p>
         </details>
 
         <details class="faq-item">
             <summary>O tempo de retorno considera manutenção ao longo dos anos?</summary>
-            <p>Sim. O retorno soma a economia de cada mês, menos a manutenção (1% do valor do sistema por ano), até ela alcançar o custo do sistema — já considerando o aumento do Fio B cobrado previsto em lei e o desgaste dos painéis. Se o retorno passar de 10 anos, entra também uma troca do inversor (15% do valor do sistema). Os dois valores são os que a EPE, a empresa de pesquisa do governo federal, usa nas projeções oficiais. Na seção “Economia e retorno”, o quadro “No longo prazo” mostra a conta inteira dos 25 anos.</p>
+            <p>Sim. O retorno desconta a manutenção (1% do valor do sistema por ano) e, se passar de 10 anos, uma troca do inversor (15%), os valores que a EPE, empresa de pesquisa do governo federal, usa nas projeções oficiais. Também entram o aumento da taxa pelo uso da rede e o desgaste dos painéis. A conta dos 25 anos está em “No longo prazo”, na seção Economia e retorno.</p>
         </details>
 
         <details class="faq-item">
             <summary>Posso confiar 100% nesse resultado para fechar um contrato?</summary>
-            <p>Use o resultado como uma referência de viabilidade, não como orçamento definitivo. Fatores como sombreamento do telhado, orientação solar, distância até o quadro de energia e o instalador escolhido podem alterar o valor final — por isso vale pedir orçamento a pelo menos três empresas antes de decidir. Quanto o resultado pode variar está em <a href="{{ url_for('pagina', nome='precisao') }}">Quão preciso é o resultado</a>.</p>
+            <p>Não. É uma referência, não um orçamento: sombra, direção do telhado, distância até o quadro de energia e o instalador mudam o valor final. Peça orçamento a pelo menos três empresas. Quanto o resultado pode variar está em <a href="{{ url_for('pagina', nome='precisao') }}">Quão preciso é o resultado</a>.</p>
         </details>
 
         {#- FASE 4, ITEM 27 (11/11/2026, decisao da aluna): o que conferir no orcamento do
