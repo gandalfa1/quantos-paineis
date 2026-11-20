@@ -3635,8 +3635,55 @@ def outras_marcas_para_a_tela(n_modulos, chave_modulo, potencia_inversor_kw, exc
                 item = {"modelo": nome, "marca": marca,
                         "registro_inmetro": CATALOGO_INVERSORES_OUTRAS_MARCAS[nome]["registro_inmetro"]}
                 (g["servem"] if laudo["aprovado"] else g["nao_servem"]).append(item)
+        g["vizinhas"] = inversores_vizinhos(n_modulos, chave_modulo, potencia_inversor_kw,
+                                            rede, g["sem_modelo"])
         grupos.append(g)
     return grupos
+
+
+# ---------------------------------------------------------------------
+# POTENCIA VIZINHA (3a rodada de outras marcas, 20/11/2026; medicao em
+# claude/terceira_rodada_e_textos_19-11.txt). Quando uma marca nao tem modelo
+# no degrau do resultado, a lista "Ver outros inversores que servem" mostra o
+# modelo dela do DEGRAU SEGUINTE da grade, se:
+#   - nao atravessa 10 kW (monofasico -> trifasico mudaria a ligacao);
+#   - acima de 10 kW, e da mesma rede (127/220 ou 220/380 V);
+#   - passa nas quatro verificacoes com o MESMO numero de placas;
+#   - a sobra (kW do inversor / kWp das placas) fica ate 1,05, o limite do
+#     Manual de Engenharia FV (CEPEL-CRESESB, 2014, p. 332) - o mesmo usado no
+#     degrau de 1 kW (item A1).
+# So para CIMA: um inversor menor cortaria energia. Nenhum numero muda (a marca
+# e a potencia do inversor nao entram no custo, que e por kWp, nem na geracao).
+# ---------------------------------------------------------------------
+SOBRA_MAXIMA_INVERSOR_VIZINHO = 1.05
+
+
+def inversores_vizinhos(n_modulos, chave_modulo, potencia_inversor_kw, rede, marcas):
+    """
+    Para as marcas sem modelo no degrau ("marcas"), o modelo de cada uma no
+    degrau SEGUINTE que serve (regras acima). Devolve {"potencia_kw", "servem"}
+    ou None quando nenhuma serve. "servem" segue a ordem do ranking.
+    """
+    seguintes = [d for d in GRADE_INVERSORES_KW if d > potencia_inversor_kw + 1e-9]
+    if not seguintes or not marcas:
+        return None
+    prox = seguintes[0]
+    if potencia_inversor_kw <= LIMITE_MONOFASICO_KW + 1e-9 < prox:
+        return None
+    kwp = potencia_instalada(n_modulos, CATALOGO_MODULOS[chave_modulo]["potencia_wp"])
+    if prox / kwp > SOBRA_MAXIMA_INVERSOR_VIZINHO + 1e-9:
+        return None
+    servem = []
+    for marca in ORDEM_MARCAS_OUTRAS:
+        if marca not in marcas:
+            continue
+        for nome, inv in CATALOGO_INVERSORES_OUTRAS_MARCAS.items():
+            if (inv["marca"] == marca and inv.get("tensao_rede") == rede
+                    and abs(inv["potencia_kw"] - prox) < 1e-9
+                    and verificar_compatibilidade(n_modulos, chave_modulo, nome)["aprovado"]):
+                servem.append({"modelo": nome, "marca": marca,
+                               "registro_inmetro": inv["registro_inmetro"]})
+    return {"potencia_kw": prox, "servem": servem} if servem else None
 
 
 def dimensionar_arranjo_com_placa(n_modulos_por_energia, chave_modulo, fdi=0.80):

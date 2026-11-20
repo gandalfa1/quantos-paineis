@@ -1818,6 +1818,7 @@ table.tabela-retorno .retorno-meses { color: var(--color-text-muted); font-size:
    ========================================================= */
 .lista-inv { margin: 6px 0 0 18px; }
 .opcao-rede { margin: 12px 0 0; font-weight: 600; }
+.opcao-vizinha { margin: 12px 0 0; }
 .opcao-falta { margin: 6px 0 0; font-size: 0.9rem; color: var(--color-text-muted); }
 .lista-opcoes { list-style: none; padding: 0; margin: 8px 0 0; }
 .lista-opcoes > li {

@@ -1,5 +1,5 @@
-Saida do teste/conferir_equacoes_3_3.py - rodado em 19/11/2026 (Python 3.13), no ramo
-fase4-outras-marcas-trifasicos (outras marcas, 2a rodada: inversores trifasicos de 12 a 25 kW, a partir do main 7c0b729).
+Saida do teste/conferir_equacoes_3_3.py - rodado em 20/11/2026 (Python 3.13), no ramo
+fase4-potencia-vizinha (outras marcas, 3a rodada: inversor de outra marca um degrau acima, a partir do main b8c52ab).
 A saida da versao do
 artigo (a) (31.488 simulacoes, 14 erros plantados) continua na tag v1.2-artigo-rbens; a da versao
 do TCC (15.744 simulacoes, 10 erros plantados), na tag v1.0-tcc.
@@ -39,6 +39,9 @@ Divergencias: 0
   DETECTADO: outra marca antes de Growatt e Deye (pelo menos 50 divergencias)
   DETECTADO: redes trocadas na lista de outros inversores (pelo menos 50 divergencias)
   DETECTADO: marca sem modelo esquecida na lista (pelo menos 50 divergencias)
-Erros plantados detectados: 29 de 29
+  DETECTADO: inversor vizinho sem o limite de sobra (pelo menos 50 divergencias)
+  DETECTADO: inversor vizinho dois degraus acima (pelo menos 50 divergencias)
+  DETECTADO: inversor vizinho de outra rede (pelo menos 50 divergencias)
+Erros plantados detectados: 32 de 32
 
 RESULTADO: OK

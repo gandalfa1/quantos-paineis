@@ -77,7 +77,7 @@ Depois, abra `http://127.0.0.1:5000` no navegador. As páginas de explicação f
 python teste/conferir_equacoes_3_3.py
 ```
 
-Ele programa as equações de novo a partir do texto, sem chamar o motor, e compara os dois em 33.472 simulações, em toda a faixa residencial de consumo, até os inversores trifásicos de 25 kW. Confere também as listas de outras placas e de outros inversores do resultado. Depois introduz 29 erros de propósito no motor, um de cada vez, para provar que a conferência percebe cada um. O resultado esperado é **0 divergências** e **29 de 29 erros detectados**. Leva cerca de 5 minutos. A saída está em `teste/resultado_da_conferencia.txt`.
+Ele programa as equações de novo a partir do texto, sem chamar o motor, e compara os dois em 33.472 simulações, em toda a faixa residencial de consumo, até os inversores trifásicos de 25 kW. Confere também as listas de outras placas e de outros inversores do resultado, inclusive os inversores um pouco maiores. Depois introduz 32 erros de propósito no motor, um de cada vez, para provar que a conferência percebe cada um. O resultado esperado é **0 divergências** e **32 de 32 erros detectados**. Leva cerca de 5 minutos. A saída está em `teste/resultado_da_conferencia.txt`.
 
 **Os dados da ANEEL.** Depois de cada atualização, `python teste/conferir_dados_aneel.py` confere os dois arquivos e reprova valor que mudou sem vigência nova.
 
