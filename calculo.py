@@ -1623,6 +1623,10 @@ def retorno_mes_a_mes(custo_total, geracao_anual_kwh, consumo_por_mes_kwh,
                              no ano, sem custos), custos (manutencao e troca no
                              ano), economia_por_mes e acumulado (soma de
                              economia - custos no fim daquele ano)
+      anos_prazo           - (20/11/2026, curva do dinheiro acumulado) a mesma
+                             tabela por ano civil, ate o fim do prazo, com
+                             mes_fim (meses desde a instalacao) e saldo
+                             (acumulado - custo_total); so leitura
       economia_prazo, custos_prazo, lucro_prazo - somas dos meses_max meses
                              (lucro = economia - custos - custo_total)
       fluxo_liquido        - lista mes a mes de economia - custos (para a TIR,
@@ -1732,6 +1736,32 @@ def retorno_mes_a_mes(custo_total, geracao_anual_kwh, consumo_por_mes_kwh,
     for l in anos:
         l["economia_por_mes"] = l["economia"] / l["meses"] if l["meses"] else 0.0
 
+    # 4) FASE 4, CURVA DO DINHEIRO ACUMULADO (20/11/2026): a MESMA tabela por
+    # ano civil, mas ate o fim do prazo (25 anos), para o grafico e a tabela
+    # de "Ver os numeros". So LE as listas do passo 1 - nada acima muda.
+    # Cada linha tem tambem:
+    #   mes_fim - meses desde a instalacao no fim daquele ano (o eixo x)
+    #   saldo   - acumulado - custo_total: o dinheiro da pessoa no fim daquele
+    #             ano (comeca em -custo; passa do zero quando o sistema se paga)
+    anos_prazo = []
+    acumulado = 0.0
+    for t in range(meses_max):
+        if not anos_prazo or anos_prazo[-1]["ano"] != anos_civis[t]:
+            anos_prazo.append({"ano": anos_civis[t], "meses": 0,
+                               "percentual_fio_b": percentuais[t],
+                               "economia": 0.0, "custos": 0.0,
+                               "acumulado": acumulado})
+        linha = anos_prazo[-1]
+        acumulado += economias[t] - custos[t]
+        linha["meses"] += 1
+        linha["economia"] += economias[t]
+        linha["custos"] += custos[t]
+        linha["acumulado"] = acumulado
+        linha["mes_fim"] = t + 1
+    for l in anos_prazo:
+        l["economia_por_mes"] = l["economia"] / l["meses"] if l["meses"] else 0.0
+        l["saldo"] = l["acumulado"] - custo_total
+
     economia_prazo, custos_prazo = sum(economias), sum(custos)
     return {
         "payback_meses": payback,
@@ -1739,6 +1769,7 @@ def retorno_mes_a_mes(custo_total, geracao_anual_kwh, consumo_por_mes_kwh,
         "inicio_mes": mes0,
         "acumulado_no_prazo": economia_prazo if payback == math.inf else None,
         "anos": anos,
+        "anos_prazo": anos_prazo,
         "economia_prazo": economia_prazo,
         "custos_prazo": custos_prazo,
         "lucro_prazo": economia_prazo - custos_prazo - custo_total,
