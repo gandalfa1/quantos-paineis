@@ -1155,8 +1155,10 @@ def _simular_uma_vez(cidade, consumo_medio_kwh, valor_fatura_reais,
             oem_anual=OEM_ANUAL_FRACAO, troca_inversor=TROCA_INVERSOR_FRACAO,
             cobranca_pos_2029=cobranca_maxima)
         longo_prazo_pior = indicadores_longo_prazo(retorno_pior, custo_total)
+        saldo_por_ano_pior = retorno_pior["anos_prazo"]
     else:
         longo_prazo_pior = None
+        saldo_por_ano_pior = None
 
     # 6b) GUARDA DE VIABILIDADE, PARTE 2 (correcao T18, Achado E)
     #
@@ -1513,6 +1515,16 @@ def _simular_uma_vez(cidade, consumo_medio_kwh, valor_fatura_reais,
         # payback_descontado_poupanca, payback_meses. Nenhuma conta no template.
         "longo_prazo": longo_prazo,
         "longo_prazo_pior": longo_prazo_pior,
+        # --- FASE 4, CURVA DO DINHEIRO ACUMULADO (20/11/2026) ---
+        # Uma linha por ano civil ate os 25 anos (calculo.retorno_mes_a_mes,
+        # "anos_prazo"): ano, meses, percentual_fio_b, economia, custos,
+        # economia_por_mes, acumulado, mes_fim e saldo (acumulado - custo). As
+        # linhas ate o ano do retorno sao as mesmas de retorno_por_ano. O
+        # grafico e a tabela de "Ver os numeros" so leem isto (regra do T2b).
+        # saldo_por_ano_pior: o mesmo para o pior caso de 2029 (None quando
+        # longo_prazo_pior e None).
+        "saldo_por_ano": retorno["anos_prazo"],
+        "saldo_por_ano_pior": saldo_por_ano_pior,
         "cobranca_maxima_pos_2029": cobranca_maxima,
         "cobranca_maxima_estimada": cobranca_maxima_estimada,
         "oem_anual_reais": custo_total * OEM_ANUAL_FRACAO,

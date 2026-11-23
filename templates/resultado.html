@@ -1052,14 +1052,61 @@
                 <span class="valor">{% if texto_retorno != "menos de meio ano" %}cerca de {% endif %}{{ texto_retorno }} (em {{ resultado.retorno_por_ano[-1].ano }})</span>
             </li>
         </ul>
-        {#- ITENS 28 E 11 (06/10/2026): o retorno passou a ser MES A MES no motor
-            (calculo.retorno_mes_a_mes). Custo / economia de hoje deixou de dar
-            o retorno, entao o quadro so continua conferivel com a economia de
-            cada ano ao lado: a tabela abaixo e lida pronta do motor
-            (retorno_por_ano) - nenhuma conta financeira aqui (regra do T2b). A
-            ultima linha e o ano em que o acumulado passa o custo. -#}
+        {#- FASE 4, CURVA DO DINHEIRO ACUMULADO (20/11/2026; ideia da REMUNOM 2026,
+            Jardim, Silva e Jardim): o saldo da pessoa no fim de cada ano, do preco
+            do sistema (negativo) ate os 25 anos. Os numeros vem prontos do motor
+            (resultado.saldo_por_ano e saldo_por_ano_pior; payback_meses para a
+            marca): aqui so ha a ESCALA do desenho, como a largura das barras -
+            nenhuma conta financeira (regra do T2b). A linha tracejada e o pior caso
+            de 2029; antes de 2029 as duas coincidem e a tracejada fica por baixo. -#}
+        {%- set sa = resultado.saldo_por_ano %}
+        {%- set sap = resultado.saldo_por_ano_pior %}
+        {%- set i_ret = resultado.retorno_por_ano | length - 1 %}
+        {%- set valores = sa | map(attribute='saldo') | list + [0 - resultado.custo_total_sistema, 0] + ((sap | map(attribute='saldo') | list) if sap else []) %}
+        {%- set vmin, vmax = valores | min, valores | max %}
+        {%- set ns = namespace(passo=none) %}
+        {%- for p in [500, 1000, 2000, 2500, 5000, 10000, 20000, 25000, 50000, 100000, 200000, 250000, 500000, 1000000, 2000000, 2500000, 5000000, 10000000, 20000000, 25000000, 50000000] %}{% if ns.passo is none and (vmax - vmin) / p <= 5 %}{% set ns.passo = p %}{% endif %}{% endfor %}
+        {%- set passo = ns.passo or 100000000 %}
+        {%- set tmin = vmin - 0.10 * (vmax - vmin) %}
+        {%- set tmax = ((vmax / passo) | round(0, 'ceil')) * passo %}
+        {%- set gx0, gx1, gy0, gy1 = 56, 350, 10, 178 %}
+        {%- macro gx(m) -%}{{ '%.1f' | format(gx0 + (gx1 - gx0) * m / 300) }}{%- endmacro -%}
+        {%- macro gy(v) -%}{{ '%.1f' | format(gy1 - (gy1 - gy0) * (v - tmin) / (tmax - tmin)) }}{%- endmacro -%}
+        {%- macro rotulo(v) -%}{% if v == 0 %}0{% elif v | abs < 1000 %}{{ "−" if v < 0 }}R$ {{ br(v | abs, 0) }}{% elif v | abs >= 1000000 %}{{ "−" if v < 0 }}R$ {{ br(v | abs / 1000000, 0 if (v | abs) % 1000000 == 0 else 1) }} mi{% else %}{{ "−" if v < 0 }}R$ {{ br(v | abs / 1000, 0 if (v | abs) % 1000 == 0 else 1) }} mil{% endif %}{%- endmacro -%}
+        {%- set xr, yr = gx(resultado.payback_meses) | float, gy(0) | float %}
+        <h3 class="curva-titulo">O seu dinheiro, ano a ano</h3>
+        <p class="curva-lead">Começa negativo, no preço do sistema, e sobe com a economia de cada ano. Quando passa do zero, o sistema se pagou. A pequena queda aos {{ resultado.troca_inversor_apos_anos }} anos é a troca do inversor.</p>
+        {%- if sap %}
+        <p class="curva-legenda"><span class="item"><span class="leg leg-principal"></span>Conta principal</span> <span class="item"><span class="leg leg-pior"></span>Se a regra de 2029 pesar mais</span></p>
+        {%- endif %}
+        <svg class="curva-dinheiro" viewBox="0 0 360 206" role="img" aria-label="Gráfico do dinheiro acumulado: começa em {{ rotulo(0 - resultado.custo_total_sistema) }}, passa do zero em {{ resultado.retorno_por_ano[-1].ano }} e chega a {{ rotulo(sa[-1].saldo) }} em 25 anos.">
+            {%- for t in range(((tmin / passo) | round(0, 'ceil')) | int, (tmax / passo) | int + 1) %}{% set v = t * passo %}
+            <line class="{{ 'zero' if v == 0 else 'grade' }}" x1="{{ gx0 }}" x2="{{ gx1 }}" y1="{{ gy(v) }}" y2="{{ gy(v) }}"/>
+            <text class="eixo" x="{{ gx0 - 6 }}" y="{{ gy(v) | float + 3.5 }}" text-anchor="end">{{ rotulo(v) }}</text>
+            {%- endfor %}
+            {%- for k in [0, 5, 10, 15, 20, 25] %}
+            <text class="eixo" x="{{ gx(k * 12) }}" y="{{ gy1 + 17 }}" text-anchor="{{ 'start' if k == 0 else ('end' if k == 25 else 'middle') }}">{{ "hoje" if k == 0 else (k ~ (" anos" if k == 25 else "")) }}</text>
+            {%- endfor %}
+            {%- if sap %}
+            <polyline class="linha-pior" points="{{ gx(0) }},{{ gy(0 - resultado.custo_total_sistema) }}{% for l in sap %} {{ gx(l.mes_fim) }},{{ gy(l.saldo) }}{% endfor %}"/>
+            {%- endif %}
+            <polyline class="linha-principal" points="{{ gx(0) }},{{ gy(0 - resultado.custo_total_sistema) }}{% for l in sa %}{% if loop.index0 == i_ret %} {{ xr }},{{ yr }}{% endif %} {{ gx(l.mes_fim) }},{{ gy(l.saldo) }}{% endfor %}"/>
+            <circle class="ponto-inicio" cx="{{ gx(0) }}" cy="{{ gy(0 - resultado.custo_total_sistema) }}" r="3.5"/>
+            {%- if gy(0 - resultado.custo_total_sistema) | float - yr >= 30 %}
+            <text class="nota-curva" x="{{ gx(0) | float + 7 }}" y="{{ gy(0 - resultado.custo_total_sistema) | float + 14 }}">o preço do sistema</text>
+            {%- endif %}
+            <circle class="ponto-retorno" cx="{{ xr }}" cy="{{ yr }}" r="5"/>
+            {%- if xr > 240 %}
+            <text class="nota-curva forte" x="{{ xr - 8 }}" y="{{ yr - 9 }}" text-anchor="end">se paga em {{ resultado.retorno_por_ano[-1].ano }}</text>
+            {%- else %}
+            <text class="nota-curva forte" x="{{ xr + 8 }}" y="{{ yr + 15 }}">se paga em {{ resultado.retorno_por_ano[-1].ano }}</text>
+            {%- endif %}
+            {%- for l in sa %}{% set xa = gx(l.mes_fim - l.meses) | float %}
+            <rect class="faixa-ano" x="{{ xa }}" y="{{ gy0 }}" width="{{ '%.1f' | format(gx(l.mes_fim) | float - xa) }}" height="{{ gy1 - gy0 }}"><title>Fim de {{ l.ano }}: {{ rotulo(l.saldo) if l.saldo | abs >= 1000 else ("R$ " ~ br(l.saldo, 0)) }}{% if sap %} (se a regra de 2029 pesar mais: {{ rotulo(sap[loop.index0].saldo) if sap[loop.index0].saldo | abs >= 1000 else ("R$ " ~ br(sap[loop.index0].saldo, 0)) }}){% endif %}</title></rect>
+            {%- endfor %}
+        </svg>
         <details class="nota-mais">
-        <summary>Ver a conta ano a ano</summary>
+        <summary>Ver os números</summary>
         <div class="tabela-wrap" style="margin-top: 12px;">
             <table class="tabela-geracao tabela-retorno">
                 <tr>
@@ -1067,19 +1114,20 @@
                     <th>Cobrança pelo uso da rede</th>
                     <th>Economia no ano (R$)</th>
                     <th>Manutenção (R$)</th>
-                    <th>Somada (R$)</th>
+                    <th>Saldo (R$)</th>
                 </tr>
-                {% for linha in resultado.retorno_por_ano %}
-                <tr{% if loop.last %} class="linha-retorno"{% endif %}>
+                {% for linha in sa %}
+                <tr{% if loop.index0 == i_ret %} class="linha-retorno"{% endif %}>
                     <td>{{ linha.ano }}{% if linha.meses < 12 %} <span class="retorno-meses">({{ linha.meses }} {{ "mês" if linha.meses == 1 else "meses" }})</span>{% endif %}</td>
                     <td>{{ (linha.percentual_fio_b * 100) | round | int }}%</td>
                     <td>{{ br(linha.economia) }}</td>
                     <td>{{ br(linha.custos) }}{% if linha.custos > resultado.oem_anual_reais * 1.5 %} <span class="retorno-meses">(com a troca do inversor)</span>{% endif %}</td>
-                    <td>{{ br(linha.acumulado) }}</td>
+                    <td>{{ "−" if linha.saldo < -0.005 }}{{ br(linha.saldo | abs) }}</td>
                 </tr>
                 {% endfor %}
             </table>
         </div>
+        <p class="nota-exata">Saldo: a economia somada, menos a manutenção e o preço do sistema. A linha em destaque é o ano em que o sistema se paga.</p>
         {% if not resultado.economia_diminui and not resultado.percentual_fio_b_informado %}<p class="nota-exata">A economia fica igual todos os anos porque, com os painéis, a conta já fica no mínimo da distribuidora.</p>{% endif %}
         </details>
 

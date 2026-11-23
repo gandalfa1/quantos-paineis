@@ -85,6 +85,8 @@ Ele programa as equações de novo a partir do texto, sem chamar o motor, e comp
 
 **A tabela de rede.** `python teste/conferir_tabela_rede.py` confere a tabela nas 10 cidades do artigo e planta 10 defeitos, um de cada vez, para provar que cada um desliga a tabela inteira.
 
+**O gráfico do dinheiro ao longo dos anos.** `python teste/conferir_curva_dinheiro.py` confere, em 2.063 simulações, que a tabela de 25 anos do gráfico bate com a soma ano a ano e com o resultado de 25 anos, e que a linha passa do zero no mês do retorno (também no pior caso de 2029). Depois planta 4 erros e exige que todos sejam pegos. Leva cerca de 20 segundos.
+
 ## Atualização automática do Fio B
 
 O Fio B muda quando a ANEEL aprova o reajuste de cada distribuidora, e a ANEEL só publica o valor novo poucos dias antes de ele valer. Por isso não dá para saber o valor com antecedência. O que dá para fazer é buscar logo depois que ele sai.
