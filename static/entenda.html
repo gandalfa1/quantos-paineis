@@ -50,7 +50,7 @@
 <div class="faixa-pagina-conteudo">
 <h1 class="pagina-titulo">Entenda o dimensionamento</h1>
 <div class="resumo-pagina">
-<p>"Dimensionar" um sistema solar é descobrir <strong>de que tamanho ele precisa ser</strong> para a sua casa: quantos painéis, qual inversor, quanto vai gerar, quanto custa e em quanto tempo se paga. Esta página explica, sem conta difícil, como a plataforma faz isso, e usa como exemplo um dos casos de teste da plataforma, em Guaíra (PR): uma casa que consome 300 kWh por mês e paga R$ 225,00 de conta. Com a sua conta, os números serão outros.</p>
+<p>"Dimensionar" é descobrir <strong>de que tamanho o sistema precisa ser</strong>: quantos painéis, qual inversor, quanto gera, quanto custa e em quanto tempo se paga. Aqui mostramos como a plataforma faz isso, com um exemplo: uma casa em Guaíra (PR) que consome 300 kWh por mês e paga R$ 225,00 de conta.</p>
 </div>
 </div>
 </div>
@@ -135,13 +135,13 @@
 <p>O sistema que a plataforma calcula é o <strong>ligado à rede</strong> (também chamado de <em>on-grid</em>). Ele funciona assim:</p>
 <ol>
 <li><strong>Os painéis</strong> transformam a luz do sol em eletricidade. Essa eletricidade sai em <strong>corrente contínua</strong>, que os aparelhos da casa não usam.</li>
-<li><strong>O inversor</strong> transforma a corrente contínua em <strong>corrente alternada</strong>, a mesma da tomada. Ele também ajusta o funcionamento dos painéis o tempo todo para tirar deles o máximo de energia.</li>
+<li><strong>O inversor</strong> transforma a corrente contínua em <strong>corrente alternada</strong>, a mesma da tomada.</li>
 <li><strong>A casa usa</strong> essa energia na hora.</li>
 <li><strong>O que sobra vai para a rede</strong> da distribuidora, passando por um <strong>medidor que conta nos dois sentidos</strong>: o que entra na casa e o que sai dela. A energia que sai vira <strong>crédito</strong>.</li>
 <li><strong>À noite, ou em dia nublado,</strong> a casa usa energia da rede normalmente, e os créditos abatem esse consumo na conta.</li>
 </ol>
 <p>Esse sistema <strong>não tem baterias</strong>. A rede faz o papel de "guardar" a energia.</p>
-<p><strong>E se faltar luz na rua?</strong> O sistema <strong>desliga sozinho</strong> e só volta quando a rede voltar. Isso é obrigatório, por segurança: os inversores ligados à rede precisam ter uma proteção (chamada <em>anti-ilhamento</em>) que os desconecta sempre que a rede fica sem energia, por falha ou por manutenção. Assim, ninguém que esteja consertando a rede leva choque por causa da energia dos painéis. Ou seja, <strong>painel solar sem bateria não garante luz no apagão</strong>.</p>
+<p><strong>E se faltar luz na rua?</strong> O sistema <strong>desliga sozinho</strong> e só volta com a rede. É uma proteção obrigatória, para ninguém levar choque consertando a rede. Por isso, <strong>painel solar sem bateria não garante luz no apagão</strong>.</p>
 </div>
 </details>
 </section>
@@ -165,19 +165,19 @@
 </tr>
 <tr>
 <th scope="row"><strong>Os 12 meses do histórico</strong> (opcional)</th>
-<td>Deixa o resultado mais preciso: o consumo muda ao longo do ano, e o valor mínimo da conta é descontado mês a mês.</td>
+<td>Deixa o resultado mais preciso, porque o consumo muda de um mês para outro.</td>
 </tr>
 <tr>
 <th scope="row"><strong>Valor (R$) e consumo (kWh) de uma mesma conta</strong></th>
-<td>Dão a sua <strong>tarifa</strong>, ou seja, quanto você paga por kWh, já com impostos e bandeira. A economia é calculada com ela.</td>
+<td>Dão a sua <strong>tarifa</strong>: quanto você paga por kWh, já com impostos e bandeira. A economia é calculada com ela.</td>
 </tr>
 <tr>
 <th scope="row"><strong>Cidade</strong></th>
-<td>Dá a quantidade de sol do lugar e a distribuidora de energia que atende o município. É dela o valor do Fio B.</td>
+<td>Dá a quantidade de sol do lugar e a distribuidora do município (é ela que define a taxa pelo uso da rede).</td>
 </tr>
 <tr>
 <th scope="row"><strong>Distribuidora</strong> (só quando o município tem mais de uma)</th>
-<td>Define o valor do Fio B. Se você não souber, a plataforma usa a de maior Fio B, que dá a menor economia.</td>
+<td>Cada uma cobra um valor diferente pelo uso da rede. Se você não souber, a plataforma usa a que dá a menor economia.</td>
 </tr>
 <tr>
 <th scope="row"><strong>Tipo de ligação</strong> (opcional)</th>
@@ -186,6 +186,14 @@
 <tr>
 <th scope="row"><strong>Cobranças da conta que não são energia</strong> (opcional)</th>
 <td>Iluminação pública, taxa de lixo, multa, juros: saem do valor da conta antes do cálculo da tarifa. Em branco, a economia sai otimista, e a tela avisa.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Horário em que a casa mais usa energia</strong> (opcional)</th>
+<td>Muda só a economia: o que se usa enquanto há sol economiza a tarifa inteira. O número de painéis não muda.</td>
+</tr>
+<tr>
+<th scope="row"><strong>Área livre do telhado</strong> (opcional)</th>
+<td>Só confere se os painéis cabem.</td>
 </tr>
 </tbody>
 </table></div>
@@ -208,51 +216,51 @@
     <li><span class="passo-num">7</span>Geração, economia e retorno</li>
 </ol>
 
-<p><strong>O exemplo:</strong> uma casa em Guaíra (PR) que consome <strong>300 kWh por mês</strong>, com ligação bifásica e uma conta de R$ 225,00. É um dos cinco casos usados para testar a plataforma.</p>
+<p><strong>O exemplo:</strong> uma casa em Guaíra (PR) que consome <strong>300 kWh por mês</strong>, com ligação bifásica e uma conta de R$ 225,00.</p>
 <h3>Passo 1 — Quanto da conta dá para abater</h3>
-<p>Toda conta tem um <strong>valor mínimo</strong>, e com painéis ainda se paga uma parte do <strong>Fio B</strong> sobre a energia que volta da rede (veja a página <a href="/economia"><strong>A economia e o tempo de retorno</strong></a>). A plataforma dimensiona o sistema só para o consumo que, abatido, ainda gera economia. Painel a mais não traz economia, porque a sobra de crédito não vira dinheiro.</p>
+<p>Toda conta tem um <strong>valor mínimo</strong>, e quem tem painéis ainda paga a <strong>taxa pelo uso da rede</strong> sobre a energia que vai para a rede e volta como crédito (veja <a href="/economia"><strong>Economia e retorno</strong></a>). A plataforma só dimensiona para o consumo que ainda dá economia: painel a mais não ajuda, porque crédito que sobra não vira dinheiro.</p>
 <ul>
-<li><strong>Em Guaíra</strong>, mesmo com os painéis, a conta fica acima do mínimo, porque o Fio B sobre os 300 kWh dá R$ 38,62, e o mínimo é R$ 37,50. Então vale a pena cobrir <strong>os 300 kWh inteiros</strong>: 3.600 kWh por ano.</li>
+<li><strong>Em Guaíra</strong>, a taxa sobre os 300 kWh (R$ 38,62) já passa do mínimo (R$ 37,50). Então vale cobrir <strong>os 300 kWh inteiros</strong>: 3.600 kWh por ano.</li>
 <li><strong>Numa casa que consome pouco</strong>, o mínimo pesa. Em Campinas (SP), com 180 kWh por mês, o sistema cobre cerca de 155 kWh por mês, e não os 180.</li>
 </ul>
 <h3>Passo 2 — Quanto sol a cidade recebe</h3>
-<p>A plataforma usa a média de sol de cada mês da sua cidade, estimada por satélite pela <strong>NASA</strong> ao longo de 25 anos (2001 a 2025). Esse número é dado em <strong>horas de sol pleno (HSP)</strong>: é como se todo o sol do dia viesse concentrado em algumas horas de sol forte (1.000 W por m²).</p>
+<p>A plataforma usa a média de sol de cada mês da sua cidade, estimada por satélite pela <strong>NASA</strong> de 2001 a 2025, em <strong>horas de sol pleno (HSP)</strong>: é como se o sol do dia viesse todo em algumas horas de sol forte (1.000 W por m²).</p>
 <ul>
-<li><strong>Em Guaíra</strong>, a média do ano é de <strong>4,94 horas de sol pleno por dia</strong>. Mas muda muito com as estações: 6,5 horas em janeiro e só 3,0 em junho.</li>
+<li><strong>Em Guaíra:</strong> <strong>4,94 horas de sol pleno por dia</strong> na média do ano, de 6,5 horas em janeiro a 3,0 em junho.</li>
 </ul>
 <h3>Passo 3 — As perdas</h3>
-<p>Nem toda a energia do sol que chega ao painel vira energia na tomada. Parte se perde com o <strong>calor</strong> (painel quente rende menos), nos <strong>cabos</strong>, no <strong>inversor</strong> e com a <strong>sujeira</strong>. A plataforma considera que <strong>80%</strong> chegam à casa, o valor mais alto da faixa de 70% a 80% indicada pelo manual de engenharia do CEPEL-CRESESB para casas no Brasil. Esse número se chama <strong>taxa de desempenho</strong>.</p>
+<p>Parte da energia se perde com o <strong>calor</strong> (painel quente rende menos), nos <strong>cabos</strong>, no <strong>inversor</strong> e com a <strong>sujeira</strong>. A plataforma considera que <strong>80%</strong> chegam à casa, o valor mais alto da faixa de 70% a 80% do manual de engenharia do CEPEL-CRESESB. Esse número é a <strong>taxa de desempenho</strong>.</p>
 <h3>Passo 4 — Quantos painéis</h3>
 <p>Agora é uma divisão:</p>
 <ul>
 <li><strong>Energia por dia:</strong> 3.600 kWh ÷ 365 dias = <strong>9,9 kWh por dia</strong>.</li>
-<li><strong>Potência necessária:</strong> 9,9 ÷ (4,94 horas de sol × 80%) = <strong>2,5 kWp</strong>. O <strong>kWp</strong> (quilowatt-pico) é a potência dos painéis somada, medida no sol forte de laboratório.</li>
-<li><strong>Número de painéis:</strong> cada painel do exemplo tem 600 Wp (0,6 kWp). 2,5 ÷ 0,6 = 4,2 painéis. Como não existe pedaço de painel, a conta é <strong>arredondada para cima: 5 painéis</strong>, que somam <strong>3,0 kWp</strong>.</li>
+<li><strong>Potência necessária:</strong> 9,9 ÷ (4,94 horas de sol × 80%) = <strong>2,5 kWp</strong>, a potência dos painéis somada.</li>
+<li><strong>Número de painéis:</strong> cada painel do exemplo tem 600 Wp (0,6 kWp): 2,5 ÷ 0,6 = 4,2 painéis. Como não existe pedaço de painel, a conta é <strong>arredondada para cima: 5 painéis</strong>, que somam <strong>3,0 kWp</strong>.</li>
 </ul>
-<p>O arredondamento faz o sistema gerar um pouco mais do que a conta consegue abater. Em Guaíra, o sistema gera 723 kWh por ano a mais do que a casa consome (20,1% a mais), e essa sobra funciona como uma folga para quando o sistema gerar menos que o previsto (veja a página <a href="/precisao"><strong>Quão preciso é o resultado?</strong></a>).</p>
+<p>Arredondar para cima faz o sistema gerar um pouco mais do que a conta consegue abater: em Guaíra, 723 kWh por ano a mais (20,1%). Essa sobra serve de folga para quando o sistema gerar menos que o previsto (veja <a href="/precisao"><strong>Quão preciso é</strong></a>).</p>
 <h3>Passo 5 — Qual inversor</h3>
-<p>O inversor pode ser um pouco <strong>menor</strong> que os painéis. Painel quente rende menos, e, mesmo com sol forte, os painéis dificilmente chegam à potência máxima. Por isso, usar um inversor um pouco menor, e mais barato, deixa a energia gerada mais barata sem perder quase nada. O manual de engenharia do CEPEL-CRESESB indica que o inversor tenha pelo menos <strong>75% a 85%</strong> da potência dos painéis, e não mais que <strong>105%</strong>. A plataforma usa <strong>80%</strong>: procura um inversor com pelo menos 80% da potência dos painéis.</p>
+<p>O inversor pode ser um pouco <strong>menor</strong> que os painéis: eles quase nunca chegam à potência máxima (painel quente rende menos), e um inversor menor custa menos e quase não perde energia. O manual do CEPEL-CRESESB indica um inversor com pelo menos <strong>75% a 85%</strong> da potência dos painéis, e não mais que <strong>105%</strong>. A plataforma usa pelo menos <strong>80%</strong>.</p>
 <ul>
 <li><strong>Em Guaíra:</strong> 80% de 3,0 kWp = 2,4 kW. O menor inversor do catálogo que atende é o de <strong>2,5 kW</strong>.</li>
 </ul>
 <h3>Passo 6 — A verificação elétrica</h3>
-<p>Não basta a potência bater: os painéis e o inversor precisam <strong>funcionar bem juntos</strong> e <strong>com segurança</strong>. Os painéis ficam ligados em fila (em série), e as tensões de todos se somam. A plataforma confere quatro coisas, no frio e no calor:</p>
+<p>Os painéis e o inversor também precisam <strong>funcionar bem juntos</strong> e <strong>com segurança</strong>. Os painéis ficam ligados em fila (em série), e as tensões se somam. A plataforma confere quatro coisas, no frio e no calor:</p>
 <ul>
 <li><strong>no frio, a tensão sobe</strong>, e não pode passar do limite do inversor, para não danificá-lo;</li>
 <li><strong>no calor, a tensão cai</strong>, e não pode ficar abaixo da faixa em que o inversor trabalha bem;</li>
 <li><strong>a corrente dos painéis</strong> tem de caber na entrada do inversor, com duas verificações: uma de segurança e outra de desempenho.</li>
 </ul>
-<p><strong>Em Guaíra:</strong> a fila de 5 painéis chega a 281 V no frio (o limite do inversor é 550 V) e fica em 187 V no calor, acima do mínimo de trabalho do inversor. Passou nas quatro verificações.</p>
-<p>Se o painel não passar, a plataforma testa outro modelo. É por isso que <strong>ela escolhe o painel</strong>, e não você: um painel recusado na verificação não deveria ser oferecido como opção. Veja a página <a href="/equipamentos"><strong>Os painéis, os inversores e os preços</strong></a>.</p>
+<p><strong>Em Guaíra:</strong> a fila de 5 painéis chega a 281 V no frio (o limite do inversor é 550 V) e fica em 187 V no calor, acima do mínimo do inversor. Passou nas quatro verificações.</p>
+<p>Se o painel não passar, a plataforma testa outro. Por isso <strong>é ela que escolhe o painel</strong>: um painel recusado não deveria ser oferecido como opção. Veja <a href="/equipamentos"><strong>Painéis, inversores e preços</strong></a>.</p>
 <h3>Passo 7 — Geração, economia e retorno</h3>
 <ul>
 <li><strong>Geração:</strong> potência × horas de sol de cada mês × 80% × dias do mês. <strong>Em Guaíra: 4.323 kWh por ano</strong>, mais no verão e menos no inverno.</li>
-<li><strong>Economia:</strong> cada kWh abatido economiza a tarifa menos a parte do Fio B que continua sendo cobrada. <strong>Em Guaíra: R$ 186,38 por mês</strong>, e a conta cai de R$ 225,00 para R$ 38,62.</li>
-<li><strong>Preço:</strong> a média do mercado para um sistema de 3,0 kWp, segundo o estudo da Greener: <strong>R$ 9.795,00</strong>.</li>
-<li><strong>Tempo de retorno:</strong> a plataforma soma a economia mês a mês, menos a manutenção, até alcançar o preço. A economia de R$ 186,38 por mês vale para 2026 e diminui até 2029, porque a parte do Fio B cobrada sobe todo ano. <strong>Em Guaíra, o sistema se paga em 62 meses</strong>, cerca de 5 anos. Pela conta simples, R$ 9.795,00 ÷ R$ 186,38 = 53 meses, que sairia otimista.</li>
-<li><strong>Os 25 anos:</strong> em 25 anos, a economia em Guaíra soma cerca de R$ 48.500, e os gastos (sistema, manutenção e uma troca do inversor), cerca de R$ 13.700. Como aplicação, os painéis rendem cerca de 20% ao ano, contra 3,6% da poupança, já sem a inflação. Se a regra de 2029 cobrar o máximo que a lei permite, o retorno vai para cerca de 10 anos.</li>
+<li><strong>Economia:</strong> cada kWh abatido economiza a tarifa menos a taxa pelo uso da rede. <strong>Em Guaíra: R$ 186,38 por mês</strong> em 2026, e a conta cai de R$ 225,00 para R$ 38,62.</li>
+<li><strong>Preço:</strong> a média do mercado para um sistema de 3,0 kWp, pelo estudo da Greener (setembro de 2026): <strong>R$ 9.795,00</strong>.</li>
+<li><strong>Tempo de retorno:</strong> a plataforma soma a economia mês a mês, menos a manutenção, até chegar ao preço do sistema. A economia diminui um pouco até 2029, porque a taxa pelo uso da rede sobe a cada ano. <strong>Em Guaíra, o sistema se paga em 62 meses</strong>, cerca de 5 anos (em 2032).</li>
+<li><strong>Os 25 anos:</strong> a economia soma cerca de R$ 48.500, e os gastos (sistema, manutenção e uma troca do inversor), cerca de R$ 13.700. Os painéis rendem como uma aplicação de cerca de 20% ao ano, contra 3,6% da poupança, os dois já sem a inflação. Se a regra de 2029 cobrar o máximo que a lei permite, o retorno vai para cerca de 10 anos.</li>
 </ul>
-<p><em>O exemplo usa uma tarifa de teste (R$ 0,75 por kWh) e uma simulação feita em novembro de 2026. O resultado de outra casa, com outra tarifa, será diferente.</em></p>
+<p><em>O exemplo usa uma tarifa de teste (R$ 0,75 por kWh) e uma simulação de novembro de 2026. Com outra casa e outra tarifa, o resultado muda.</em></p>
 </div>
 </details>
 </section>
@@ -295,15 +303,15 @@
 </tr>
 <tr>
 <th scope="row"><strong>Crédito</strong></th>
-<td>A energia que sobra, vai para a rede e abate a conta depois. Vale por 60 meses.</td>
+<td>A energia que sobra e vai para a rede. Ela abate a conta depois e vale por 60 meses.</td>
 </tr>
 <tr>
-<th scope="row"><strong>Custo de disponibilidade</strong></th>
-<td>O valor mínimo da conta, que se paga mesmo com painéis.</td>
+<th scope="row"><strong>Valor mínimo da conta</strong> (custo de disponibilidade)</th>
+<td>O que se paga mesmo com painéis: o equivalente a 30, 50 ou 100 kWh, conforme a ligação.</td>
 </tr>
 <tr>
-<th scope="row"><strong>Fio B</strong></th>
-<td>A parte da tarifa que paga a rede da distribuidora. Uma parte dele continua sendo cobrada de quem tem painéis.</td>
+<th scope="row"><strong>Taxa pelo uso da rede</strong> (Fio B)</th>
+<td>A parte da tarifa que paga a rede da distribuidora. Quem tem painéis continua pagando uma parte dela sobre a energia que vai para a rede e volta como crédito.</td>
 </tr>
 <tr>
 <th scope="row"><strong>Tempo de retorno (payback)</strong></th>
@@ -324,11 +332,11 @@
     <summary><h2 id="quer-ir-mais-fundo"><span class="divider-dot"></span>Quer ir mais fundo?</h2></summary>
 <div class="secao-conteudo">
 <ul>
-<li><strong>A economia e o tempo de retorno:</strong> por que a conta não zera, o Fio B, os 25 anos, a comparação com a poupança e o que fica fora da conta.</li>
-<li><strong>Os painéis, os inversores e os preços:</strong> as marcas, o estudo da Greener e por que o seu projeto pode usar outras.</li>
-<li><strong>Quão preciso é o resultado?:</strong> a comparação com um programa profissional.</li>
-<li><strong>Metodologia:</strong> todas as contas, com as fontes.</li>
-<li><strong>Limitações:</strong> o que a plataforma não considera.</li>
+<li><a href="/economia"><strong>Economia e retorno</strong></a>: por que a conta não zera, os 25 anos e a comparação com a poupança.</li>
+<li><a href="/equipamentos"><strong>Painéis, inversores e preços</strong></a>: as marcas, os preços e por que o seu projeto pode usar outras.</li>
+<li><a href="/precisao"><strong>Quão preciso é</strong></a>: a comparação com um programa profissional.</li>
+<li><a href="/metodologia"><strong>Metodologia</strong></a>: todas as contas, com as fontes.</li>
+<li><a href="/limitacoes"><strong>Limitações</strong></a>: o que a plataforma não considera.</li>
 </ul>
 </div>
 </details>
