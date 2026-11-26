@@ -44,7 +44,7 @@
     <div class="faixa-conteudo">
         <h1>Quantos Painéis</h1>
         <p class="page-subtitulo">Simulação de energia solar para casas</p>
-        <p>Preencha os dados da sua conta de luz e descubra quantos painéis a sua casa precisa, quanto custam e em quanto tempo se pagam.</p>
+        <p>Preencha os dados da sua conta de luz e descubra de quantos painéis a sua casa precisa, quanto custam e em quanto tempo se pagam.</p>
         <ul class="selos" aria-label="Sobre a simulação">
             <li>Grátis</li>
             <li>Sem cadastro</li>
@@ -55,7 +55,7 @@
     <aside class="faixa-quadro" aria-label="O que a simulação mostra">
         <p class="faixa-quadro-titulo">Você vai descobrir</p>
         <ul>
-            <li><span class="faixa-icone" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="12" rx="1.5"/><path d="M3 11h18M9 5v12M15 5v12M12 17v3M8 20h8"/></svg></span>Quantos painéis a sua casa precisa</li>
+            <li><span class="faixa-icone" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="12" rx="1.5"/><path d="M3 11h18M9 5v12M15 5v12M12 17v3M8 20h8"/></svg></span>De quantos painéis a sua casa precisa</li>
             <li><span class="faixa-icone" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>A potência do sistema e do inversor</li>
             <li><span class="faixa-icone" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16v12H4z"/><path d="M4 7l3-3h10l3 3M16 13h.01"/></svg></span>Quanto você economiza na conta</li>
             <li><span class="faixa-icone" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Em quanto tempo o investimento se paga</li>
@@ -93,7 +93,7 @@
                 <p class="hint" id="cidade-aviso" aria-live="polite">Digite o nome e escolha a sua cidade na lista.</p>
                 <details class="nota-mais">
                     <summary>Por que escolher na lista?</summary>
-                    <p class="hint">A cidade vem com o estado, porque existem cidades com o mesmo nome em estados diferentes. Usamos essa localização para buscar os dados de irradiação solar (HSP) da sua região, estimados por satélite.</p>
+                    <p class="hint">A lista traz o estado junto, porque há cidades com o mesmo nome em estados diferentes. Pela cidade buscamos o sol da sua região, estimado por satélite.</p>
                     <p class="hint-fonte">Lista de municípios: códigos e nomes oficiais do IBGE (a partir do conjunto aberto <a href="https://github.com/kelvins/municipios-brasileiros" target="_blank" rel="noopener">municipios-brasileiros</a>, licença MIT).</p>
                 </details>
             </div>
@@ -109,17 +109,17 @@
                     Qual é a sua distribuidora de energia?
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="Por que perguntamos isso?">i</button>
-                        <span class="tip-bubble">A sua cidade é atendida por mais de uma distribuidora, e cada uma cobra um valor diferente pelo uso da rede (o Fio B), que é descontado da sua economia. O nome da sua está na conta de luz, geralmente no alto. Se você não souber, deixe como está: usamos a de maior Fio B entre elas, a que dá a menor economia, para o resultado não prometer mais do que você pode ter.</span>
+                        <span class="tip-bubble">A sua cidade tem mais de uma distribuidora, e cada uma cobra um valor diferente pelo uso da rede. Isso muda a sua economia.</span>
                     </span>
                 </label>
                 <select id="distribuidora" name="distribuidora">
                     <option value="">Não sei — usar a que dá a menor economia</option>
                 </select>
-                <p class="hint" id="hint-distribuidora">O nome está na sua conta de luz. Sem isso, o cálculo usa a opção que dá a menor economia.</p>
+                <p class="hint" id="hint-distribuidora">O nome está na sua conta de luz, geralmente no alto. Na dúvida, deixe como está: usamos a que dá a menor economia, para não prometer mais do que você terá.</p>
             </div>
 
             <div class="dica-conta">
-            <p class="hint intro-conta">Todas as perguntas daqui para baixo estão respondidas numa conta de luz recente. Pegue uma e abra o exemplo abaixo: ele mostra onde fica cada número.</p>
+            <p class="hint intro-conta">As respostas daqui para baixo estão numa conta de luz recente. Pegue uma e abra o exemplo: ele mostra onde fica cada número.</p>
 
             <details class="exemplo-fatura">
                 <summary>Ver exemplo: onde encontrar esses dados na minha fatura</summary>
@@ -130,18 +130,18 @@
                     <img src="{{ url_for('static', filename='exemplo-fatura.svg') }}"
                          alt="Exemplo ilustrativo de fatura de energia elétrica, destacando o valor total a pagar, o consumo do mês em kWh, o tipo de ligação da casa e o histórico de consumo dos últimos 12 meses"
                          class="exemplo-fatura-img"></a>
-                    <p class="hint exemplo-ampliar">Letras pequenas? Clique ou toque na imagem para abri-la em tamanho grande.</p>
-                    <p class="hint"><strong>①</strong> e <strong>②</strong> são os dois números da <strong>seção 1</strong> aqui do formulário: o valor total a pagar (R$) e o consumo daquele mês (kWh). Eles vêm da mesma conta, e é dessa dupla que sai a sua tarifa.</p>
-                    <p class="hint"><strong>③</strong> é o histórico de consumo dos últimos 12 meses, quase sempre um gráfico de barras na parte de baixo da fatura. É dele que saem os doze valores da <strong>seção 2</strong>, para a plataforma calcular sua média sem você precisar somar nada.</p>
-                    <p class="hint"><strong>④</strong> é o <strong>tipo de ligação</strong> da sua casa, que costuma ficar na parte de cima da fatura, perto do endereço. Ele é opcional, e está na <strong>seção 3</strong> aqui do formulário — aquela que você abre clicando em <strong>"Deixar o resultado mais preciso"</strong>. Pode aparecer escrito como "tipo de ligação", "tipo de fornecimento" ou só "ligação", seguido de monofásica, bifásica ou trifásica. Repare que ele está no alto do papel, mas é a última seção do formulário — a numeração segue a ordem das perguntas aqui, não a ordem de leitura da conta.</p>
-                    <p class="hint"><strong>⑤</strong> são as <strong>cobranças que não são energia</strong>, que ficam num grupo à parte, como “Outros tributos, produtos e serviços”. A mais comum é a contribuição de <strong>iluminação pública</strong>, cuja descrição termina em “municipal” ou “distrital”. O valor dela vai no campo opcional da <strong>seção 3</strong>, somado à taxa de lixo, multa ou juros, se houver.</p>
-                    <p class="hint">Este é um exemplo ilustrativo — o layout muda um pouco entre distribuidoras (Copel, Enel, CPFL, etc.), e a cor e a posição de cada bloco variam bastante, porque a ANEEL padroniza quais informações a fatura precisa trazer, não o desenho dela. Mesmo assim, esses elementos aparecem em praticamente todas.</p>
+                    <p class="hint exemplo-ampliar">Letras pequenas? Clique ou toque na imagem para ampliar.</p>
+                    <p class="hint"><strong>①</strong> e <strong>②</strong>: valor total a pagar (R$) e consumo do mês (kWh). Vão na <strong>seção 1</strong>. Dos dois sai o preço do seu kWh.</p>
+                    <p class="hint"><strong>③</strong>: histórico dos últimos 12 meses, quase sempre um gráfico de barras. Vai na <strong>seção 2</strong>.</p>
+                    <p class="hint"><strong>④</strong>: tipo de ligação (monofásica, bifásica ou trifásica), perto do endereço. Pode vir escrito “tipo de fornecimento”. Opcional, na <strong>seção 3</strong>.</p>
+                    <p class="hint"><strong>⑤</strong>: cobranças que não são energia, como a iluminação pública (a linha termina em “municipal” ou “distrital”). Opcional, na <strong>seção 3</strong>.</p>
+                    <p class="hint">Exemplo ilustrativo: o desenho muda entre distribuidoras, mas esses dados aparecem em quase todas as contas.</p>
                 </div>
             </details>
             </div>
 
             <h3 class="passo-titulo"><span class="passo-num">1<span class="so-leitor">.</span></span> Sua conta de luz</h3>
-            <p class="hint passo-texto">Os dois números abaixo estão na conta, no mesmo lugar — é só copiar. São os itens <strong>①</strong> e <strong>②</strong> do exemplo.</p>
+            <p class="hint passo-texto">Copie os dois da mesma conta: são os itens <strong>①</strong> e <strong>②</strong> do exemplo.</p>
 
             {#- ITEM 10 DO BACKLOG (06/10/2026) - OS DOIS CAMPOS DE CONSUMO SE
                 CONFUNDIAM. Eram tres caixas brancas iguais (R$, kWh de um mes,
@@ -172,7 +172,7 @@
                         Consumo desta conta, de um mês só<span class="so-leitor"> (kWh)</span>
                         <span class="tip">
                             <button type="button" class="tip-btn" aria-label="Por que precisamos dos dois?">i</button>
-                            <span class="tip-bubble">Com o valor em R$ e o consumo em kWh <strong>da mesma conta</strong>, calculamos a sua tarifa real dividindo um pelo outro — já com impostos e bandeira tarifária incluídos, em vez de usar uma média genérica do país. Por isso os dois precisam ser do mesmo mês.</span>
+                            <span class="tip-bubble">Dividindo o valor pelo consumo <strong>da mesma conta</strong>, achamos o preço real do seu kWh, já com impostos e bandeira. Por isso os dois precisam ser do mesmo mês.</span>
                         </span>
                     </label>
                     <div class="campo-unidade com-sufixo">
@@ -197,7 +197,7 @@
             <p class="hint passo-texto"><strong>Escolha um dos dois caminhos.</strong></p>
             <details class="nota-mais" style="margin: -8px 0 14px;">
                 <summary>Por que esse número é tão importante?</summary>
-                <p class="hint">É esse número que define o tamanho do sistema: quantos painéis, quanto custa e em quanto tempo se paga. Ele não vem impresso na conta — ou você já sabe a sua média, ou a plataforma calcula a partir do <strong>histórico de consumo</strong>, o item <strong>③</strong> do exemplo.</p>
+                <p class="hint">É ele que define o tamanho do sistema: quantos painéis, quanto custa e em quanto tempo se paga. A média não vem impressa na conta: ou você já sabe, ou a plataforma calcula pelo <strong>histórico de consumo</strong> (item <strong>③</strong>).</p>
             </details>
 
             <div class="caminhos">
@@ -208,7 +208,7 @@
                     Média de consumo por mês<span class="so-leitor"> (kWh)</span>
                     <span class="tip">
                         <button type="button" class="tip-btn" aria-label="Por que a média e não um mês só?">i</button>
-                        <span class="tip-bubble">O consumo de uma casa varia ao longo do ano (ar-condicionado no verão, chuveiro no inverno, férias). Dimensionar pela média anual evita que um mês fora do padrão defina o tamanho do seu sistema — e os créditos de energia, válidos por 60 meses, absorvem essa variação ao longo do ano.</span>
+                        <span class="tip-bubble">O consumo muda ao longo do ano (ar-condicionado no verão, chuveiro no inverno, férias). Pela média, um mês fora do padrão não decide o tamanho do sistema, e os créditos de energia, válidos por 60 meses, cobrem a diferença entre os meses.</span>
                     </span>
                 </label>
                 <div class="campo-unidade com-sufixo sufixo-longo">
@@ -224,12 +224,11 @@
 
             <div class="caminho">
             <p class="caminho-titulo">Não sei minha média</p>
-            <p class="hint" style="margin: 0 0 6px;">A plataforma calcula para você a partir dos 12 meses impressos na sua conta — e <strong>este é o caminho mais preciso</strong>.</p>
+            <p class="hint" style="margin: 0 0 6px;">A plataforma calcula pelos 12 meses impressos na sua conta. <strong>É o caminho mais preciso.</strong></p>
             <details class="exemplo-fatura" id="bloco-mensal">
                 <summary>🧮 Preencher os 12 meses</summary>
                 <div class="exemplo-fatura-conteudo">
-                    <p class="hint">Copie os 12 valores do <strong>histórico de consumo</strong> da sua fatura — é o item <strong>③</strong> do exemplo lá em cima. Não precisa somar nada.</p>
-                    <p class="hint"><strong>Preencha os 12 ou nenhum</strong>, em kWh. Com o histórico completo, o campo “Média de consumo por mês” é preenchido sozinho.</p>
+                    <p class="hint">Copie os 12 valores do <strong>histórico de consumo</strong> (item <strong>③</strong>), em kWh, seguindo o nome do mês de cada barra. <strong>Preencha os 12 ou nenhum</strong>: com os 12, a média é calculada sozinha.</p>
 
                     <div class="form-row">
                         <div class="form-group"><label for="consumo_jan">Jan</label><input type="number" id="consumo_jan" name="consumo_jan" class="consumo-mes" step="any" min="0.01" aria-label="Consumo de Janeiro em kWh"></div>
@@ -247,7 +246,6 @@
                     </div>
 
                     <p class="hint" id="aviso-mensal" style="font-weight: 600;">Preenchidos: <span id="contador-mensal">0</span> de 12.</p>
-                    <p class="hint">O histórico costuma cobrir os últimos 12 meses corridos — use o nome do mês que aparece em cada barra do gráfico da sua conta para saber onde cada valor entra aqui.</p>
                 </div>
             </details>
             </div>
@@ -275,18 +273,18 @@
             <details class="exemplo-fatura bloco-passo" id="bloco-opcionais">
                 <summary><span class="passo-num">3<span class="so-leitor">.</span></span> Deixar o resultado mais preciso — opcional</summary>
                 <div class="exemplo-fatura-conteudo">
-                    <p class="hint">Dá para simular sem preencher nada aqui: no lugar de cada campo vazio nós usamos uma premissa, e o resultado diz quando fez isso. Preenchendo, você troca a nossa premissa por um dado da sua conta.</p>
+                    <p class="hint">Pode deixar tudo em branco: no lugar de cada campo vazio usamos um valor padrão, e o resultado avisa. Preenchendo, o resultado fica mais perto da sua conta.</p>
 
                     <div class="form-group">
                         <label for="cobrancas">
                             Cobranças da conta que não são energia (R$)
                             <span class="tip">
                                 <button type="button" class="tip-btn" aria-label="Que cobranças são essas?">i</button>
-                                <span class="tip-bubble"><strong>Some aqui:</strong> iluminação pública, taxa de lixo, multa, juros e parcelamento.<br><strong>Não inclua:</strong> bandeira tarifária e impostos (ICMS, PIS/Pasep, Cofins) — esses são cobrados sobre a energia, e os painéis reduzem junto.<br>Os painéis não diminuem as cobranças da primeira lista, então elas saem do valor antes de calcularmos a sua tarifa. Sem isso, a economia e o tempo de retorno apareceriam melhores do que serão de verdade.</span>
+                                <span class="tip-bubble"><strong>Some:</strong> iluminação pública, taxa de lixo, multa, juros e parcelamento. Os painéis não diminuem essas cobranças; se ficarem de fora, a economia parecerá maior.<br><strong>Não some:</strong> bandeira e impostos (ICMS, PIS/Pasep, Cofins), que os painéis reduzem junto com a energia.</span>
                             </span>
                         </label>
                         <input type="number" id="cobrancas" name="cobrancas" step="any" min="0">
-                        <p class="hint">A mais comum é a <strong>iluminação pública</strong> — na conta ela vem numa linha própria, terminando em “municipal” ou “distrital” (item <strong>⑤</strong> do exemplo). Não achou nenhuma? Deixe em branco.</p>
+                        <p class="hint">A mais comum é a <strong>iluminação pública</strong> (item <strong>⑤</strong> do exemplo). Não achou nenhuma? Deixe em branco.</p>
                     </div>
 
                     <div class="form-group">
@@ -294,7 +292,7 @@
                             Tipo de ligação da sua casa
                             <span class="tip">
                                 <button type="button" class="tip-btn" aria-label="Por que o tipo de ligação importa?">i</button>
-                                <span class="tip-bubble">Toda conta de luz tem um <strong>valor mínimo</strong>, chamado custo de disponibilidade — é o que remunera a rede que continua à sua disposição. Ele depende do tipo de ligação: equivale a <strong>30 kWh</strong> na monofásica, <strong>50 kWh</strong> na bifásica e <strong>100 kWh</strong> na trifásica (art. 291 da Resolução ANEEL nº 1.000/2021). Com painéis, a conta nunca fica abaixo desse mínimo, mas a parcela Fio B que continua sendo cobrada já conta para atingi-lo (art. 655-I). Por isso o tipo de ligação pesa sobretudo em quem consome pouco.</span>
+                                <span class="tip-bubble">Toda conta tem um <strong>valor mínimo</strong>, que depende da ligação: o equivalente a <strong>30 kWh</strong> na monofásica, <strong>50 kWh</strong> na bifásica e <strong>100 kWh</strong> na trifásica. Com painéis, a conta não fica abaixo dele. Por isso a ligação pesa mais para quem consome pouco.</span>
                             </span>
                         </label>
                         <select id="ligacao" name="ligacao">
@@ -303,7 +301,7 @@
                             <option value="bifasica">Bifásica</option>
                             <option value="trifasica">Trifásica</option>
                         </select>
-                        <p class="hint">Está escrito na sua fatura, geralmente na parte de cima, perto do endereço — é o item <strong>④</strong> do exemplo. Se não encontrar, pode deixar como está: usamos a ligação bifásica e avisamos isso no resultado.</p>
+                        <p class="hint">Fica perto do endereço, na parte de cima da conta (item <strong>④</strong>). Não achou? Usamos a bifásica e avisamos no resultado.</p>
                     </div>
 
                     {#- FASE 4, N1 (03/11/2026): em que horario a casa mais usa
@@ -317,7 +315,7 @@
                             Em que horário a sua casa mais usa energia?
                             <span class="tip">
                                 <button type="button" class="tip-btn" aria-label="Por que o horário importa?">i</button>
-                                <span class="tip-bubble">Enquanto há sol, a energia dos painéis vai direto para os aparelhos ligados naquela hora (geladeira, ar-condicionado, chuveiro). Essa parte nem passa pela rede e economiza a <strong>tarifa inteira</strong>. A que sobra vai para a rede e volta como crédito, e sobre ela a distribuidora ainda cobra uma parte da tarifa, o Fio B (Lei nº 14.300/2022). Por isso quem usa mais energia de dia economiza um pouco mais. O número de painéis não muda. As porcentagens que usamos vêm de medições em casas com painéis, sempre pelo lado mais baixo.</span>
+                                <span class="tip-bubble">Enquanto há sol, parte da energia dos painéis vai direto para os aparelhos ligados e economiza a <strong>tarifa inteira</strong>. A que sobra vai para a rede e volta como crédito, e sobre ela a distribuidora cobra a taxa pelo uso da rede. Por isso quem usa mais energia de dia economiza um pouco mais. O número de painéis não muda. As porcentagens vêm de medições em casas com painéis, pelo lado mais baixo.</span>
                             </span>
                         </label>
                         <select id="horario" name="horario">
@@ -326,7 +324,7 @@
                             <option value="igual">Igual de dia e de noite</option>
                             <option value="dia">Bastante de dia</option>
                         </select>
-                        <p class="hint">“Dia” é enquanto há sol. <strong>Quase tudo à noite:</strong> não fica ninguém em casa durante o dia. <strong>Bastante de dia:</strong> tem gente em casa o dia todo, ar-condicionado ou piscina ligados à tarde. Na dúvida, deixe “Não sei”: calculamos como se nada fosse usado na hora, e a sua economia tende a ser um pouco maior do que a mostrada.</p>
+                        <p class="hint"><strong>Quase tudo à noite:</strong> ninguém em casa durante o dia. <strong>Bastante de dia:</strong> gente em casa o dia todo, ou ar-condicionado ou piscina ligados à tarde. Na dúvida, deixe “Não sei”: contamos como se nada fosse usado na hora, e a sua economia tende a ser um pouco maior que a mostrada.</p>
                     </div>
 
                     {#- FASE 4, B4 "SO INFORMAR" (18/11/2026, decisao da aluna): area
@@ -405,27 +403,27 @@
 
         <details class="faq-item">
             <summary>O excedente de energia gerado é vendido para a concessionária?</summary>
-            <p>Não. No modelo brasileiro (Lei nº 14.300/2022 e Resolução ANEEL nº 1.000/2021), você não vende energia à concessionária. O excedente gerado é convertido em créditos, em kWh, que abatem o consumo das próximas faturas por até 60 meses. Não existe transferência de dinheiro da concessionária para você — o que existe é uma redução no valor da fatura.</p>
+            <p>Não. O que sobra vira crédito em kWh, que abate o consumo das próximas contas por até 60 meses (Lei nº 14.300/2022). Você não recebe dinheiro: a sua conta é que fica menor.</p>
         </details>
 
         <details class="faq-item">
             <summary>O que faz o inversor solar?</summary>
-            <p>Os painéis geram energia em corrente contínua (CC), mas as tomadas e aparelhos da sua casa usam corrente alternada (CA) — a mesma da rede elétrica. O inversor converte a energia gerada de CC para CA, para que ela possa ser usada em casa e injetada na rede quando sobrar. Ele também desliga automaticamente o sistema durante uma queda de energia da rede, por segurança das equipes que fazem manutenção na rua.</p>
+            <p>Os painéis geram corrente contínua, e a casa usa corrente alternada, a mesma da rede. O inversor converte a contínua em alternada. Se a rede cair, ele desliga o sistema sozinho, para proteger quem trabalha no conserto da rede.</p>
         </details>
 
         <details class="faq-item">
             <summary>Quem escolhe o painel e o inversor?</summary>
-            <p>A plataforma. Ela confere, com os dados das folhas dos fabricantes, se cada painel do catálogo pode ser ligado ao inversor do tamanho certo — corrente e tensão, no frio e no calor — e, entre os que passam, fica com o de menor corrente, que é o que mais folga deixa para o inversor. No resultado, painel e inversor aparecem como referência técnica: modelos de outras marcas também servem, desde que respeitem os mesmos limites. Na prática, quem define a marca é a empresa que vai instalar.</p>
+            <p>A plataforma. Com os dados das folhas dos fabricantes, ela confere se cada painel pode ser ligado ao inversor do tamanho certo, no frio e no calor, e fica com o de menor corrente, que deixa mais folga. Os modelos são uma referência: no resultado aparecem outros que também servem. Quem define a marca é a empresa que vai instalar.</p>
         </details>
 
         <details class="faq-item">
             <summary>De onde vêm os preços dos equipamentos e da instalação?</summary>
-            <p>De uma pesquisa feita com milhares de empresas instaladoras de todo o Brasil, que mede o preço médio de sistemas residenciais <strong>já instalados</strong>: equipamento, mão de obra, projeto elétrico e homologação na distribuidora, tudo junto. Sistema pequeno custa mais caro por painel, porque boa parte do trabalho de instalar, projetar e homologar não diminui com o tamanho do sistema. São médias nacionais: o seu orçamento pode vir acima ou abaixo delas, conforme a região e o instalador. Mais detalhes em <a href="{{ url_for('pagina', nome='equipamentos') }}">Painéis, inversores e preços</a>.</p>
+            <p>De uma pesquisa da Greener com empresas instaladoras de todo o Brasil: o preço médio de sistemas <strong>já instalados</strong>, com equipamento, mão de obra, projeto e liberação pela distribuidora. Sistema pequeno custa mais por painel, porque boa parte do trabalho não diminui com o tamanho. O seu orçamento pode vir acima ou abaixo dessa média, conforme a região e o instalador. Mais em <a href="{{ url_for('pagina', nome='equipamentos') }}">Painéis, inversores e preços</a>.</p>
         </details>
 
         <details class="faq-item">
             <summary>O resultado da simulação é um orçamento fechado?</summary>
-            <p>Não. A plataforma entrega uma estimativa técnica para ajudar você a avaliar a viabilidade do investimento — número de painéis, potência, economia esperada e tempo de retorno. O valor final pode variar conforme o telhado, a distância até o quadro de energia e o instalador escolhido, então vale sempre confirmar com um orçamento real antes de fechar negócio.</p>
+            <p>Não. É uma estimativa para você avaliar se vale a pena. O preço final muda conforme o telhado, a distância até o quadro de energia e o instalador. Confirme com um orçamento antes de fechar negócio.</p>
         </details>
 
         {#- FASE 4, ITENS 44 E 46 (10/11/2026) - avisos de escopo (apartamento e autoconsumo
