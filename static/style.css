@@ -1831,6 +1831,7 @@ table.tabela-retorno .retorno-meses { color: var(--color-text-muted); font-size:
 .opcao-obs { flex-basis: 100%; font-size: 0.85rem; color: var(--color-text-muted); margin-top: -2px; }
 .opcao-atual { font-size: 0.85rem; color: var(--color-text-muted); }
 .opcao-nao .opcao-num { color: var(--color-text-muted); }
+.opcao-juntas .opcao-num { white-space: normal; }
 .lista-opcoes form { margin: 0; }
 .lista-opcoes .btn-secundario { margin: 0; padding: 6px 14px; font-size: 0.9rem; }
 .lista-opcoes .nota-mais { flex-basis: 100%; margin-top: 0; }
