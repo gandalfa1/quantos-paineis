@@ -96,7 +96,7 @@
 <details class="secao-sanfona">
     <summary><h2 id="quem-fez"><span class="divider-dot"></span>Quem fez</h2></summary>
 <div class="secao-conteudo">
-<p>A plataforma foi desenvolvida por <strong>Brenda Morel Bueno Ferreira</strong> como Trabalho de Conclusão de Curso de Engenharia Elétrica no Centro Universitário Internacional Uninter, em 2026. O trabalho está descrito no artigo <em>Dimensionamento fotovoltaico residencial na web</em>.</p>
+<p>A plataforma foi desenvolvida por <strong>Brenda Morel Bueno Ferreira</strong> como Trabalho de Conclusão de Curso de Engenharia Elétrica no Centro Universitário Internacional Uninter, em 2026.</p>
 </div>
 </details>
 </section>
@@ -105,7 +105,7 @@
 <details class="secao-sanfona">
     <summary><h2 id="codigo-aberto"><span class="divider-dot"></span>Código aberto</h2></summary>
 <div class="secao-conteudo">
-<p>Todo o código está no GitHub, sob a licença <strong>AGPL-3.0</strong>: <a href="https://github.com/gandalfa1/quantos-paineis" target="_blank" rel="noopener">github.com/gandalfa1/quantos-paineis</a>. Lá estão também os relatórios do PVsyst dos cinco casos de teste e o programa que confere as equações.</p>
+<p>Todo o código está no GitHub, sob a licença <strong>AGPL-3.0</strong>: <a href="https://github.com/gandalfa1/quantos-paineis" target="_blank" rel="noopener">github.com/gandalfa1/quantos-paineis</a>. Lá estão também os relatórios da comparação com um programa profissional e o teste que confere as equações.</p>
 <p>A licença permite usar, estudar, modificar e compartilhar o código. Quem distribuir uma versão modificada precisa usar a mesma licença. E quem colocar uma versão modificada no ar, como site, precisa oferecer o código dela, de graça, a quem usar o site.</p>
 </div>
 </details>
@@ -119,8 +119,7 @@
 <li><strong>O que você digita é usado só para fazer a conta.</strong> A plataforma não guarda o seu consumo, o valor da sua conta nem a sua cidade depois de mostrar o resultado. Da simulação sobra só uma contagem: "mais uma simulação neste estado, neste dia" (veja <a href="#o-que-contamos">O que contamos</a>, logo abaixo).</li>
 <li><strong>Não pedimos nome, e-mail, endereço nem CPF</strong>, e não há cadastro.</li>
 <li><strong>Não usamos cookies nem ferramentas de análise de visitantes de outras empresas</strong> (como o Google Analytics). As fontes de letra e tudo o que a página precisa para funcionar vêm do próprio site.</li>
-<li><strong>O sol de cada município já vem numa tabela pronta</strong>, montada com os dados da NASA. Por isso, a simulação não consulta ninguém de fora. Só se essa tabela faltar, a plataforma consulta o OpenStreetMap, com o <strong>nome da cidade e o estado</strong>, para achar a cidade, e a NASA, com <strong>as coordenadas da cidade</strong>, para buscar o sol. Em nenhum caso vai junto algum dado seu.</li>
-<li><strong>Quando isso acontece, fica guardada</strong> só a localização da cidade e o sol daquele ponto, para não consultar de novo. Isso fica no servidor e num banco de dados privado, no <strong>Neon</strong>, também nos Estados Unidos, e não é publicado. Não tem ligação com quem fez a simulação.</li>
+<li><strong>O sol de cada município já vem numa tabela pronta</strong>, montada com os dados da NASA, e a simulação não consulta ninguém de fora. Só se essa tabela faltar, a plataforma pergunta ao OpenStreetMap onde fica a cidade (com o <strong>nome da cidade e o estado</strong>) e à NASA o sol daquele ponto (com <strong>as coordenadas da cidade</strong>). Nenhum dado seu vai junto. A resposta fica guardada, para não perguntar de novo, no servidor e num banco de dados privado no <strong>Neon</strong>, nos Estados Unidos. Isso não é publicado e não tem ligação com quem fez a simulação.</li>
 <li><strong>O site fica hospedado no Render</strong>, nos Estados Unidos. O programa da plataforma não grava o endereço IP de quem visita. O Render recebe esse endereço para entregar a página, como acontece com qualquer hospedagem, e trata os dados técnicos de acesso pela <a href="https://render.com/privacy" target="_blank" rel="noopener">política de privacidade dele</a>.</li>
 </ul>
 </div>
@@ -138,7 +137,7 @@
 <li>quantos acessos foram de robôs, como os dos sites de busca, contados à parte e pelo nome do robô.</li>
 </ul>
 <p>O contador <strong>não guarda IP, cidade, valores digitados nem cookie</strong>. Para separar robôs de pessoas, ele lê a identificação que o navegador envia, guarda só o rótulo do robô ("Google", "Bing"...) e descarta o resto na hora. A contagem fica no mesmo banco de dados privado.</p>
-<p><strong>Os números são aproximados.</strong> O contador soma acessos, não pessoas: quem abre a mesma página duas vezes conta duas vezes. Um robô que se apresenta como navegador comum entra como acesso de pessoa. E os números podem ficar um pouco abaixo do real.</p>
+<p><strong>Os números são aproximados:</strong> o contador soma acessos, não pessoas (quem abre a mesma página duas vezes conta duas vezes), e um robô que se apresenta como navegador comum entra como pessoa. Os totais podem ficar um pouco abaixo do real.</p>
 </div>
 </details>
 </section>
@@ -149,12 +148,13 @@
 <div class="secao-conteudo">
 <ul>
 <li><strong>Sol:</strong> projeto POWER, do NASA Langley Research Center, financiado pela NASA Earth Science Division (<a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">power.larc.nasa.gov</a>), licença CC BY 4.0.</li>
-<li><strong>Localização das sedes:</strong> IBGE/DGC, Base Cartográfica Contínua do Brasil, escala 1:250.000 (BC250); <a href="https://github.com/kelvins/municipios-brasileiros" target="_blank" rel="noopener">municipios-brasileiros</a> (licença MIT); <a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a> (CC0).</li>
+<li><strong>Municípios e localização das sedes:</strong> códigos e nomes oficiais do IBGE; IBGE/DGC, Base Cartográfica Contínua do Brasil, escala 1:250.000 (BC250); <a href="https://github.com/kelvins/municipios-brasileiros" target="_blank" rel="noopener">municipios-brasileiros</a> (licença MIT); <a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a> (CC0).</li>
 <li><strong>Se a tabela de sol faltar:</strong> dados © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, licença ODbL, consultados pelo Nominatim.</li>
-<li><strong>Municípios:</strong> códigos e nomes oficiais do IBGE, a partir do conjunto aberto <a href="https://github.com/kelvins/municipios-brasileiros" target="_blank" rel="noopener">municipios-brasileiros</a> (licença MIT).</li>
-<li><strong>Fio B e distribuidoras:</strong> ANEEL, Portal de Dados Abertos, conjuntos "Componentes Tarifárias", "IndQual Município" e "Indicadores Coletivos de Continuidade (DEC e FEC)", licença ODbL.</li>
+<li><strong>Taxa pelo uso da rede (Fio B) e distribuidoras:</strong> ANEEL, Portal de Dados Abertos, conjuntos "Componentes Tarifárias", "IndQual Município" e "Indicadores Coletivos de Continuidade (DEC e FEC)", licença ODbL.</li>
 <li><strong>Preços:</strong> Greener, <em>Estudo Estratégico</em> do 1º semestre de 2026 (setembro de 2026).</li>
-<li><strong>Painéis e inversores:</strong> folhas de dados dos fabricantes.</li>
+<li><strong>Rede de cada município (127/220 V ou 220/380 V):</strong> ANEEL, Base de Dados Geográfica da Distribuidora (BDGD), dados de 31 de dezembro de 2025; lista de municípios e tensões da Neoenergia Coelba.</li>
+<li><strong>Painéis e inversores:</strong> folhas de dados dos fabricantes; registros do Inmetro (dados abertos).</li>
+<li><strong>Poupança e inflação:</strong> Banco Central do Brasil, séries 196 e 433.</li>
 </ul>
 </div>
 </details>
@@ -164,7 +164,7 @@
 <details class="secao-sanfona">
     <summary><h2 id="versao"><span class="divider-dot"></span>Versão</h2></summary>
 <div class="secao-conteudo">
-<p>Esta é uma versão em desenvolvimento. A geração é calculada do mesmo jeito que foi validado no TCC. Desde então, mudaram a escolha da cidade, a forma de guardar os dados, as explicações da tela e três partes da conta: o Fio B passou a ser o da distribuidora do município, o tempo de retorno passou a ser somado mês a mês e a conta de um mês abaixo do mínimo passou a ser dividida pelo mínimo. Os detalhes estão na página <a href="/metodologia"><strong>Metodologia</strong></a>.</p>
+<p>Esta é uma versão em desenvolvimento. A conta da geração de energia é a mesma que foi validada no TCC. Desde então, a plataforma ganhou partes novas, como a taxa pelo uso da rede de cada distribuidora, a manutenção do sistema no tempo de retorno, os sistemas maiores, com inversor trifásico, e as outras marcas de painel e inversor. Os preços também foram atualizados. Os detalhes estão na página <a href="/metodologia"><strong>Metodologia</strong></a>, e cada mudança fica registrada no GitHub.</p>
 </div>
 </details>
 </section>
