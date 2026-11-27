@@ -474,6 +474,10 @@
         {%- endif %}
         {%- if resultado.outras_placas %}
         {%- set marcas_da_lista = resultado.outras_placas | map(attribute="marca") | list %}
+        {%- set nao_servem = resultado.outras_placas | selectattr("situacao", "equalto", "nao_serve") | list %}
+        {%- set por_corrente = nao_servem | selectattr("motivo_tecnico", "in", ["corrente_de_curto_acima_do_limite", "corrente_de_operacao_acima_do_limite"]) | list | length %}
+        {%- set maiores = nao_servem | selectattr("serve_em_degrau_maior") | list | length %}
+        {%- set juntar = nao_servem | length > 1 and por_corrente in (0, nao_servem | length) and maiores in (0, nao_servem | length) %}
         <details class="nota-mais nota-destaque" id="outras-placas">
             <summary>Ver com outras placas</summary>
             <p>Toque em “Simular” para refazer a conta com outra placa. A economia muda pouco: o que muda é o número de placas e o preço.</p>
@@ -482,15 +486,19 @@
                 <li><span class="opcao-nome">{{ l.marca }}, {{ l.potencia_wp }}&nbsp;Wp</span><span class="opcao-num">{{ placas(l.numero_paineis) }} · {{ br(l.potencia_instalada_kwp) }} kWp</span>{% if l.situacao == "atual" %}<span class="opcao-atual">é a deste resultado</span>{% else %}<form method="post" action="{{ url_for('rota_simular') }}">{{ campos_do_formulario(l.chave) }}<button type="submit" class="btn-secundario">Simular</button></form>{% endif %}
                     {%- if l.situacao == "outra_marca" or (l.situacao == "atual" and resultado.inversor_de_outra_marca) %}
                     <span class="opcao-obs">Com inversor de outra marca ({{ l.inversor_marca }}).</span>{% endif %}</li>
+                {%- elif l.situacao == "nao_serve" and juntar %}
                 {%- elif l.situacao == "nao_serve" %}
                 <li class="opcao-nao"><span class="opcao-nome">{{ l.marca }}, {{ l.potencia_wp }}&nbsp;Wp</span><span class="opcao-num">Não serve para um sistema deste tamanho.</span>
                     <details class="nota-mais"><summary>Por quê?</summary>
                     <p class="hint-fonte">{% if l.motivo_tecnico in ("corrente_de_curto_acima_do_limite", "corrente_de_operacao_acima_do_limite") %}Esta placa fornece mais corrente do que os inversores de {{ br(l.potencia_inversor_kw, 1) }} kW aceitam.{% else %}Com esta placa, nenhum inversor de {{ br(l.potencia_inversor_kw, 1) }} kW passa nas verificações elétricas.{% endif %}{% if l.serve_em_degrau_maior %} Em sistemas um pouco maiores, ela serve.{% endif %}</p></details></li>
                 {%- else %}
                 <li class="opcao-nao"><span class="opcao-nome">{{ l.marca }}, {{ l.potencia_wp }}&nbsp;Wp</span><span class="opcao-num">{% if l.motivo_inviabilidade == "payback_acima_da_vida_util" %}Com esta placa, o sistema não se paga em 25 anos.{% else %}Sem resultado com esta placa.{% endif %}</span></li>
-                {%- endif %}{% endfor %}
+                {%- endif %}{% endfor %}{% if juntar %}
+                <li class="opcao-nao opcao-juntas"><span class="opcao-num">Não servem para um sistema deste tamanho: {% for l in nao_servem %}{{ l.marca }} {{ l.potencia_wp }}&nbsp;Wp{{ " e " if loop.revindex == 2 else (", " if not loop.last else ".") }}{% endfor %}</span>
+                    <details class="nota-mais"><summary>Por quê?</summary>
+                    <p class="hint-fonte">{% if por_corrente %}Essas placas fornecem mais corrente do que os inversores de sistemas deste tamanho aceitam.{% else %}Com essas placas, nenhum inversor de sistemas deste tamanho passa nas verificações elétricas.{% endif %}{% if maiores %} Em sistemas um pouco maiores, elas servem.{% endif %}</p></details></li>{% endif %}
             </ul>
-            {%- set bifaciais = [] %}{% for l in resultado.outras_placas if l.bifacial %}{% set _ = bifaciais.append(l.marca ~ (" de " ~ l.potencia_wp ~ " Wp" if marcas_da_lista.count(l.marca) > 1 else "")) %}{% endfor %}
+            {%- set bifaciais = [] %}{% for l in resultado.outras_placas if l.bifacial and l.situacao != "nao_serve" %}{% set _ = bifaciais.append(l.marca ~ (" de " ~ l.potencia_wp ~ " Wp" if marcas_da_lista.count(l.marca) > 1 else "")) %}{% endfor %}
             <p class="hint-fonte">{% if bifaciais %}As placas {{ bifaciais | join(" e ") }} são bifaciais (geram também pelo verso). A conta usa só a frente, como nas outras. {% endif %}Todas têm registro no Inmetro.</p>
         </details>
         {%- endif %}
