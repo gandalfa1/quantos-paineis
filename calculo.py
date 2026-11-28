@@ -2116,7 +2116,11 @@ TEMP_MAXIMA_CELULA_C = 70.0      # celula, condicao mais quente de operacao
 # artigo), nao uma medicao. A perda por limitacao de corrente dos casos de
 # validacao, medida no PVsyst, esta na secao 4.3 do artigo. Neste catalogo
 # o valor do limiar nao decide nenhum par: o maior excesso entre os pares
-# aprovados na verificacao 1 e de 8,96% (Jinko com a familia MIN).
+# aprovados na verificacao 1 e de 9,69% (Trina 670 contra 16 A por string,
+# ou 32 A com 2 strings no MPPT); na escolha automatica (Jinko com a familia
+# MIN), 8,96%. Remedido em 27/11/2026 com o catalogo de outras marcas e dos
+# trifasicos (antes, 8,96%): a folga ate os 10% caiu para 0,31 ponto, e entre
+# 9,69% e 12% nenhum arranjo que a tela mostra muda (backlog, item 15).
 EXCESSO_CORRENTE_ACEITAVEL = 0.10
 
 
@@ -3022,6 +3026,18 @@ def vmp_na_temperatura_maxima(modulo, temperatura_c=TEMP_MAXIMA_CELULA_C):
     return modulo["vmp"] * (1 + variacao)
 
 
+def vmp_na_temperatura_minima(modulo, temperatura_c=TEMP_MINIMA_PROJETO_C):
+    """
+    Tensao de maxima potencia de UM modulo na condicao mais fria (fase 4,
+    27/11/2026). E o espelho da funcao acima para o TOPO da janela de MPPT:
+    no frio a tensao sobe, e a string mais longa nao pode passar do maior
+    valor em que o inversor ainda rastreia o ponto de maxima potencia.
+    Usa a mesma temperatura fria do projeto (0 C), como a tensao maxima.
+    """
+    variacao = (modulo["coef_vmp"] / 100) * (temperatura_c - TEMP_STC_C)
+    return modulo["vmp"] * (1 + variacao)
+
+
 def isc_na_temperatura_maxima(modulo, temperatura_c=TEMP_MAXIMA_CELULA_C):
     """
     Corrente de curto-circuito de UM modulo na condicao mais quente.
@@ -3093,13 +3109,27 @@ def limites_de_modulos_por_string(modulo, inversor):
     Devolve o minimo e o maximo de modulos que podem ser ligados em serie
     numa string, para este par modulo+inversor.
 
-      maximo = tensao maxima do inversor / Voc do modulo a frio  (piso)
+      maximo = o menor entre
+               tensao maxima do inversor / Voc do modulo a frio  (piso) e
+               topo da janela de MPPT / Vmp do modulo a frio     (piso)
       minimo = piso da janela de MPPT / Vmp do modulo a quente   (teto)
 
     O maximo arredonda para BAIXO e o minimo para CIMA: os dois erram para
     dentro da faixa segura.
+
+    O TOPO DA JANELA (fase 4, 27/11/2026; backlog, item 14a). Ate aqui o
+    maximo vinha so da tensao maxima (seguranca). Com o catalogo de outras
+    marcas, 75 arranjos da lista "Ver outros inversores que servem" (Huawei
+    M5 e Solplanet UT-G3, trifasicos) tinham, no frio, Vmp acima do topo da
+    janela de MPPT do catalogo - o inversor deixaria de entregar a potencia
+    toda ou de rastrear o ponto de maxima potencia. Nenhum arranjo do
+    resultado nem dos Growatt e Deye passava do topo (menor folga: 39,9 V).
+    Entra no maximo, e nao como reprovacao: assim, quando da para dividir o
+    arranjo em mais strings, o motor divide, como um projetista faria.
     """
-    maximo = math.floor(inversor["tensao_max_v"] / voc_na_temperatura_minima(modulo))
+    maximo = min(
+        math.floor(inversor["tensao_max_v"] / voc_na_temperatura_minima(modulo)),
+        math.floor(inversor["mppt_max_v"] / vmp_na_temperatura_minima(modulo)))
     minimo = math.ceil(inversor["mppt_min_v"] / vmp_na_temperatura_maxima(modulo))
     return {"minimo": max(minimo, 1), "maximo": maximo}
 
@@ -3186,6 +3216,7 @@ def verificar_compatibilidade(n_modulos, chave_modulo, nome_inversor):
             "isc_a_quente_a": isc_quente,
             "tensao_maxima_a_frio_v": None,
             "tensao_mpp_a_quente_v": None,
+            "tensao_mpp_a_frio_v": None,
             "limites_por_string": limites,
             "minimo_de_modulos": limites["minimo"] if poucos else None,
             "maximo_de_modulos": limites["maximo"] * max_strings,
@@ -3194,11 +3225,14 @@ def verificar_compatibilidade(n_modulos, chave_modulo, nome_inversor):
 
     tensao_frio = max(strings) * voc_na_temperatura_minima(modulo)
     tensao_quente = min(strings) * vmp_na_temperatura_maxima(modulo)
+    tensao_mpp_frio = max(strings) * vmp_na_temperatura_minima(modulo)
 
     # --- 3) SEGURANCA: tensao maxima a frio
     v3 = tensao_frio <= inversor["tensao_max_v"]
-    # --- 4) OPERACAO: Vmp a quente contra o piso da janela de MPPT
-    v4 = tensao_quente >= inversor["mppt_min_v"]
+    # --- 4) OPERACAO: a tensao de trabalho dentro da janela de MPPT - Vmp a
+    # quente acima do piso e, desde 27/11/2026, Vmp a frio abaixo do topo
+    v4 = (tensao_quente >= inversor["mppt_min_v"]
+          and tensao_mpp_frio <= inversor["mppt_max_v"])
 
     return {
         "aprovado": bool(v1 and v2 and v3 and v4),
@@ -3212,6 +3246,7 @@ def verificar_compatibilidade(n_modulos, chave_modulo, nome_inversor):
         "isc_a_quente_a": isc_quente,
         "tensao_maxima_a_frio_v": tensao_frio,
         "tensao_mpp_a_quente_v": tensao_quente,
+        "tensao_mpp_a_frio_v": tensao_mpp_frio,
         # Informativo: a tensao de partida e o que o arranjo precisa
         # entregar para o inversor ligar de manha. Nao reprova o par (o
         # arranjo parte frio, e frio a tensao e mais alta), mas vai no
@@ -3356,6 +3391,7 @@ def verificar_compatibilidade_paralelo(n_modulos, chave_modulo, nome_inversor):
             "corrente_curto_mppt_a": corrente_curto,
             "tensao_maxima_a_frio_v": None,
             "tensao_mpp_a_quente_v": None,
+            "tensao_mpp_a_frio_v": None,
             "limites_por_string": limites,
             "minimo_de_modulos": limites["minimo"] if poucos else None,
             "maximo_de_modulos": maximo,
@@ -3367,8 +3403,10 @@ def verificar_compatibilidade_paralelo(n_modulos, chave_modulo, nome_inversor):
                       for _ in range(g["strings"])], reverse=True)
     tensao_frio = max(comprimentos) * voc_na_temperatura_minima(modulo)
     tensao_quente = min(comprimentos) * vmp_na_temperatura_maxima(modulo)
+    tensao_mpp_frio = max(comprimentos) * vmp_na_temperatura_minima(modulo)
     v3 = tensao_frio <= inversor["tensao_max_v"]
-    v4 = tensao_quente >= inversor["mppt_min_v"]
+    v4 = (tensao_quente >= inversor["mppt_min_v"]
+          and tensao_mpp_frio <= inversor["mppt_max_v"])
 
     return {
         "aprovado": bool(v1 and v2 and v3 and v4),
@@ -3385,6 +3423,7 @@ def verificar_compatibilidade_paralelo(n_modulos, chave_modulo, nome_inversor):
         "corrente_curto_mppt_a": corrente_curto,
         "tensao_maxima_a_frio_v": tensao_frio,
         "tensao_mpp_a_quente_v": tensao_quente,
+        "tensao_mpp_a_frio_v": tensao_mpp_frio,
         "acima_da_tensao_de_partida": tensao_quente >= inversor["tensao_partida_v"],
         "limites_por_string": limites,
         "minimo_de_modulos": limites["minimo"],

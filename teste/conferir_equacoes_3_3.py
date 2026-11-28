@@ -442,7 +442,8 @@ def perto(a, b, rel=1e-9, absol=1e-6):
 # (inversores trifasicos acima de 10 kW): no MPPT com k strings de L modulos,
 #   k x Isc a 70 C <= curto maximo do MPPT;   k x Imp <= 1,10 x corrente do MPPT;
 #   Imp <= 1,10 x limite por string (quando a folha da);
-#   L x Voc a 0 C <= tensao maxima;   L x Vmp a 70 C >= piso do MPPT.
+#   L x Voc a 0 C <= tensao maxima;   L x Vmp a 70 C >= piso do MPPT;
+#   L x Vmp a 0 C <= topo do MPPT (fase 4, 27/11/2026; backlog, item 14a).
 # Os LIMITES vem do catalogo (sao dados de folha); as CONTAS sao as do texto.
 def _modulo_pelo_nome(nome):
     return next(m for m in calculo.CATALOGO_MODULOS.values() if m["nome"] == nome)
@@ -453,6 +454,7 @@ def arranjo_valido_pelo_texto(n, mod, inv, grupos, corrente_informada=None):
     erros = []
     voc_frio = mod["voc"] * (1 + mod["coef_voc"] / 100 * (0 - 25))
     vmp_quente = mod["vmp"] * (1 + (mod["coef_pmax"] - mod["coef_isc"]) / 100 * (70 - 25))
+    vmp_frio = mod["vmp"] * (1 + (mod["coef_pmax"] - mod["coef_isc"]) / 100 * (0 - 25))
     # Outras marcas (17/11/2026): placa bifacial usa as correntes BNPI da folha.
     imp = mod.get("imp_bnpi", mod["imp"])
     isc_quente = mod.get("isc_bnpi", mod["isc"]) * (1 + mod["coef_isc"] / 100 * (70 - 25))
@@ -474,6 +476,8 @@ def arranjo_valido_pelo_texto(n, mod, inv, grupos, corrente_informada=None):
             erros.append(f"tensao a frio {L * voc_frio:.0f} V acima de {inv['tensao_max_v']}")
         if L * vmp_quente < inv["mppt_min_v"] - 1e-9:
             erros.append(f"tensao a quente {L * vmp_quente:.0f} V abaixo do MPPT")
+        if L * vmp_frio > inv["mppt_max_v"] + 1e-9:
+            erros.append(f"Vmp a frio {L * vmp_frio:.0f} V acima do topo do MPPT")
     if corrente_informada is not None and grupos:
         k = max(g["strings"] for g in grupos)
         if not perto(corrente_informada, k * imp):
@@ -1342,6 +1346,9 @@ def erros_plantados():
             "calculo", "inversores_vizinhos", _vizinho_variante(pular=1)),
         "inversor vizinho de outra rede": (
             "calculo", "inversores_vizinhos", _vizinho_variante(qualquer_rede=True)),
+        # Item 14a (27/11/2026): o topo da janela de MPPT esquecido
+        "topo da janela de MPPT esquecido": (
+            "calculo", "vmp_na_temperatura_minima", lambda m, t=0.0: 0.0),
     }
     detectadas = 0
     for nome, (modulo, funcao, nova) in mutacoes.items():

@@ -1347,6 +1347,8 @@ def _simular_uma_vez(cidade, consumo_medio_kwh, valor_fatura_reais,
                                            if laudo_arranjo else None),
         "arranjo_tensao_mpp_a_quente_v": (laudo_arranjo["tensao_mpp_a_quente_v"]
                                           if laudo_arranjo else None),
+        "arranjo_tensao_mpp_a_frio_v": (laudo_arranjo["tensao_mpp_a_frio_v"]
+                                        if laudo_arranjo else None),
         "arranjo_excesso_corrente": (laudo_arranjo["excesso_corrente"]
                                      if laudo_arranjo else None),
         "arranjo_laudo": laudo_arranjo,
@@ -1575,6 +1577,8 @@ if __name__ == "__main__":
               f"(limite {CATALOGO_INVERSORES[resultado['inversor_modelo']]['tensao_max_v']:.0f} V)")
         print(f"  Vmp a quente:           {resultado['arranjo_tensao_mpp_a_quente_v']:.1f} V "
               f"(piso do MPPT {CATALOGO_INVERSORES[resultado['inversor_modelo']]['mppt_min_v']:.0f} V)")
+        print(f"  Vmp a frio:             {resultado['arranjo_tensao_mpp_a_frio_v']:.1f} V "
+              f"(topo do MPPT {CATALOGO_INVERSORES[resultado['inversor_modelo']]['mppt_max_v']:.0f} V)")
         print(f"  excesso de corrente:    {resultado['arranjo_excesso_corrente']*100:.2f}% "
               f"(limiar {resultado['excesso_corrente_aceitavel']*100:.0f}%)")
         print(f"  verificacao aprovada:   {resultado['arranjo_aprovado']}")
