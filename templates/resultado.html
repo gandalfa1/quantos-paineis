@@ -569,7 +569,7 @@
         <details class="exemplo-fatura detalhes-tecnicos">
             <summary>Detalhes técnicos: a verificação elétrica</summary>
             <div class="exemplo-fatura-conteudo">
-                <p>Antes de indicar o sistema, a plataforma confere se os painéis podem ser ligados no inversor: duas verificações de segurança (corrente de curto-circuito e tensão máxima no frio) e duas de desempenho (corrente de operação e tensão mínima no calor).</p>
+                <p>Antes de indicar o sistema, a plataforma confere se os painéis podem ser ligados no inversor: duas verificações de segurança (corrente de curto-circuito e tensão máxima no frio) e duas de desempenho (corrente de operação e tensão de trabalho, no calor e no frio).</p>
                 <ul class="resultado-lista">
                     <li>
                         <span>Painéis em cada fileira</span>
@@ -588,8 +588,8 @@
                         <span class="valor">{{ br(resultado.arranjo_tensao_maxima_a_frio_v, 1) }} V — {{ "aprovada" if laudo.verificacao_3_tensao_maxima else "reprovada" }}</span>
                     </li>
                     <li>
-                        <span>Tensão de trabalho do arranjo no calor ({{ br(resultado.temperatura_maxima_celula_c, 0) }} °C na célula), contra o mínimo do inversor</span>
-                        <span class="valor">{{ br(resultado.arranjo_tensao_mpp_a_quente_v, 1) }} V — {{ "aprovada" if laudo.verificacao_4_tensao_minima else "reprovada" }}</span>
+                        <span>Tensão de trabalho do arranjo, do calor ({{ br(resultado.temperatura_maxima_celula_c, 0) }} °C) ao frio ({{ br(resultado.temperatura_minima_projeto_c, 0) }} °C), dentro da faixa do inversor</span>
+                        <span class="valor">{{ br(resultado.arranjo_tensao_mpp_a_quente_v, 1) }} a {{ br(resultado.arranjo_tensao_mpp_a_frio_v, 1) }} V — {{ "aprovada" if laudo.verificacao_4_tensao_minima else "reprovada" }}</span>
                     </li>
                 </ul>{% if resultado.inversores_por_tensao %}
                 <p>Os números acima são os do inversor para rede de {{ resultado.inversores_por_tensao[0].tensao_rede }} ({{ resultado.inversores_por_tensao[0].modelo }}). {% for inv in resultado.inversores_por_tensao[1:] %}O de {{ inv.tensao_rede }} ({{ inv.modelo }}) também passou nas quatro verificações, com fileiras de {{ inv.laudo.modulos_por_string | join(" + ") }} painéis. {% endfor %}{% set ns = namespace(paralelo=false) %}{% for inv in resultado.inversores_por_tensao %}{% if (inv.laudo.mppts_usados or []) | selectattr("strings", "gt", 1) | list %}{% set ns.paralelo = true %}{% endif %}{% endfor %}{% if ns.paralelo %}Quando duas fileiras dividem a mesma entrada do inversor, as correntes delas se somam, e é a soma que a plataforma compara com o limite.{% endif %}</p>{% endif %}
