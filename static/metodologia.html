@@ -50,15 +50,9 @@
 <div class="faixa-pagina-conteudo">
 <h1 class="pagina-titulo">Como a plataforma calcula</h1>
 <div class="resumo-pagina">
-<p><strong>Em resumo:</strong> você informa o seu consumo, uma conta de luz e a sua cidade. Com isso, a plataforma:</p>
-<ol>
-<li>busca a média de sol de cada mês da sua cidade (NASA);</li>
-<li>calcula quantos painéis cobrem a parte da conta que a energia solar consegue abater;</li>
-<li>escolhe um inversor compatível com esses painéis;</li>
-<li>estima a geração de cada mês, a economia e o tempo de retorno do investimento.</li>
-</ol>
-<p>Em cinco cidades, uma por região do país, o cálculo foi comparado com o <strong>PVsyst</strong>, um programa profissional de simulação. A plataforma estimou de <strong>3,98% a 6,89% menos energia</strong> que o PVsyst, e foi para menos em todos os casos.</p>
-<p>A plataforma é uma simulação educativa. <strong>Ela não substitui o projeto de um profissional habilitado.</strong></p>
+<p><strong>Em resumo:</strong> você informa o seu consumo, uma conta de luz e a sua cidade. A plataforma busca o sol de cada mês da cidade (NASA), calcula quantos painéis cobrem a parte da conta que dá para abater, escolhe um inversor compatível e estima a geração, a economia e o tempo de retorno.</p>
+<p>Em cinco cidades, uma por região do país, a geração foi comparada com a do <strong>PVsyst</strong>, um programa profissional de simulação. A plataforma estimou de <strong>3,98% a 6,89% menos energia</strong>, em todos os casos.</p>
+<p>A plataforma é uma simulação educativa e <strong>não substitui o projeto de um profissional habilitado.</strong></p>
 </div>
 </div>
 </div>
@@ -70,15 +64,16 @@
     <summary><h2 id="1-o-que-voce-informa"><span class="divider-dot"></span>1. O que você informa</h2></summary>
 <div class="secao-conteudo">
 <ul>
-<li><strong>Consumo médio por mês</strong>, em kWh. Se preferir, você pode dar os <strong>12 meses</strong> do histórico da sua conta: aí a plataforma calcula a média e usa cada mês separadamente.</li>
-<li><strong>Valor (R$) e consumo (kWh) de uma mesma conta de luz.</strong> É com esses dois números que a plataforma chega à sua tarifa.</li>
-<li><strong>Cidade</strong>, escolhida numa lista com os 5.571 municípios do Brasil.</li>
-<li><strong>Distribuidora</strong>, só quando o município tem mais de uma. Se você não informar, a plataforma usa a de maior Fio B, que dá a menor economia.</li>
-<li><strong>Tipo de ligação</strong> (monofásica, bifásica ou trifásica). Esse campo é opcional. Se você não informar, a plataforma considera a ligação <strong>bifásica</strong> e avisa isso na tela do resultado. Num sistema acima de 10 kW, a conta usa a ligação <strong>trifásica</strong>, que ele exige, mesmo que você tenha informado outra; a tarifa continua saindo da sua conta de hoje, e a tela avisa que a troca de ligação tem custo à parte.</li>
-<li><strong>Cobranças da conta que não são energia</strong> (iluminação pública, taxa de lixo, multa, juros, parcelamento). Opcional; se você não informar, a tela do resultado avisa que a economia pode sair otimista.</li>
-<li><strong>Horário em que a casa mais usa energia</strong> (quase tudo à noite, igual de dia e de noite, ou bastante de dia). Opcional; se você não informar, a plataforma considera que nada é usado na hora, o lado mais conservador.</li>
+<li><strong>Consumo médio por mês</strong>, em kWh, ou os <strong>12 meses</strong> do histórico da conta. Com os 12 meses, a plataforma usa cada mês separadamente.</li>
+<li><strong>Valor (R$) e consumo (kWh) de uma mesma conta de luz.</strong> Deles sai a sua tarifa.</li>
+<li><strong>Cidade</strong>, numa lista com os 5.571 municípios do Brasil.</li>
+<li><strong>Distribuidora</strong>, só onde há mais de uma. Sem resposta, vale a de maior Fio B, que dá a menor economia.</li>
+<li><strong>Tipo de ligação</strong> (opcional). Sem resposta, vale a <strong>bifásica</strong>, e a tela avisa. Acima de 10 kW, a conta usa a <strong>trifásica</strong>, que esse porte exige; a tarifa continua sendo a da sua conta, e a tela avisa que a troca de ligação tem custo à parte.</li>
+<li><strong>Cobranças da conta que não são energia</strong>, como iluminação pública, taxa de lixo, multa e juros (opcional). Sem resposta, a tela avisa que a economia pode sair otimista.</li>
+<li><strong>Horário em que a casa mais usa energia</strong> (opcional). Sem resposta, nada conta como usado na hora, o lado mais conservador.</li>
+<li><strong>Área do telhado</strong> (opcional). Ela não muda a conta: se os painéis não couberem, a tela avisa.</li>
 </ul>
-<p>Você não precisa dar nome, e-mail nem fazer cadastro.</p>
+<p>Não é preciso dar nome, e-mail nem fazer cadastro.</p>
 </div>
 </details>
 </section>
@@ -98,43 +93,43 @@
 <tbody>
 <tr>
 <th scope="row">Lista de municípios</th>
-<td>Códigos e nomes oficiais do <strong>IBGE</strong></td>
-<td>A lista foi montada a partir do conjunto aberto <em>municipios-brasileiros</em> (licença MIT) e conferida com a API de Localidades do IBGE em 30/09/2026. Os 5.571 municípios batem com o IBGE.</td>
+<td><strong>IBGE</strong></td>
+<td>Conjunto aberto <em>municipios-brasileiros</em> (licença MIT), conferido com a API de Localidades do IBGE em 30/09/2026: os 5.571 municípios batem.</td>
 </tr>
 <tr>
 <th scope="row">Quadrado de sol da cidade</th>
 <td><strong>IBGE</strong> (BC250), <strong>municipios-brasileiros</strong> e <strong>Wikidata</strong></td>
-<td>A NASA divide o mapa em quadrados de 1 grau, com cerca de 100 km de lado. Para saber em qual quadrado fica cada município, a plataforma compara a localização da sede em três fontes e usa o quadrado em que pelo menos duas concordam. As três apontaram o mesmo quadrado em 5.481 dos 5.571 municípios. Em um município não houve maioria, e valeu o IBGE. A localização das sedes não é publicada: a tabela traz só o quadrado.</td>
+<td>A NASA divide o mapa em quadrados de 1 grau, de cerca de 100 km de lado. A plataforma usa o quadrado em que pelo menos duas das três fontes põem a sede do município. As três concordaram em 5.481 dos 5.571; em um não houve maioria, e valeu o IBGE. A tabela pública traz só o quadrado, não a localização da sede.</td>
 </tr>
 <tr>
 <th scope="row">Sol (irradiação)</th>
 <td><strong>NASA POWER</strong></td>
-<td>É a irradiação global no plano horizontal, em média para cada mês, de janeiro de 2001 a dezembro de 2025 (parâmetro ALLSKY_SFC_SW_DWN; Climatology API v2.10.1, fonte SYN1DEG, estimada por satélite). Os valores dos 5.571 municípios foram baixados de uma vez, em 06/11/2026. Eles ficam numa tabela pública no repositório, junto com o programa que a monta. Se a tabela faltar, a plataforma volta a buscar a cidade no OpenStreetMap e o sol na NASA, na hora.</td>
+<td>Irradiação global no plano horizontal, média de cada mês de 2001 a 2025 (parâmetro ALLSKY_SFC_SW_DWN; Climatology API v2.10.1, fonte SYN1DEG, estimada por satélite). Baixada em 06/11/2026 para os 5.571 municípios e guardada numa tabela pública no repositório. Se a tabela faltar, a plataforma busca a cidade no OpenStreetMap e o sol na NASA, na hora.</td>
 </tr>
 <tr>
 <th scope="row">Fio B</th>
-<td><strong>ANEEL</strong>, Portal de Dados Abertos, conjunto "Componentes Tarifárias"</td>
-<td>É o valor da TUSD Fio B da classe residencial B1 convencional, sem impostos. A plataforma usa o valor da distribuidora que atende o <strong>seu município</strong>, e a tela mostra qual é e até quando o valor vale. O conjunto é publicado sob licença ODbL.</td>
+<td><strong>ANEEL</strong>, Dados Abertos, “Componentes Tarifárias” (licença ODbL)</td>
+<td>TUSD Fio B da classe residencial B1 convencional, sem impostos, da distribuidora do <strong>seu município</strong>. A tela mostra qual é e até quando o valor vale.</td>
 </tr>
 <tr>
-<th scope="row">Qual distribuidora atende cada município</th>
-<td><strong>ANEEL</strong>, Portal de Dados Abertos: <em>IndQual Município</em> e <em>Indicadores Coletivos de Continuidade (DEC e FEC)</em></td>
-<td>O primeiro conjunto liga o código IBGE do município ao conjunto de unidades consumidoras; o segundo liga cada conjunto à distribuidora, com CNPJ. O encontro com a tabela do Fio B é feito por CNPJ. Os dois conjuntos são publicados sob licença ODbL.</td>
+<th scope="row">Distribuidora de cada município</th>
+<td><strong>ANEEL</strong>, Dados Abertos: <em>IndQual Município</em> e <em>Indicadores DEC e FEC</em> (licença ODbL)</td>
+<td>O primeiro liga o código IBGE do município aos conjuntos de unidades consumidoras; o segundo liga cada conjunto à distribuidora, pelo CNPJ, que também identifica a distribuidora na tabela do Fio B.</td>
 </tr>
 <tr>
 <th scope="row">Preço do sistema</th>
 <td><strong>Greener</strong>, <em>Estudo Estratégico</em> do 1º semestre de 2026 (setembro de 2026)</td>
-<td>São os preços médios de junho de 2026 para cada tamanho de sistema.</td>
+<td>Preços médios de junho de 2026 para cada tamanho de sistema.</td>
 </tr>
 <tr>
 <th scope="row">Painéis e inversores</th>
-<td>Folhas de dados dos fabricantes</td>
-<td>Painéis: Jinko Solar (600 Wp) e Trina Solar (550 e 670 Wp). Inversores monofásicos: Growatt MIC e MIN (de 1,0 a 10 kW) e Deye G05 (de 4,2 a 7,5 kW, para os painéis de corrente alta). Inversores trifásicos (12, 15, 20 e 25 kW): Growatt MID XL2 e Deye G02-LV, para rede de 127/220 V, e Growatt MOD X2 e MID X2, para rede de 220/380 V. Todos com registro ativo no Inmetro.</td>
+<td>Folhas de dados dos fabricantes; registro ativo no <strong>Inmetro</strong></td>
+<td>No resultado: painéis Jinko (600 Wp) e Trina (550 e 670 Wp); inversores Growatt e Deye, monofásicos de 1,0 a 10 kW e trifásicos de 12 a 25 kW, para as redes de 127/220 V e 220/380 V. Nos botões “Ver com outras placas” e “Ver outros inversores”: também Astronergy e Risen, e Solis, Huawei e Solplanet. Os modelos estão em <a href="/equipamentos"><strong>Painéis, inversores e preços</strong></a>.</td>
 </tr>
 <tr>
 <th scope="row">Rede trifásica da cidade</th>
-<td>ANEEL (dados das distribuidoras, 2025)</td>
-<td>Usada só acima de 10 kW, para escolher qual inversor aparece primeiro. Se 95% das casas da cidade estão numa rede, ela é a da cidade; se não, os dois aparecem como antes. Não muda painéis, custo nem retorno.</td>
+<td><strong>ANEEL</strong>, BDGD (dados de 31/12/2025), e lista da <strong>Neoenergia Coelba</strong></td>
+<td>Só acima de 10 kW, para escolher qual inversor aparece primeiro: se 95% das casas da cidade estão numa rede, o modelo dela vem primeiro. Não muda painéis, custo nem retorno.</td>
 </tr>
 </tbody>
 </table></div>
@@ -146,42 +141,41 @@
 <details class="secao-sanfona">
     <summary><h2 id="3-o-calculo-passo-a-passo"><span class="divider-dot"></span>3. O cálculo, passo a passo</h2></summary>
 <div class="secao-conteudo">
-<p>Os números entre parênteses são as equações do artigo que descreve a plataforma. Eles servem para quem quiser conferir.</p>
+<p>Os números entre parênteses são as equações do artigo que descreve a plataforma, para quem quiser conferir.</p>
 <ol>
-<li><strong>Sol do ano:</strong> a plataforma faz a média das 12 médias mensais, dando a cada mês o peso dos dias que ele tem. O resultado são as <strong>horas de sol pleno</strong> (HSP), ou seja, quantas horas por dia seriam necessárias, com sol de 1.000 W/m², para juntar a mesma energia. (Eq. 1)</li>
-<li><strong>Tarifa:</strong> é o valor da conta, menos as cobranças que não são energia (se você informou), dividido pelo consumo registrado nessa mesma conta. Se esse consumo ficou abaixo do mínimo da distribuidora (30, 50 ou 100 kWh, conforme o tipo de ligação), a divisão é pelo mínimo, porque nesses meses é o mínimo que a conta cobra (Resolução ANEEL nº 1.000/2021, arts. 290 e 291). No artigo do TCC a divisão era sempre pelo consumo da conta; a regra do mínimo veio depois da entrega. (Eq. 2)</li>
-<li><strong>Quanto cada kWh gerado economiza:</strong> é a tarifa menos a parte do Fio B que continua sendo cobrada. Essa parte é definida pela Lei nº 14.300/2022 (art. 27): 60% do Fio B em 2026, 75% em 2027 e 90% em 2028. Por isso a economia de cada kWh muda com o ano: no tempo de retorno (passo 12), cada mês usa o percentual do seu ano. De 2029 em diante a conta principal usa 100%, que é uma premissa, porque a regra definitiva da Lei (art. 17) ainda não foi definida pela ANEEL; a tela mostra também o pior caso (passo 14). (Eq. 3)</li>
-<li><strong>Quanto da conta dá para abater:</strong> a distribuidora sempre cobra um mínimo por mês, chamado custo de disponibilidade. Ele equivale a 30, 50 ou 100 kWh, conforme a ligação seja monofásica, bifásica ou trifásica (Resolução ANEEL nº 1.000/2021, art. 291). Com painéis, a conta não pode ficar abaixo desse mínimo, mas a parte do Fio B que continua sendo cobrada conta para atingi-lo (art. 655-I). Por isso, quanto maiores o consumo e o Fio B, mais do consumo pode ser abatido, às vezes ele inteiro. Quando o mínimo segura uma parte, a plataforma dimensiona o sistema só para o que dá para abater, porque painel a mais não traz economia. Se não sobrar nada para abater, ela não indica sistema e explica o motivo. (Eq. 4)</li>
-<li><strong>Potência dos painéis:</strong> é a energia por dia dividida pelas horas de sol e por <strong>0,80</strong>. Esse 0,80 é a <strong>taxa de desempenho</strong>, a fração da energia do sol que chega à sua casa depois das perdas (calor, sujeira, cabos, inversor). O valor é o limite superior da faixa de 70% a 80% do <em>Manual de Engenharia para Sistemas Fotovoltaicos</em> do CEPEL-CRESESB. (Eq. 5)</li>
-<li><strong>Número de painéis:</strong> é essa potência dividida pela potência de um painel, com arredondamento <strong>para cima</strong>. (Eq. 6)</li>
-<li><strong>Inversor:</strong> é o menor modelo do catálogo (1,0; 1,5; 2,0; 2,5; 3,0; 4,2; 5,0; 6,0; 7,0; 7,5; 8,0; 9,0 ou 10 kW, monofásicos; 12, 15, 20 ou 25 kW, trifásicos) que tenha pelo menos 80% da potência dos painéis. Nos trifásicos há um modelo para cada tipo de rede (127/220 V e 220/380 V), e os painéis precisam servir nos dois. O da rede mais comum na cidade aparece primeiro. Acima de 25 kW, o sistema sai do porte residencial, e a plataforma não indica sistema. (Eq. 7)</li>
+<li><strong>Sol do ano:</strong> a média das 12 médias mensais, cada mês com o peso dos seus dias. O resultado são as <strong>horas de sol pleno</strong> (HSP): quantas horas por dia, com sol de 1.000 W/m², juntariam a mesma energia. (Eq. 1)</li>
+<li><strong>Tarifa:</strong> o valor da conta, menos as cobranças que não são energia (se você informou), dividido pelo consumo dessa mesma conta. Se esse consumo ficou abaixo do mínimo da distribuidora (30, 50 ou 100 kWh, conforme a ligação), a divisão é pelo mínimo, que é o que a conta cobra nesses meses (Resolução ANEEL nº 1.000/2021, arts. 290 e 291). (Eq. 2)</li>
+<li><strong>Quanto cada kWh gerado economiza:</strong> a tarifa menos a parte do Fio B que continua sendo cobrada, 60% em 2026, 75% em 2027 e 90% em 2028 (Lei nº 14.300/2022, art. 27). No tempo de retorno (passo 13), cada mês usa o percentual do seu ano. De 2029 em diante, a conta principal usa 100%. É uma premissa, porque a ANEEL ainda não definiu a regra do art. 17; a tela mostra também o pior caso (passo 14). (Eq. 3)</li>
+<li><strong>Quanto da conta dá para abater:</strong> a conta nunca fica abaixo do <strong>custo de disponibilidade</strong>, um mínimo de 30, 50 ou 100 kWh por mês, conforme a ligação seja monofásica, bifásica ou trifásica (Resolução ANEEL nº 1.000/2021, art. 291). A parte do Fio B que continua sendo cobrada conta para chegar a esse mínimo (art. 655-I). Por isso, quanto maiores o consumo e o Fio B, mais dá para abater, às vezes o consumo inteiro. O sistema é dimensionado só para o que dá para abater, porque painel a mais não traz economia. Se não sobrar nada, a plataforma não indica sistema e explica o motivo. (Eq. 4)</li>
+<li><strong>Potência dos painéis:</strong> a energia por dia dividida pelas horas de sol e por <strong>0,80</strong>. O 0,80 é a <strong>taxa de desempenho</strong>, a fração da energia do sol que sobra depois das perdas (calor, sujeira, cabos, inversor). É o limite de cima da faixa de 70% a 80% do <em>Manual de Engenharia para Sistemas Fotovoltaicos</em> do CEPEL-CRESESB. (Eq. 5)</li>
+<li><strong>Número de painéis:</strong> essa potência dividida pela potência de um painel, arredondada <strong>para cima</strong>. (Eq. 6)</li>
+<li><strong>Inversor:</strong> o menor modelo do catálogo com pelo menos 80% da potência dos painéis: 1,0; 1,5; 2,0; 2,5; 3,0; 4,2; 5,0; 6,0; 7,0; 7,5; 8,0; 9,0 ou 10 kW, monofásicos, e 12, 15, 20 ou 25 kW, trifásicos. Nos trifásicos há um modelo para cada rede (127/220 V e 220/380 V), e os painéis precisam servir nos dois; o da rede mais comum na cidade aparece primeiro. Acima de 25 kW, o sistema sai do porte residencial, e a plataforma não indica sistema. (Eq. 7)</li>
 <li>
-<p><strong>Verificação elétrica:</strong> a compatibilidade entre painéis e inversor é um requisito de projeto tratado pela ABNT NBR 16690:2019. A plataforma faz essa verificação com os limites das folhas de dados, usando critérios adaptados do Manual do CEPEL-CRESESB e de Baars (2022). Os painéis são testados com as células a 0 °C (inverno) e a 70 °C (verão), em quatro verificações:</p>
+<p><strong>Verificação elétrica:</strong> a compatibilidade entre painéis e inversor é um requisito de projeto da ABNT NBR 16690:2019. A plataforma a confere com os limites das folhas de dados e com critérios adaptados do Manual do CEPEL-CRESESB e de Baars (2022), com as células a 0 °C (inverno) e a 70 °C (verão), em quatro verificações:</p>
 <ul>
-<li><strong>corrente de curto-circuito</strong> — é de segurança e não tem tolerância;</li>
-<li><strong>corrente de operação</strong> — é de desempenho e aceita até 10% acima do limite do inversor;</li>
-<li><strong>tensão no frio</strong> — é de segurança e define o <strong>máximo</strong> de painéis em série;</li>
-<li><strong>tensão no calor</strong> — é de desempenho e define o <strong>mínimo</strong> de painéis em série.</li>
+<li><strong>corrente de curto-circuito</strong>: de segurança, sem tolerância;</li>
+<li><strong>corrente de operação</strong>: de desempenho, aceita até 10% acima do limite do inversor;</li>
+<li><strong>tensão no frio</strong>: de segurança, define o <strong>máximo</strong> de painéis em série;</li>
+<li><strong>tensão no calor</strong>: de desempenho, define o <strong>mínimo</strong> de painéis em série.</li>
 </ul>
-<p>Nos inversores trifásicos, duas fileiras iguais podem dividir a mesma entrada (ligadas em paralelo). Aí as correntes delas se somam, e é a soma que a plataforma compara com os limites de corrente.</p>
-<p>Se o número de painéis ficar abaixo do mínimo, ele sobe até o mínimo. Entre os painéis aprovados, a plataforma escolhe o de <strong>menor corrente</strong>. Por isso o resultado já vem com o painel escolhido: um painel recusado na verificação elétrica não deveria ser oferecido como opção. Na lista “Ver com outras placas”, cada painel passa pela mesma verificação; nos bifaciais, com a corrente do verso recebendo luz (condição BNPI da folha do fabricante). Se nenhum Growatt ou Deye da potência serve, a plataforma tenta Solis, Huawei e Solplanet, nessa ordem. (Eq. 12)</p>
+<p>Nos trifásicos, quando duas fileiras dividem a mesma entrada (ligadas em paralelo), é a soma das correntes que se compara com os limites. Se o número de painéis ficar abaixo do mínimo, ele sobe até o mínimo. Entre os painéis aprovados, a plataforma fica com o de <strong>menor corrente</strong>; por isso o resultado já vem com o painel escolhido. Em “Ver com outras placas”, cada painel passa pela mesma verificação, e os bifaciais com a corrente do verso recebendo luz (condição BNPI da folha do fabricante). Se nenhum Growatt ou Deye da potência serve, a plataforma tenta Solis, Huawei e Solplanet, nessa ordem. (Eq. 12)</p>
 </li>
 <li>
-<p><strong>Geração de cada mês:</strong> potência dos painéis × horas de sol do mês × 0,80 × dias do mês. A plataforma considera <strong>sempre os painéis deitados (na horizontal)</strong>, porque não pergunta a posição do telhado. Num telhado inclinado e virado para o norte, a geração tende a ser maior (veja a página <a href="/limitacoes"><strong>Limitações</strong></a>). (Eq. 8)</p>
+<p><strong>Geração de cada mês:</strong> potência dos painéis × horas de sol do mês × 0,80 × dias do mês, com os <strong>painéis deitados (na horizontal)</strong>, porque a plataforma não pergunta a posição do telhado. Num telhado inclinado e virado para o norte, a geração tende a ser maior (veja <a href="/limitacoes"><strong>Limitações</strong></a>). (Eq. 8)</p>
 </li>
-<li><strong>Economia:</strong> a plataforma pega o menor valor entre a geração do ano e o consumo que dá para abater, e multiplica pelo quanto cada kWh economiza. A conta é feita no ano, e não mês a mês, porque a energia que sobra num mês vira crédito que vale por 60 meses (Lei nº 14.300/2022, art. 13). (Eq. 9)</li>
-<li><strong>Energia usada na hora:</strong> quando você responde em que horário a casa mais usa energia, uma parte da geração (10%, 30% ou 39%) é tratada como usada no mesmo instante. Essa parte economiza a tarifa inteira, sem o Fio B (ANEEL, Relatório de AIR nº 0004/2018), e diminui o consumo puxado da rede, sobre o qual valem o mínimo da conta e o limite do que dá para abater. O resto da geração vai para a rede e segue a conta do passo anterior. Os percentuais ficam no lado baixo das medições publicadas (ANEEL, 2018; EPE, 2023; Dilli e Brito, 2025), e a resposta não muda o número de painéis. Sem resposta, vale 0%, e a conta é exatamente a da Eq. 9. Este passo veio depois da entrega do TCC.</li>
+<li><strong>Economia:</strong> o menor valor entre a geração do ano e o consumo que dá para abater, vezes o quanto cada kWh economiza. A conta é feita no ano porque a energia que sobra num mês vira crédito que vale por 60 meses (Lei nº 14.300/2022, art. 13). (Eq. 9)</li>
+<li><strong>Energia usada na hora:</strong> se você diz em que horário a casa mais usa energia, uma parte da geração (10%, 30% ou 39%) conta como usada no mesmo instante. Essa parte economiza a tarifa inteira, sem o Fio B (ANEEL, Relatório de AIR nº 0004/2018), e diminui o consumo puxado da rede, sobre o qual valem o mínimo da conta e o limite do passo 4. O resto da geração segue o passo 10. Os percentuais ficam no lado baixo das medições publicadas (ANEEL, 2018; EPE, 2023; Dilli e Brito, 2025) e não mudam o número de painéis. Sem resposta, vale 0%, e a conta é exatamente a da Eq. 9.</li>
 <li><strong>Preço:</strong> os preços médios da Greener, ligados por retas entre 2, 4, 8, 12 e 30 kWp. (Eq. 10)</li>
-<li><strong>Tempo de retorno:</strong> a plataforma soma, <strong>mês a mês</strong> e a partir do mês da simulação, a economia de cada mês menos a manutenção, até a soma alcançar o preço do sistema. Cada mês usa o percentual do Fio B do seu ano (passo 3), e a geração perde 0,5% por ano com o desgaste dos painéis (Pinho e Galdino, 2014). A manutenção é de 1% do preço do sistema por ano, e o inversor é trocado uma vez, no início do 11º ano, por 15% do preço do sistema, os valores da EPE para sistemas residenciais (Nota Técnica EPE-DEA-SEE 014/2022, Tabela 2). O retorno é o mês a partir do qual a soma fica acima do preço e não volta a ficar abaixo, mesmo com a troca do inversor. A tarifa fica constante, em dinheiro de hoje, e a conta não inclui juros. Tempos acima de 25 anos não são mostrados, porque 25 anos é o prazo da garantia de desempenho dos painéis. No artigo do TCC, o retorno era a conta simples, o preço dividido pela economia de um mês (Eq. 11); o cálculo mês a mês veio depois da entrega, e a manutenção e a troca do inversor, em novembro de 2026.</li>
+<li><strong>Tempo de retorno:</strong> a plataforma soma, <strong>mês a mês</strong> a partir do mês da simulação, a economia de cada mês menos a manutenção, até alcançar o preço do sistema. Cada mês usa o percentual do Fio B do seu ano (passo 3), e a geração cai 0,5% por ano com o desgaste dos painéis (Pinho e Galdino, 2014). A manutenção é de 1% do preço por ano, e o inversor é trocado uma vez, no início do 11º ano, por 15% do preço, valores da EPE para sistemas residenciais (Nota Técnica EPE-DEA-SEE 014/2022, Tabela 2). O retorno é o mês a partir do qual a soma passa do preço e não volta a ficar abaixo, mesmo com a troca do inversor. A tarifa fica constante, em dinheiro de hoje, e a conta não inclui juros. Tempos acima de 25 anos, o prazo da garantia de desempenho dos painéis, não são mostrados.</li>
 <li>
-<p><strong>Os 25 anos e os indicadores financeiros:</strong> o mesmo fluxo de cada mês (economia menos manutenção e troca do inversor) segue até os 25 anos, em dinheiro de hoje. Com ele a plataforma calcula:</p>
+<p><strong>Os 25 anos e os indicadores financeiros:</strong> o mesmo fluxo de cada mês segue até os 25 anos, em dinheiro de hoje, e dá:</p>
 <ul>
 <li>a <strong>taxa interna de retorno (TIR)</strong> real: a taxa mensal que faz o fluxo devolver exatamente o preço do sistema, levada para o ano. É o “rende cerca de X% ao ano” da tela;</li>
-<li>o <strong>valor presente líquido (VPL)</strong> a duas taxas reais: a da poupança dos últimos 12 meses, 3,57% ao ano (de outubro de 2025 a setembro de 2026, poupança de 8,31% e IPCA de 4,58%; Banco Central do Brasil, séries 196 e 433), e 5% ao ano, o rendimento de um título público atrelado ao IPCA depois da inflação e do imposto de renda (Dantas e Pompermayer, 2018). O VPL à taxa da poupança é o “você fica com cerca de R$ X a mais do que na poupança” da tela;</li>
+<li>o <strong>valor presente líquido (VPL)</strong> a duas taxas reais: a da poupança dos últimos 12 meses, 3,57% ao ano (de outubro de 2025 a setembro de 2026, poupança de 8,31% e IPCA de 4,58%; Banco Central do Brasil, séries 196 e 433), que dá o “você fica com cerca de R$ X a mais do que na poupança” da tela; e 5% ao ano, o rendimento de um título público atrelado ao IPCA depois da inflação e do imposto de renda (Dantas e Pompermayer, 2018);</li>
 <li>o <strong>tempo de retorno descontado</strong>, à taxa da poupança.</li>
 </ul>
-<p>A poupança dos últimos 12 meses foi escolhida por ser a aplicação mais comum e, entre as janelas recentes, a de maior rendimento acima da inflação (em 10 anos, a média foi de 0,97% ao ano), o que deixa a comparação mais difícil para os painéis. Como a poupança, a economia na conta não paga imposto de renda.</p>
-<p><strong>O pior caso para 2029.</strong> A plataforma refaz a mesma conta trocando, de 2029 em diante, a cobrança do Fio B pela cobrança máxima que a Lei permite: as tarifas TUSD e TE que a ANEEL aplica à energia compensada (Resolução ANEEL nº 1.000/2021, art. 655-I), sem nenhum desconto e sem impostos, pelo valor publicado para a distribuidora (Dados Abertos, “Componentes Tarifárias”). A cobrança nunca passa da tarifa da conta. Quando a distribuidora não tem esse valor publicado, ele é estimado pelo Fio B dela vezes a mediana da razão entre os dois nas distribuidoras que têm, e a tela avisa. A Lei manda descontar os benefícios que a geração traz à rede (art. 17, § 1º), e por isso a regra de verdade deve ficar entre as duas contas.</p>
+<p>A poupança é a aplicação mais comum, e esses 12 meses foram os de maior rendimento acima da inflação entre as janelas recentes (em 10 anos, a média foi de 0,97% ao ano): a comparação fica mais difícil para os painéis. Como a poupança, a economia na conta não paga imposto de renda.</p>
+<p><strong>O pior caso para 2029.</strong> A mesma conta, trocando, de 2029 em diante, o Fio B pela cobrança máxima que a Lei permite: as tarifas TUSD e TE que a ANEEL aplica à energia compensada (Resolução ANEEL nº 1.000/2021, art. 655-I), sem desconto e sem impostos, pelo valor publicado para a distribuidora (“Componentes Tarifárias”). A cobrança nunca passa da tarifa da conta. Sem valor publicado, ela é estimada pelo Fio B da distribuidora vezes a mediana da razão entre os dois nas distribuidoras que têm, e a tela avisa. A Lei manda descontar os benefícios que a geração traz à rede (art. 17, § 1º), por isso a regra de verdade deve ficar entre as duas contas.</p>
 </li>
 </ol>
 </div>
@@ -192,7 +186,7 @@
 <details class="secao-sanfona">
     <summary><h2 id="4-a-comparacao-com-o-pvsyst"><span class="divider-dot"></span>4. A comparação com o PVsyst</h2></summary>
 <div class="secao-conteudo">
-<p>O PVsyst (versão 8.1.5) é um programa de projeto que calcula a geração <strong>hora a hora</strong>. Os cinco casos são uma cidade em cada região do país, escolhidas para cobrir uma faixa ampla de sol e de temperatura (<a href="/precisao#cidades">veja por que essas cidades</a>). Nele, cada caso foi simulado com o mesmo sistema indicado pela plataforma, com os mesmos painéis e inversores e o mesmo sol da NASA POWER. Nas duas ferramentas os painéis ficaram na <strong>horizontal</strong>.</p>
+<p>Para conferir a geração, cinco cidades, uma em cada região do país, foram simuladas também no PVsyst 8.1.5, um programa de projeto que calcula <strong>hora a hora</strong>. Nas duas ferramentas, o sistema foi o mesmo (painéis e inversor indicados pela plataforma), o sol foi o mesmo, da NASA POWER, e os painéis ficaram na <strong>horizontal</strong>.</p>
 <div class="tabela-wrap"><table class="tabela-geracao">
 <thead>
 <tr>
@@ -248,18 +242,14 @@
 </tbody>
 </table></div>
 <ul>
-<li><strong>Critério de aceitação:</strong> diferença de até 10% na geração do ano. Os cinco casos ficaram dentro dele.</li>
-<li><strong>A plataforma estima menos.</strong> Isso aconteceu nos cinco casos e em todos os 12 meses de cada um. O motivo são as perdas: a plataforma usa uma taxa fixa de 0,80, e o PVsyst calculou de 83,35% a 85,93%, que é o valor de um sistema sem sombra, sem sujeira e sem desgaste. Em relação à simulação, portanto, a estimativa fica do lado seguro. <strong>Mas, num telhado real, a geração pode ser menor que a do PVsyst.</strong></li>
-<li><strong>Verificação elétrica:</strong> os limites de painéis em série deram iguais aos do PVsyst nos inversores conferidos (MIC 1500TL-X, MIC 2000TL-X e MIN 5000TL-X). A perda por limite de corrente ficou em até 0,04%. Numa simulação extra de Campinas, feita para isolar esse efeito, ela chegou a 0,56%.</li>
-<li><strong>Tempo de retorno:</strong> com 60% do Fio B, foi de 3,2 a 5,6 anos nos cinco casos. Um estudo publicado (Costa et al., 2025) calculou 4,57 anos para uma casa com 4,2 kWp. Na mesma casa, três calculadoras gratuitas deram de 3 anos e 3 meses a 4 anos e 1 mês. Esses tempos caem dentro da nossa faixa, mas a comparação vale só como ordem de grandeza, porque os cenários são diferentes. Com a subida do Fio B, que a plataforma passou a somar mês a mês depois do TCC, e com a manutenção e a troca do inversor, o retorno dos cinco casos fica de 3,9 a 6,3 anos para uma simulação feita em novembro de 2026, com os preços de junho de 2026.</li>
-<li><strong>Conferência das equações:</strong> um programa refaz as contas a partir das equações escritas no artigo (e, para o retorno mês a mês, da descrição que está no código). Ele rodou a plataforma 33.472 vezes, em toda a faixa de consumo residencial e até os inversores trifásicos de 25 kW, inclusive com contas de mês abaixo do mínimo, sem nenhuma divergência. Também foram colocados de propósito 22 erros no cálculo, 6 deles no retorno mês a mês e nos 25 anos (entre eles, esquecer a manutenção ou a troca do inversor), 2 na tarifa e 4 nos inversores trifásicos (entre eles, esquecer de somar a corrente de duas fileiras na mesma entrada), e o programa detectou os 22.</li>
+<li><strong>Resultado:</strong> os cinco casos ficaram dentro do critério, uma diferença de até 10% na geração do ano, e a plataforma estimou menos em todos os 12 meses de cada um. A escolha das cidades, a diferença mês a mês e o motivo dela (as perdas: 0,80 na plataforma, de 83,35% a 85,93% no PVsyst) estão em <a href="/precisao"><strong>Quão preciso é o resultado?</strong></a>.</li>
 <li><strong>O que ficou fixo nos cinco casos:</strong> ligação bifásica, 60% do Fio B (2026) e tarifa de teste de R$ 0,75/kWh.</li>
-<li><strong>Limites desta comparação:</strong></li>
-<li>a referência é uma simulação, e não uma medição de sistema real;</li>
-<li>cinco casos não formam uma amostra estatística;</li>
-<li>o erro da própria NASA POWER não foi avaliado.</li>
+<li><strong>Verificação elétrica:</strong> os limites de painéis em série deram iguais aos do PVsyst nos inversores conferidos (MIC 1500TL-X, MIC 2000TL-X e MIN 5000TL-X). A perda por limite de corrente ficou em até 0,04%, e chegou a 0,56% numa simulação extra de Campinas, feita para isolar esse efeito.</li>
+<li><strong>Tempo de retorno:</strong> com 60% do Fio B, foi de 3,2 a 5,6 anos nos cinco casos. Para uma casa de 4,2 kWp, um estudo publicado calculou 4,57 anos (Costa et al., 2025), e três calculadoras gratuitas deram de 3 anos e 3 meses a 4 anos e 1 mês. Os tempos caem dentro da nossa faixa, mas a comparação vale só como ordem de grandeza, porque os cenários são diferentes. Com a subida do Fio B, a manutenção e a troca do inversor (passo 13), o retorno dos cinco casos vai de 3,9 a 6,3 anos, numa simulação de novembro de 2026 com os preços de junho de 2026.</li>
+<li><strong>Conferência das equações:</strong> um programa refaz as contas a partir das equações do artigo (e, para o retorno mês a mês, da descrição que está no código) e as compara com as da plataforma em 33.472 simulações, em toda a faixa de consumo residencial e até os inversores trifásicos de 25 kW, sem nenhuma divergência. Para provar que ele pega erros, 32 erros foram colocados de propósito no cálculo, como esquecer a manutenção ou não somar a corrente de duas fileiras na mesma entrada, e ele detectou os 32. Um segundo programa faz o mesmo com o gráfico do dinheiro ao longo dos 25 anos: 2.063 simulações e 4 erros plantados, todos detectados.</li>
+<li><strong>Limites desta comparação:</strong> a referência é uma simulação, e não a medição de um sistema real; cinco casos não formam uma amostra estatística; e o erro da própria NASA POWER não foi avaliado.</li>
 </ul>
-<p><strong>E o site de hoje?</strong> Depois da comparação (feita com a versão do código de 23/09/2026), mudaram a escolha da cidade, a forma de guardar os dados e as explicações da tela, e quatro partes da conta: o Fio B passou a ser o da distribuidora do município (02/10/2026), o tempo de retorno passou a ser somado mês a mês (06/10/2026), a conta de um mês abaixo do mínimo passou a ser dividida pelo mínimo (07/10/2026) e a manutenção e a troca do inversor entraram no retorno (novembro de 2026). Nada disso muda o jeito de calcular a geração: em 07/10/2026 os cinco casos foram refeitos com o site atual, com os dados reais da NASA e do OpenStreetMap, e painéis, inversor e geração continuaram idênticos aos da comparação. Em novembro de 2026, o sol passou a vir de uma tabela, com a média de 2001 a 2025. Nos cinco casos, painéis e inversor continuaram os mesmos, e a geração mudou no máximo 0,2% (Manaus).</p>
+<p><strong>E o site de hoje?</strong> A comparação foi feita com a versão do código de 23/09/2026. Depois disso, a conta mudou em cinco pontos: o Fio B passou a ser o da distribuidora do município (02/10/2026); o tempo de retorno passou a ser somado mês a mês (06/10/2026), e não mais o preço dividido pela economia de um mês (Eq. 11 do artigo); a tarifa de uma conta abaixo do mínimo passou a ser dividida pelo mínimo (07/10/2026); a manutenção e a troca do inversor entraram no retorno, e a energia usada na hora entrou na economia (novembro de 2026). Nada disso muda a geração: em 07/10/2026, os cinco casos refeitos no site deram painéis, inversor e geração idênticos aos da comparação. Em novembro de 2026, o sol passou a vir de uma tabela, com a média de 2001 a 2025; nos cinco casos, painéis e inversor continuaram os mesmos, e a geração mudou no máximo 0,2% (Manaus).</p>
 </div>
 </details>
 </section>
@@ -269,8 +259,15 @@
     <summary><h2 id="5-onde-conferir"><span class="divider-dot"></span>5. Onde conferir</h2></summary>
 <div class="secao-conteudo">
 <ul>
-<li><strong>Código-fonte, relatórios do PVsyst e telas dos cinco casos:</strong> no repositório do GitHub, na versão descrita no artigo: https://github.com/gandalfa1/quantos-paineis/tree/v1.0-tcc</li>
-<li><strong>Tabelas tiradas dos dados abertos da ANEEL</strong> (o Fio B de cada distribuidora e as distribuidoras de cada município): no mesmo repositório, https://github.com/gandalfa1/quantos-paineis, sob a licença ODbL, junto com o programa que as refaz a partir dos dados originais (atualizar_dados_aneel.py) e o arquivo dados-ANEEL-LICENCA.txt, que explica a origem de cada uma.</li>
+<li><strong>Código, relatórios do PVsyst e telas dos cinco casos</strong>, na versão descrita no TCC: https://github.com/gandalfa1/quantos-paineis/tree/v1.0-tcc</li>
+<li><strong>Código de hoje</strong>, no mesmo repositório (https://github.com/gandalfa1/quantos-paineis), com as tabelas que a plataforma usa e os programas que as refazem a partir dos dados originais:
+<ul>
+<li>Fio B de cada distribuidora e distribuidoras de cada município (dados abertos da ANEEL, licença ODbL): atualizar_dados_aneel.py; a origem de cada tabela está em dados-ANEEL-LICENCA.txt;</li>
+<li>sol de cada município: sol_municipios.csv, refeita por montar_tabela_sol.py;</li>
+<li>rede de cada município: rede_municipios.csv, refeita por montar_tabela_rede.py.</li>
+</ul>
+</li>
+<li><strong>Programas de conferência da seção 4:</strong> pasta teste/ (conferir_equacoes_3_3.py e conferir_curva_dinheiro.py; o último resultado está em resultado_da_conferencia.txt).</li>
 <li><strong>Artigo:</strong> <em>Dimensionamento fotovoltaico residencial na web</em>, Trabalho de Conclusão de Curso de Engenharia Elétrica (Uninter, 2026), de Brenda Morel Bueno Ferreira.</li>
 <li><strong>O que a plataforma não considera</strong> e quanto isso pesa: veja a página <a href="/limitacoes"><strong>Limitações</strong></a>.</li>
 </ul>
@@ -284,14 +281,13 @@
 <li>ANEEL. Indicadores coletivos de continuidade (DEC e FEC). Portal de Dados Abertos, 2026. Licença ODbL.</li>
 <li>ANEEL. IndQual Município. Portal de Dados Abertos, 2026. Licença ODbL.</li>
 <li>BAARS, A. Inverters for high-current modules: the great IDC max misconception. Sunny: SMA Corporate Blog, 2022.</li>
-<li>BRASIL. Lei nº 14.300, de 6 de janeiro de 2022.</li>
 <li>BANCO CENTRAL DO BRASIL. Sistema Gerenciador de Séries Temporais (SGS): séries 196 (poupança) e 433 (IPCA). Consulta em 4 nov. 2026.</li>
+<li>BRASIL. Lei nº 14.300, de 6 de janeiro de 2022.</li>
 <li>COSTA, F. F. A. et al. Avaliação do payback em sistemas fotovoltaicos on-grid para consumidores residenciais grupo B1 sob a Lei 14300/2022. Revista Brasileira de Energia Solar, v. 16, n. 2, 2025.</li>
 <li>DANTAS, S. G.; POMPERMAYER, F. M. Viabilidade econômica de sistemas fotovoltaicos no Brasil e possíveis efeitos no setor elétrico. Rio de Janeiro: Ipea, 2018. (Texto para Discussão, 2388).</li>
 <li>DILLI, M. A.; BRITO, B. H. Análise do fator de simultaneidade em sistemas fotovoltaicos para prossumidores com diferentes padrões de consumo. Revista Sítio Novo, Palmas, v. 9, e1578, 2025.</li>
 <li>EPE. Nota Técnica EPE-DEA-SEE 014/2022 (Modelo 4MD, versão PDE 2032). Rio de Janeiro: Empresa de Pesquisa Energética, 2022.</li>
 <li>EPE. Nota Técnica DEA-SEE 009/2023: aprimoramento na metodologia de estimação da geração de micro e minigeradores fotovoltaicos distribuídos. 2023.</li>
-<li>GREENER. Estudo estratégico: mercado fotovoltaico, referente ao ano de 2025. Março de 2026.</li>
 <li>GREENER. Estudo estratégico: soluções energéticas distribuídas, mercado fotovoltaico, 1º semestre de 2026. Setembro de 2026.</li>
 <li>IBGE. Base Cartográfica Contínua do Brasil, escala 1:250.000 – BC250. Versão 2025. Fonte: IBGE/DGC.</li>
 <li>KELVINS. municipios-brasileiros. GitHub, licença MIT.</li>
